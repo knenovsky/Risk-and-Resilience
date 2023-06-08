@@ -1,0 +1,475 @@
+---
+title: "explore_the_isomaps"
+output: html_document
+date: "2023-06-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("00_loads_packages.R")
+
+load("230606_dimred_excessmort_annual")
+
+isos <- wdi_data_cons_df %>%
+  clean_names() %>%
+  select(country_code,
+         year,
+         pscore_mean,
+         p_mort_2020,
+         p_mort_2021,
+         income_group,
+         iso1,iso2,iso3,iso4,iso5,iso8) %>%
+  drop_na() %>%
+  filter(year == 2019)
+
+post_sov <- c("ARM", "AZE", "BGR", "BIH", "GEO", "KAZ", "LTU", "MDA", "MKD", "MNE", "ROU", "RUS", "SRB", "SVK", "UKR", "ALB", "BLR", "CZE", "EST", "HRV", "HUN", "LVA", "POL")
+
+
+lm(p_mort_2020~iso1+iso2+iso3+iso4+iso5, isos) %>% summary
+lm(p_mort_2021~iso1+iso2+iso3+iso4+iso5, isos %>% filter(!country_code %in% post_sov)) %>% summary
+lm(p_mort_2021~iso1+iso2+iso3+iso4+iso5, isos %>% filter(country_code %in% post_sov)) %>% summary
+
+lm(p_mort_2020~iso1+iso2+iso3+iso4+iso5, isos %>% filter(!country_code %in% post_sov)) %>% summary
+lm(p_mort_2020~iso1+iso2+iso3+iso4+iso5, isos %>% filter(country_code %in% post_sov)) %>% summary
+
+
+isos_meta <- isos %>%
+  select(!starts_with("iso"))
+
+  
+
+isos <- as.data.frame(scale(isos %>%
+                             filter(year == 2019) %>%
+                             select(starts_with("iso")))) %>%
+  cbind(isos_meta)
+
+isolong <- isos %>%
+  pivot_longer(starts_with("iso"), names_to = "iso", values_to = "value") %>%
+  pivot_longer(starts_with("p_mort"), names_to = "mort_year", values_to = "mort_val")
+
+isolong$income_group <- factor(isolong$income_group, levels = c("Low income", "Lower middle income", "Upper middle income", "High income"))
+
+
+```
+
+## Why dimension reduction?
+
+We engaged Guido's DimRed method to compress more than 1600 dimensions from the World Bank's World Development Indicators.
+
+The resulting latent-space dimensions are better predictors of excess mortality than single variables because they can aggregate over several variables.
+
+However, they are much more complex to interpret, and derive meaning from.
+
+We select isomap dimensions until we reach our self-imposed threshold of 90% explained variance n the World Bank data. Six of these display meaningful relationships with excess mortality isos 1-5 and 8.
+
+
+```{r quick_look, warning=FALSE, echo=FALSE}
+
+ggplot(isolong %>% filter(country_code != "PER",
+                          income_group != ""),
+       aes(x = value,
+           y = pscore_mean,
+           colour = income_group)) +
+  geom_point() +
+  scale_colour_viridis(option = "plasma", discrete = TRUE, begin = 0, end = .80) +
+  facet_wrap(~iso, scales = "free") +
+  bbc_style() +
+  theme(legend.position = "right") +
+  labs(title = "Isomaps against pscore_mean")
+
+
+```
+
+
+Iso1 correlates so strongly with GDP (note to self, make a wee plot to compare them), this is instantlyt recognisable as an iso that represents development in terms of wealth. We're accustomed to seeing these patterns. However, we know from that other scatterplot we made of GDP/pscore_mort that the relationship we're looking for is not expressed in linear terms between wealth and death.
+
+```{r it_aint_about_the_money, echo=FALSE, warning=FALSE, echo=FALSE}
+
+gdp <- read.csv("gdp.csv", skip = 4) %>%
+  clean_names() %>%
+  select(country_code,x2019) %>%
+  rename(gdp_pc_19 = x2019) %>%
+  select(c(country_code, gdp_pc_19)) %>%
+  left_join(read_csv('data/230521_dimred_excessmort.csv')%>% clean_names()) %>%
+  left_join(read_csv("data/income_groups.csv", skip = 10) %>%
+  select(country_code, cat_19) %>%
+  mutate(cat_19 = case_when(cat_19 == "L" ~ "Low income",
+                   cat_19 == "LM" ~ "Lower middle", 
+                   cat_19 == "UM" ~ "Upper middle",
+                   cat_19 == "H" ~ "High income",
+                   TRUE ~ "NA")))
+
+gdp$cat_19 <- factor(gdp$cat_19, levels = c("Low income", "Lower middle", "Upper middle", "High income"))
+
+ggplot(gdp %>% drop_na(), aes(x = gdp_pc_19, y = pscore_mean, colour = factor(cat_19))) +
+  geom_point() +
+  scale_x_log10(labels = comma) +
+  scale_colour_viridis(option = "plasma", discrete = TRUE, begin = 0, end = .80) +
+  bbc_style() +
+  theme(legend.position = "right") +
+  labs(title = "Excess mortality by GDP per capita",
+       subtitle= "GDP values for 2019; note x is a logscale")
+
+```
+
+instead we need to be looking at other dimensions of development that may  not be so immediately intuitive
+this dimred method can generate them for us, but we need to pick them apart to understand what they mean.
+Negative iso4 values correlate strongly with exmort 2020, but NOT 2021
+and positive iso3 values correlate highly with 2021 exmort, but not 2020 (edited) 
+
+## A quick look at the isos {.tabset}
+
+```{r loop_viz, echo = FALSE, warning=FALSE, message=FALSE, results='asis'}
+
+iso_world <- ne_countries(scale = "medium", returnclass = "sf") %>%
+  left_join(isolong %>% rename(adm0_a3 = country_code))
+
+
+for(x in unique(isolong$iso)){
+  cat("###", x, "\n")
+  cat("\n")
+  map_this_iso <- ggplot(data = iso_world %>% filter(iso == x)) +
+    geom_sf(aes(fill = value)) +
+    scale_fill_binned(breaks = seq(from = -2.5, to = 2.5, by = 0.5),
+                      type = "viridis") +
+    bbc_style()+
+    theme(legend.position = "right") +
+    labs(title = paste("Map of", x))
+  
+  single_frame <- ggplot(isolong %>% filter(country_code != "PER",
+                          income_group != "",
+                          iso == x),
+       aes(x = value,
+           y = mort_val,
+           colour = value)) +
+  geom_point() +
+    scale_colour_viridis(option = "plasma", begin = 0, end = .80) +
+    bbc_style() +
+    theme(legend.position = "none") +
+    facet_wrap(~mort_year) +
+    # geom_smooth(method='lm') +
+    labs(title = paste(x, "and excess mortality"))
+
+  print(map_this_iso)
+  print(single_frame)
+  cat("\n")
+  cat("\n")
+}
+
+
+
+```
+
+## ISO1 - "The development threshold"
+
+ISO1 is closely correlated with the Human Development Index (HDI), which is why this map looks so intuitively familiar. Like the HI, iso1 reflects life expectancy, education, and income, but it also covers factors such as infrastructure, trade, population, and pollution.
+
+
+```{r iso1_map, echo = FALSE, warning = FALSE}
+
+ggplot(data = iso_world %>% filter(iso == "iso1")) +
+  geom_sf(aes(fill = value)) +
+  scale_fill_binned(breaks = seq(from = -2.5, to = 2.5, by = 0.5),
+                      type = "viridis") +
+  bbc_style()+
+  theme(legend.position = "right") +
+  labs(title = paste("Map of iso1"))
+
+
+iso_one <- isolong %>%
+  filter(country_code != "PER",
+         iso == "iso1") %>%
+  mutate(bins = cut(value, breaks=5))
+
+country_names <- iso_world %>%
+  select(adm0_a3, name) %>%
+  rename(country_code = adm0_a3)
+
+iso_one_top <- iso_one %>%
+  filter(mort_year == "p_mort_2020") %>%
+  arrange(desc(value)) %>%
+  head(10) %>%
+  mutate(top = "Top 10")
+
+
+iso_one_bottom <- iso_one %>%
+  filter(mort_year == "p_mort_2020") %>%
+  arrange(value) %>%
+  head(10) %>%
+  mutate(top = "Bottom 10")
+
+
+ggplot(iso_one_top %>% rbind(iso_one_bottom) %>% left_join(country_names),
+       aes(x = reorder(name, value), y = value, fill = top)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_viridis(discrete = TRUE) +
+  bbc_style() +
+  theme(panel.grid.major.y = element_blank())+
+  geom_hline(yintercept = 0, size = 2) +
+  facet_wrap(~top, scales = "free") +
+  labs(title = "iso1")
+
+
+```
+
+These additional dimensions add some nuance.
+
+We know that the relationship between crude GDP and exmort for is not linear. Neither is the relationship between exmort and iso1.
+
+Using the World Bank income groups as a crude proxy around which to make some generalisations, we can see that the relationship between iso1 and exmort varies along the income chain. For high-income countries, iso1 shows a negative correlation with exmort -- slight in the first wave, but more pronounced in the second. Low income countries have a very weak relationship. 
+
+But for lower middle income and upper middle income countries, a higher iso1 score brings more, rather than less, exmort risk.
+
+
+```{r iso1, ECHO = FALSE, warning = FALSE, message = FALSE}
+  
+ggplot(isolong %>% filter(country_code != "PER",
+                          income_group != "",
+                          iso == "iso1"),
+       aes(x = value,
+           y = mort_val,
+           colour = income_group)) +
+  geom_point() +
+  scale_colour_viridis(option = "plasma", discrete = TRUE, begin = 0, end = .80) +
+  facet_wrap(~mort_year) +
+  geom_smooth(method='lm') +
+  labs(title = "Iso1 and excess mortality",
+       subtitle = "Note: excluding Peru because it's such an outlier")
+
+
+
+```
+
+There's a threshold at about 0.-6 on the iso1 dimension.
+
+```{r iso1_bins, echo = FALSE, warning = FALSE, message = FALSE}
+
+
+ggplot(iso_one, aes(x = bins, y = mort_val, colour = bins)) +
+  geom_violin() +
+  geom_jitter() +
+  scale_colour_viridis(option = "plasma", discrete = TRUE, begin = 0, end = .80) +
+  facet_wrap(~mort_year) +
+  geom_smooth(method='lm') +
+  bbc_style() +
+  theme(legend.position = "none") +
+  labs(title = "Iso1 and excess mortality",
+       subtitle = "Note: excluding Peru because it's such an outlier")
+
+threshold_val <- -0.6
+
+ggplot(iso_one, aes(x = value, y = mort_val, colour = value)) +
+  geom_point() +
+  scale_colour_viridis(option = "plasma", begin = 0, end = .80) +
+  bbc_style() +
+  theme(legend.position = "none") +
+  geom_vline(xintercept = threshold_val) +
+  facet_wrap(~mort_year) +
+  labs(title = "Iso1 and excess mortality",
+       subtitle = "Note: excluding Peru because it's such an outlier") 
+
+
+
+
+
+```
+Next questions: What does this threshold represent? The pattern is stronger in 2021, which supports this sociodemographic/socioeconomic hypothesis, and indicates that it's more likely to be an economic effect than a demographic one. What characterises the threshold?
+
+
+```{r iso_one_threshold, echo = FALSE, warning = FALSE, message = FALSE}
+
+ggplot(iso_one %>%
+         mutate(threshold = ifelse(value < threshold_val, "Below", "Above")), 
+       aes(x = value, y = mort_val, colour = threshold)) +
+  geom_point() +
+  bbc_style() +
+  geom_vline(xintercept = threshold_val) +
+  scale_colour_viridis(option = "plasma", discrete = TRUE, begin = 0, end = .80) +
+  theme(legend.position = "none") +
+  geom_smooth(method = "lm") +
+  facet_wrap(~mort_year) +
+  labs(title = "Iso1 and excess mortality",
+       subtitle = paste("Note: excluding Peru; threshold", threshold_val)) 
+
+```
+
+# ISO2 - Another non-linear effect
+
+ISO2 shows the same sort of U-shaped behaviour as Iso1, but in reverse, and with a twist. The map shows a concentrated highlight in the Balkans and along the former iron curtain, with similar values also appearing in Central/East Africa.
+
+In Guido's paper, iso2 is described as strongly related to gender ratios in the general population and the labour market.
+
+```{r iso2_map, warning = FALSE}
+
+ggplot(data = iso_world %>% filter(iso == "iso2")) +
+  geom_sf(aes(fill = value)) +
+  scale_fill_binned(breaks = seq(from = -2.5, to = 2.5, by = 0.5),
+                      type = "viridis") +
+  bbc_style()+
+  theme(legend.position = "right") +
+  labs(title = paste("Map of iso2"))
+
+
+```
+Guido's paper notes female labour force participation and crude death rates as strong correlates with this dimension - need to check this, since it may not be the same in Kolja's iteration.
+
+A non-linear relationship with exmort is evident, especially in 2022.
+
+```{r iso2, message = FALSE, warning = FALSE}
+
+iso_two <- isolong %>%
+  filter(country_code != "PER",
+         iso == "iso2") %>%
+  mutate(bins = cut(value, breaks=5))
+
+iso_two_top <- iso_two %>%
+  filter(mort_year == "p_mort_2020") %>%
+  arrange(desc(value)) %>%
+  head(10) %>%
+  mutate(top = "Top 10")
+
+iso_two_bottom <- iso_two %>%
+  filter(mort_year == "p_mort_2020") %>%
+  arrange(value) %>%
+  head(10) %>%
+  mutate(top = "Bottom 10")
+
+
+ggplot(iso_two_top %>% rbind(iso_two_bottom) %>% left_join(country_names),
+       aes(x = reorder(name, value), y = value, fill = top)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_viridis(discrete = TRUE) +
+  bbc_style() +
+  theme(panel.grid.major.y = element_blank())+
+  geom_hline(yintercept = 0, size = 2) +
+  facet_wrap(~top, scales = "free") +
+  labs(title = "iso2")
+
+
+  
+ggplot(iso_two %>% filter(country_code != "PER",
+                          income_group != "") %>%
+         mutate(label = ifelse(country_code %in% post_sov, country_code, '')),
+       aes(x = value,
+           y = mort_val,
+           colour = value)) +
+  geom_point() +
+  scale_colour_viridis(option = "plasma", begin = 0, end = .80) +
+  facet_wrap(~mort_year) +
+  bbc_style() +
+  theme(legend.position = "none") +
+  labs(title = "Iso2 and excess mortality",
+       subtitle = "Note: excluding Peru because it's such an outlier")
+
+
+
+
+
+```
+
+There's a cluster of countries above the 1.4 mark which create the U-shaped pattern in the data. By segmenting these two groups (roughtly, those with positive iso2 values *and* an exmort figure > 18 in 2021), we can see that linear relatioships do exist, within the two subgroups, but that the second group's iso2.exmort relationship inverts in the second wave of the pandemic.
+
+
+
+```{r iso2_segment, message = FALSE, warning = FALSE, echo = FALSE}
+
+  
+ggplot(isolong %>% filter(country_code != "PER",
+                          income_group != "",
+                          iso == "iso2") %>%
+         mutate(label = ifelse(country_code %in% post_sov, country_code, '')),
+       aes(x = value,
+           y = mort_val,
+           colour = country_code %in% post_sov,
+           label = label)) +
+  geom_point() +
+  scale_colour_viridis(option = "plasma", discrete = TRUE, begin = 0, end = .80) +
+  facet_wrap(~mort_year) +
+  bbc_style() +
+  theme(legend.position = "none") +
+  geom_smooth(method='lm') +
+  labs(title = "Iso2 against excess mortality",
+       subtitle = "Note: excluding Peru because it's such an outlier")
+
+
+       
+``` 
+
+What's going on??
+
+Oh, I see.
+
+```{r map_missing, warning = FALSE}
+
+ggplot(data = iso_world %>% filter(iso == "iso2")) +
+  geom_sf(aes(fill = adm0_a3 %in% post_sov)) +
+  bbc_style()+
+  scale_fill_viridis(discrete = TRUE) +
+  theme(legend.position = "none") +
+  labs(title = "Map of iso2 subgroup",
+       subtitle = "Surprise!")
+
+``` 
+
+What this looks like, is that outside of the former soviet bloc, more equal gender balance in the population and the workforce correlates with better exmort outcomes - this is intuitive, since gender equality is an intuitive proxy for better health outcomes overall. Guido's analysis also reports that the crude death rate is strongly correlated with iso2.
+
+# ISO3 - I dunno yet
+
+```{r iso3_map, echo = FALSE, warning = FALSE}
+
+
+ggplot(data = iso_world %>% filter(iso == "iso3")) +
+  geom_sf(aes(fill = value)) +
+  scale_fill_binned(breaks = seq(from = -2.5, to = 2.5, by = 0.5),
+                      type = "viridis") +
+  bbc_style()+
+  theme(legend.position = "right") +
+  labs(title = paste("Map of iso3"))
+
+
+iso_three <- isolong %>%
+  filter(country_code != "PER",
+         iso == "iso3") %>%
+  mutate(bins = cut(value, breaks=5))
+
+country_names <- iso_world %>%
+  select(adm0_a3, name) %>%
+  rename(country_code = adm0_a3)
+
+iso_three_top <- iso_three %>%
+  filter(mort_year == "p_mort_2020") %>%
+  arrange(desc(value)) %>%
+  head(10) %>%
+  mutate(top = "Top 10")
+
+
+iso_three_bottom <- iso_three %>%
+  filter(mort_year == "p_mort_2020") %>%
+  arrange(value) %>%
+  head(10) %>%
+  mutate(top = "Bottom 10")
+
+
+ggplot(iso_three_top %>% rbind(iso_three_bottom) %>% left_join(country_names),
+       aes(x = reorder(name, value), y = value, fill = top)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_viridis(discrete = TRUE) +
+  bbc_style() +
+  theme(panel.grid.major.y = element_blank())+
+  geom_hline(yintercept = 0, size = 2) +
+  facet_wrap(~top, scales = "free") +
+  labs(title = "iso3")
+
+```
+
+
+
+```{r}
+
+load("08_corrtable_dimred_wdi_annual")
+
+
+```
