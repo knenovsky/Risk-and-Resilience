@@ -1,0 +1,112 @@
+---
+title: "04_WDI_subset_correlation"
+author: "Kolja Nenoff"
+date: "2023-06-12"
+output: html_document
+---
+
+We have described the dimension and their relationship to Excess Mort.
+Now we are looing at the subsets and correlate them with the WDI.
+The decision will be based on PDP and Shapley values.
+We will look for subset for 2020 and 2021
+
+# 0 Data and Methods
+```{r,include=T,message=FALSE}
+rm(list = ls())
+require(xgboost)
+require(caret)
+require(pdp)
+require(iml)
+require(data.table)
+require(tidyverse)
+ 
+```
+
+```{r}
+ExcessDimred<-fread("../output/02_230612_Dimred_ExcessMort_annual.csv")
+```
+
+
+```{r}
+# wdi_data_raw<-fread("../data/WDI_data_230609/WDI_CSV/WDIData.csv",header = T)
+# wdi_data <- wdi_data_raw %>% 
+#   mutate(...66 = NULL,
+#          V67 = NULL,
+#          `Indicator Name` = NULL) %>%
+#   pivot_longer(names_to = "year",
+#                "1960":"2021",
+#                values_drop_na = TRUE) %>%
+#   mutate(year = as.integer(year)) %>%
+#   pivot_wider(names_from = "Indicator Code")
+#fwrite(wdi_data,"../data/04_WDI_data.csv")
+wdi_data<-fread("../data/04_WDI_data.csv")
+```
+
+# 1 Correlation 2020
+
+```{r}
+wdi_data_cons_df = corrWDItest %>%  filter(iso3< -0.1)
+used_var_names = thisetExplained$`Series Code`
+.cluster = CLUSTER
+var_comb <- expand.grid(var_name = used_var_names,
+                          iso_name = paste0("iso", 1:4),
+                          stringsAsFactors = FALSE)
+
+cl <- parallel::makeCluster(.cluster, outfile = "~/Documents/rsc4earth/projects/23_01_COCAP/02_global_excess_death/test/make_dcor_var_iso_cons.log")
+on.exit(parallel::stopCluster(cl))
+parallel::clusterEvalQ(cl, library(energy))
+parallel::clusterExport(cl, "wdi_data_cons_df", envir = environment())
+parallel::clusterExport(cl, "var_comb", envir = environment())
+
+res <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+  energy::dcor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx])
+})
+res_Tsamples <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+  sum(idx)
+})
+res_spear <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+  cor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx],method = "spearman")
+})
+
+wdi_data_cons_dcor <- matrix(
+  NA_real_, length(used_var_names), 4,
+  dimnames = list(used_var_names, paste0("iso", 1:4))
+)
+
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor[var_comb$var_name[i],
+                     var_comb$iso_name[i]] <- res[[i]]
+}
+wdi_data_cons_dcor2<- matrix(
+  NA_real_, length(used_var_names), 4,
+  dimnames = list(used_var_names, paste0("iso", 1:4))
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor2[var_comb$var_name[i],
+                       var_comb$iso_name[i]] <- res_spear[[i]]
+}
+wdi_data_cons_dcor3<- matrix(
+  NA_real_, length(used_var_names), 4,
+  dimnames = list(used_var_names, paste0("iso", 1:4))
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor3[var_comb$var_name[i],
+                       var_comb$iso_name[i]] <- res_Tsamples[[i]]
+}
+colnames(wdi_data_cons_dcor2)<-paste("spearman",colnames(wdi_data_cons_dcor2),sep="_")
+colnames(wdi_data_cons_dcor3)<-paste("N",colnames(wdi_data_cons_dcor3),sep="_")
+
+cbind(data.frame(wdi_data_cons_dcor),data.frame(N=wdi_data_cons_dcor3[,1]),wdi_data_cons_dcor2) %>% rownames_to_column(var = "indicators")-> outi
+
+outi-> WDI_dimred_iso3_shapley
+save(WDI_dimred_iso3_shapley, file = "../results/08_corrtable_dimred_wdi_annual_iso3Shapley")
+```
+

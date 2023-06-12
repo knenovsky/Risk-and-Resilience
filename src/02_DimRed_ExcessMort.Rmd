@@ -1,0 +1,668 @@
+---
+title: "02_Dimred_excess"
+author: "Kolja Nenoff"
+date: "2023-06-11"
+output:
+  rmdformats::readthedown:
+    code_folding: hide
+    self_contained: true
+    css: custom.css 
+    lightbox: true
+    gallery: true
+    highlight: tango  
+    toc_depth: 5
+---
+
+
+Test the linear relationship of dimred and the 
+
+
+# 0 Preprocessing
+
+## Libraries
+
+```{r,include=T,message=FALSE}
+rm(list = ls())
+require(DT)
+library(sf)
+#remotes::install_github("coolbutuseless/ggpattern")
+require(ggpattern)
+require(ggpubr)
+library(rnaturalearth)
+library(rnaturalearthdata)
+require(ggthemes)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(wesanderson)
+library(tidyverse)
+require(zoo)
+library(sf)
+require(data.table)
+library(rnaturalearth)
+library(rnaturalearthdata)
+require(openxlsx)
+require(readxl)
+require(energy)
+library(quantreg)
+require(Boruta)
+require(kableExtra)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+require(dplyr)
+require(iml)
+
+```
+## Data
+
+### 1. Excess Moratility
+```{r,Excess Mortility WHO Set}
+excessCounrty_year<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx",sheet = 2)
+excessCounrty_covariates<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx",sheet = 3)
+excessRegion_year<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByRegion.xlsx",sheet = 2)
+excessRegion_income<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByIncome.xlsx",sheet = 2)
+excessRegion_income %>% group_by(income) %>% 
+  summarise(p_value_mort=sum(excess.mean)/sum(expected.mean)*100,excess_comul=sum(excess.mean))
+excessCounrty_year_pvalue<-excessCounrty_year %>% group_by(country,iso3,year) %>% 
+  summarise(p_value_mort=sum(excess.mean)/sum(expected.mean)*100,excess_comul=sum(excess.mean))
+excessCounrty_year %>% filter(year==2020)-> excessCounrty_year_2020
+p_value_global_2020=sum(excessCounrty_year_2020$excess.mean,na.rm = T)/sum(excessCounrty_year_2020$expected.mean,na.rm = T)*100
+excessCounrty_year %>% filter(year==2021)-> excessCounrty_year_2020
+p_value_global_2021=sum(excessCounrty_year_2020$excess.mean,na.rm = T)/sum(excessCounrty_year_2020$expected.mean,na.rm = T)*100
+```
+
+
+```{r,message=FALSE}
+incomegroups<-read_excel("../../23_01_COCAP/01_data_prep/data/230224_WORLDBANK_INCOME_GROUPS/CLASS.xlsx")
+incomegroups2<-read_excel("../../23_01_COCAP/01_data_prep/data/230224_WORLDBANK_INCOME_GROUPS/OGHIST.xlsx",sheet = 2) 
+availability<-read.xlsx("../../23_01_COCAP/01_data_prep/data/230320_WHO_Mortality_availability/41586_2022_5522_availability.xlsx")
+wdi_explained<-fread("../data/WDI_data_230609/WDI_CSV/WDISeries.csv")
+```
+
+
+
+
+```{r,message=FALSE}
+
+incomegroups$incomegroup<-incomegroups$`Income group`
+
+excessCounrty_year_pvalue2<-merge(excessCounrty_year_pvalue,incomegroups,all.x = T,by.x="iso3",by.y="Code")
+
+excessCounrty_year_pvalue2<-merge(excessCounrty_year_pvalue2,availability,by.x="iso3",by.y="iso3")
+
+excessCounrty_year_pvalue2$identifier<-paste0(excessCounrty_year_pvalue2$iso3,"_",excessCounrty_year_pvalue2$year)
+excessCounrty_year_pvalue2$iso3_code<-excessCounrty_year_pvalue2$iso3
+excessCounrty_year_pvalue2$iso3<-NULL
+excessCounrty_year_pvalue2$excess_comul<-NULL
+excessCounrty_year_pvalue2$identifier<-NULL
+excessCounrty_year_pvalue2 %>% filter(!is.na(iso3_code))%>% pivot_wider(names_from = year, values_from = p_value_mort) %>% mutate(
+  identifier2016=paste0(iso3_code,"_2016"),
+  identifier2020=paste0(iso3_code,"_2020"),
+  P_mort_2020=`2020`,
+  `2020`= NULL,
+  P_mort_2021=`2021`,
+  `2021`= NULL,
+  `NA`<-NULL,
+  Region<-NULL
+  )  ->excessCounrty_year_pvalue3
+
+
+# excessCounrty_year_pvalue3 %>% 
+# fwrite("../output/02_ExcessMort_annual.csv")
+```
+
+
+```{r}
+ExcessMort_annual<-fread("../output/02_ExcessMort_annual.csv")
+
+ExcessMort_annual %>% select(country,Region,`Income group`,pscore_mean,pscore_cat,iso3_code,P_mort_2020,P_mort_2021)-> ExcessMort_annual_sd
+```
+
+
+### 2. WDI Dimred
+```{r,message=FALSE}
+wdi_data_cons_df<-fread("../output/01_wdi_dimred_2021_k250.csv",header = T)
+thisdimensions<-wdi_data_cons_df[,c("Short Name","Country Code","year","Income Group","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8")]
+
+```
+
+### Combine. Merge
+```{r,message=F}
+
+dimred2021_knn250_pmort<-merge(wdi_data_cons_df,ExcessMort_annual_sd,by.x="Country Code",by.y="iso3_code",all.x = T) 
+#dimred2021_knn250_pmort %>% fwrite("../output/02_230612_Dimred_ExcessMort_annual.csv")
+
+```
+
+
+# 1 Linear prediction {.tabset}
+
+
+## Dimred19~P20 
+
+```{r}
+
+lm(scale(P_mort_2020)~scale(iso1)+
+     scale(iso2)+
+     scale(iso3)+
+     scale(iso4)+
+     scale(iso5)+
+     scale(iso6)+
+     scale(iso7)+
+     scale(iso8)+
+     scale(iso9)+
+     scale(iso10),dimred2021_knn250_pmort[dimred2021_knn250_pmort$year%in%2019,]) %>%  summary %>% tab_model(show.stat=T )
+
+
+```
+
+
+
+
+## Dimred19~P21
+```{r}
+lm(scale(P_mort_2021)~scale(iso1)+
+     scale(iso2)+
+     scale(iso3)+
+     scale(iso4)+
+     scale(iso5)+
+     scale(iso6)+
+     scale(iso7)+
+     scale(iso8)+
+     scale(iso9)+
+     scale(iso10),dimred2021_knn250_pmort[dimred2021_knn250_pmort$year%in%2019,]) %>%  summary %>% tab_model(show.stat=T ) 
+```
+
+
+## Dimred20~P20 
+
+```{r}
+
+lm(scale(P_mort_2020)~scale(iso1)+
+     scale(iso2)+
+     scale(iso3)+
+     scale(iso4)+
+     scale(iso5)+
+     scale(iso6)+
+     scale(iso7)+
+     scale(iso8)+
+     scale(iso9)+
+     scale(iso10),dimred2021_knn250_pmort[dimred2021_knn250_pmort$year%in%2020,]) %>%  summary %>% tab_model(show.stat=T )
+
+
+```
+
+## Dimred20~P21
+```{r}
+
+lm(scale(P_mort_2021)~scale(iso1)+
+     scale(iso2)+
+     scale(iso3)+
+     scale(iso4)+
+     scale(iso5)+
+     scale(iso6)+
+     scale(iso7)+
+     scale(iso8)+
+     scale(iso9)+
+     scale(iso10),dimred2021_knn250_pmort[dimred2021_knn250_pmort$year%in%2020,]) %>%  summary %>% tab_model(show.stat=T ) 
+
+```
+
+## Dimred21~P21 
+
+
+
+```{r}
+lm(scale(P_mort_2021)~scale(iso1)+
+     scale(iso2)+
+     scale(iso3)+
+     scale(iso4)+
+     scale(iso5)+
+     scale(iso6)+
+     scale(iso7)+
+     scale(iso8)+
+     scale(iso9)+
+     scale(iso10),dimred2021_knn250_pmort[dimred2021_knn250_pmort$year%in%2021,]) %>%  summary %>% tab_model(show.stat=T ) 
+```
+
+# 1.5 Coefficient estimation
+
+```{r}
+dimred3<-dimred2021_knn250_pmort[dimred2021_knn250_pmort$year%in%2019,]  %>%  mutate(p_mort_text=case_when(P_mort_2020>40~`Country Code`,
+                               P_mort_2020<(-5)~`Country Code`,
+                               TRUE~"")) %>%  
+  ggplot(aes(y=P_mort_2020,x=iso3,label=p_mort_text))+ geom_point(alpha=0.8)+ geom_hline(yintercept =0)+geom_text(aes(color=`Income Group`))+ geom_smooth(method = "lm") +   theme_tufte()+ xlab("Isomap Dimension 3") + scale_color_brewer(palette = "Dark2")+  ggtitle("2019 Isomap Dimension 3 ~ P Mort 2020") + theme(legend.position = "bottom") 
+
+dimred4<-dimred2021_knn250_pmort[dimred2021_knn250_pmort$year%in%2019,]  %>%  mutate(p_mort_text=case_when(P_mort_2020>40~`Country Code`,
+                               P_mort_2020<(-5)~`Country Code`,
+                               TRUE~"")) %>%  
+  ggplot(aes(y=P_mort_2020,x=iso4,label=p_mort_text))+ geom_point(alpha=0.8)+ geom_hline(yintercept =0)+geom_text(aes(color=`Income Group`))+ geom_smooth(method = "lm") +   theme_tufte()+ xlab("Isomap Dimension 4") + scale_color_brewer(palette = "Dark2")+  ggtitle("2019 Isomap Dimension 4 ~ P Mort 2020") + theme(legend.position = "bottom") 
+
+suppressWarnings(ggarrange(dimred3,dimred4))
+```
+
+## Summary plots {.tabset}
+
+```{r}
+a<-lm(P_mort_2020~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,dimred2021_knn250_pmort[dimred2021_knn250_pmort$year%in%2019]) %>%  summary
+b<-lm(P_mort_2020~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,dimred2021_knn250_pmort[dimred2021_knn250_pmort$year%in%2020]) %>%  summary
+c<-lm(P_mort_2021~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,dimred2021_knn250_pmort[dimred2021_knn250_pmort$year%in%2020]) %>%  summary
+d<-lm(P_mort_2021~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,dimred2021_knn250_pmort[dimred2021_knn250_pmort$year%in%2021]) %>%  summary
+
+```
+
+
+```{r}
+require(GGally)
+
+aplot<-ggcoef_model(a) + ggtitle("WDI19~P21" )%>% suppressWarnings()
+bplot<-ggcoef_model(b)+  ggtitle("WDI20~P21" )%>% suppressWarnings()
+
+cplot<-ggcoef_model(c) + ggtitle("WDI20~P21" )%>% suppressWarnings()
+dplot<-ggcoef_model(d)+  ggtitle("WDI21~P21" )%>% suppressWarnings()
+```
+
+### WDI~P20
+```{r}
+ggarrange(aplot,bplot)%>% suppressWarnings()
+
+```
+### WDI~P21
+```{r}
+ggarrange(cplot,dplot)%>% suppressWarnings()
+```
+### WDI20 ~ P_all_Covariates
+
+
+
+#2 Visualisation of isos
+
+## 2019 Dimred {.tabset}
+```{r}
+wdi_data_cons_df<-dimred2021_knn250_pmort
+
+isos2019_to2020<-wdi_data_cons_df[wdi_data_cons_df$year%in%2019,c("Country Code","pscore_mean","P_mort_2020","P_mort_2021","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10")]
+
+# Load the required library
+library(apcluster)
+
+# Perform Affinity Propagation clustering
+isos2019_to2020 %>%   na.omit()->isos2019_to2020
+  # Calculate the similarity matrix
+cluster <- apcluster(negDistMat(r=2), scale(isos2019_to2020[,c("iso1","iso2","iso3","iso4")]) , q=0.01) 
+
+# Explore the resulting clusters
+# cluster_summary <- aggregate(data$x, by = list(affinity_result$cluster, affinity_result$label), FUN = mean)
+
+
+exemplars <- integer(length(cluster@exemplars)) 
+
+for(i in seq_along(cluster@exemplars)) {
+      exemplars[i] <- cluster@exemplars[[i]][1]
+    }
+
+  
+cluster_ids <- integer(cluster@l)
+  for(i in seq_along(cluster@clusters)) {
+    cl <- cluster@clusters[[i]]
+    for(j in seq_along(cl)) {
+      cluster_ids[cl[j]] <- i
+    }
+  }
+  
+  # glimpse(clustered)
+isos2019_to2020$clusterid<-cluster_ids
+  require(viridis)
+death_2020<-isos2019_to2020 %>%
+  pivot_longer(names_to = "isos",
+               "iso1":"iso4",
+               values_drop_na = TRUE) %>% 
+  ggplot(aes(x=value,y=P_mort_2020,color=as.factor(clusterid)))+ geom_point() +facet_wrap(~isos) +scale_color_brewer(palette = "Set1")+ggtitle("2020")+theme(legend.position = "asd")
+
+death_2021<-isos2019_to2020 %>%
+  pivot_longer(names_to = "isos",
+               "iso1":"iso4",
+               values_drop_na = TRUE) %>% 
+  ggplot(aes(x=value,y=P_mort_2021,color=as.factor(clusterid)))+ geom_point() +facet_wrap(~isos) +scale_color_brewer(palette = "Set1") +ggtitle("2021")+theme(legend.position = "asd")
+
+death_all<-isos2019_to2020 %>%
+  pivot_longer(names_to = "isos",
+               "iso1":"iso4",
+               values_drop_na = TRUE) %>% 
+  ggplot(aes(x=value,y=pscore_mean,color=as.factor(clusterid)))+ geom_point() +facet_wrap(~isos) +scale_color_brewer(palette = "Set1")+ggtitle("2020/2021")
+```
+
+### 2020
+```{r}
+death_2020
+```
+
+### 2021
+```{r}
+death_2021
+```
+
+### 2020/21
+```{r}
+death_all
+```
+
+## 2020 Dimred {.tabset}
+```{r}
+wdi_data_cons_df<-dimred2021_knn250_pmort
+
+isos2019_to2020<-wdi_data_cons_df[wdi_data_cons_df$year%in%2020,c("Country Code","pscore_mean","P_mort_2020","P_mort_2021","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10")]
+
+# Load the required library
+library(apcluster)
+
+# Perform Affinity Propagation clustering
+isos2019_to2020 %>%   na.omit()->isos2019_to2020
+  # Calculate the similarity matrix
+cluster <- apcluster(negDistMat(r=2), scale(isos2019_to2020[,c("iso1","iso2","iso3","iso4")]) , q=0.01) 
+
+# Explore the resulting clusters
+# cluster_summary <- aggregate(data$x, by = list(affinity_result$cluster, affinity_result$label), FUN = mean)
+
+
+exemplars <- integer(length(cluster@exemplars)) 
+
+for(i in seq_along(cluster@exemplars)) {
+      exemplars[i] <- cluster@exemplars[[i]][1]
+    }
+
+  
+cluster_ids <- integer(cluster@l)
+  for(i in seq_along(cluster@clusters)) {
+    cl <- cluster@clusters[[i]]
+    for(j in seq_along(cl)) {
+      cluster_ids[cl[j]] <- i
+    }
+  }
+  
+  # glimpse(clustered)
+isos2019_to2020$clusterid<-cluster_ids
+  require(viridis)
+death_2020<-isos2019_to2020 %>%
+  pivot_longer(names_to = "isos",
+               "iso1":"iso4",
+               values_drop_na = TRUE) %>% 
+  ggplot(aes(x=value,y=P_mort_2020,color=as.factor(clusterid)))+ geom_point() +facet_wrap(~isos) +scale_color_brewer(palette = "Set1")+ggtitle("2020")+theme(legend.position = "asd")
+
+death_2021<-isos2019_to2020 %>%
+  pivot_longer(names_to = "isos",
+               "iso1":"iso4",
+               values_drop_na = TRUE) %>% 
+  ggplot(aes(x=value,y=P_mort_2021,color=as.factor(clusterid)))+ geom_point() +facet_wrap(~isos) +scale_color_brewer(palette = "Set1") +ggtitle("2021")+theme(legend.position = "asd")
+
+death_all<-isos2019_to2020 %>%
+  pivot_longer(names_to = "isos",
+               "iso1":"iso4",
+               values_drop_na = TRUE) %>% 
+  ggplot(aes(x=value,y=pscore_mean,color=as.factor(clusterid)))+ geom_point() +facet_wrap(~isos) +scale_color_brewer(palette = "Set1")+ggtitle("2020/2021")
+
+```
+### 2020
+```{r}
+death_2020
+```
+
+### 2021
+```{r}
+death_2021
+```
+
+### 2020/21
+```{r}
+death_all
+```
+
+## 2021 Dimred {.tabset}
+```{r}
+wdi_data_cons_df<-dimred2021_knn250_pmort
+
+isos2019_to2020<-wdi_data_cons_df[wdi_data_cons_df$year%in%2021,c("Country Code","pscore_mean","P_mort_2020","P_mort_2021","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10")]
+
+# Load the required library
+library(apcluster)
+
+# Perform Affinity Propagation clustering
+isos2019_to2020 %>%   na.omit()->isos2019_to2020
+  # Calculate the similarity matrix
+cluster <- apcluster(negDistMat(r=2), scale(isos2019_to2020[,c("iso1","iso2","iso3","iso4")]) , q=0.01) 
+
+# Explore the resulting clusters
+# cluster_summary <- aggregate(data$x, by = list(affinity_result$cluster, affinity_result$label), FUN = mean)
+
+
+exemplars <- integer(length(cluster@exemplars)) 
+
+for(i in seq_along(cluster@exemplars)) {
+      exemplars[i] <- cluster@exemplars[[i]][1]
+    }
+cluster_ids <- integer(cluster@l)
+  for(i in seq_along(cluster@clusters)) {
+    cl <- cluster@clusters[[i]]
+    for(j in seq_along(cl)) {
+      cluster_ids[cl[j]] <- i
+    }
+  }
+  
+  # glimpse(clustered)
+isos2019_to2020$clusterid<-cluster_ids
+  require(viridis)
+death_2020<-isos2019_to2020 %>%
+  pivot_longer(names_to = "isos",
+               "iso1":"iso4",
+               values_drop_na = TRUE) %>% 
+  ggplot(aes(x=value,y=P_mort_2020,color=as.factor(clusterid)))+ geom_point() +facet_wrap(~isos) +scale_color_brewer(palette = "Set1")+ggtitle("2020")+theme(legend.position = "asd")
+
+death_2021<-isos2019_to2020 %>%
+  pivot_longer(names_to = "isos",
+               "iso1":"iso4",
+               values_drop_na = TRUE) %>% 
+  ggplot(aes(x=value,y=P_mort_2021,color=as.factor(clusterid)))+ geom_point() +facet_wrap(~isos) +scale_color_brewer(palette = "Set1") +ggtitle("2021")+theme(legend.position = "asd")
+
+death_all<-isos2019_to2020 %>%
+  pivot_longer(names_to = "isos",
+               "iso1":"iso4",
+               values_drop_na = TRUE) %>% 
+  ggplot(aes(x=value,y=pscore_mean,color=as.factor(clusterid)))+ geom_point() +facet_wrap(~isos) +scale_color_brewer(palette = "Set1")+ggtitle("2020/2021")
+
+```
+
+### 2020
+```{r}
+death_2020
+```
+
+### 2021
+```{r}
+death_2021
+```
+
+### 2020/21
+```{r}
+death_all
+```
+
+# 3 Find bet correlation method
+```{r, warning=FALSE,message=FALSE}
+wdi_data_cons_df2<-wdi_data_cons_df %>% data.frame()
+library(minerva)
+library(Hmisc)
+variable<-"VC.IHR.PSRC.P5"
+
+
+idx <- !is.na(wdi_data_cons_df2[,c('iso3',paste(variable))])
+idx2<-idx %>% apply( . ,1, function(x)all(x)==T)
+energy::dcor(wdi_data_cons_df2[idx2,variable],
+                 wdi_data_cons_df2[idx2,'iso3'])
+
+data1<-data.frame(wdi_data_cons_df2[idx2,variable]) %>%  unlist %>%  as.vector()
+data2<-data.frame(wdi_data_cons_df2[idx2,'iso3']) %>%  unlist %>%  as.vector()
+
+mutual_information <- entropy::entropy(data1,data2)
+
+hoeffd(data1,
+                data2)
+
+
+mic_value <- minerva::mine(data1,data2)
+mic_value
+
+combined_data <- data.frame(wdi_data_cons_df2[idx2,variable],
+                 wdi_data_cons_df2[idx2,'iso3'])
+
+
+
+# Calculate the mutual information
+
+```
+dCOR is the best
+
+# 4  Features in Dimensions
+```{r}
+dcorTable_all<-fread("../data/01_CorrWDI_dimred_10.csv")
+
+besti<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name")],dcorTable_all,by.x = "Series Code",by.y="Indicators") 
+besti %>% datatable
+```
+
+
+
+
+
+## Plot Topics{.tabset}
+
+### ISO3
+Third quantile
+```{r}
+besti %>% filter(iso3>round(besti$iso3 %>% quantile(),digits = 3)[3],
+                 iso1<round(besti$iso1 %>% quantile(),digits = 3)[3],
+                 
+                 
+                 ) %>% arrange(desc(iso3))->isoExtra
+isoExtra %>%  pivot_longer(names_to = "isos",
+               "iso1":"iso10",
+               values_drop_na = TRUE)  %>% 
+  mutate(labelA=str_extract(Topic,pattern = "^.[a-zA_Z].+[^:{1}]"),
+         labelB=str_extract(Topic,pattern = "^.[a-zA_Z]+"),
+         
+         ) ->isoExtraplot
+isoExtraplot$numericiso<-str_remove_all(isoExtraplot$isos,"iso")
+isoExtraplot %>%  
+  ggplot(data= . ,aes(reorder(x=isos,sort(as.numeric(numericiso))),y=value))+ geom_boxplot()+ geom_jitter(data=isoExtraplot[isoExtraplot$isos%in% c("iso1","iso2","iso3","iso4","iso10"),],aes(color=isos)) +facet_wrap(~labelB,ncol = 5)+ theme_bw()+ scale_color_brewer(palette = "Dark2")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+ xlab("")
+
+#ggsave("../fig/230404_iso3.png",device = "png",dpi = 900)  
+
+```
+Social Protection & Labor: Labor force structure
+Private Sector & Trade: Imports
+Enviromental emissions
+Enviromental landuse
+Adjusted savings: carbon dioxide damage (% of GNI)
+
+### ISO3 Subt
+Third quantile
+```{r}
+besti %>% filter(iso3>round(besti$iso3 %>% quantile(),digits = 3)[3],
+                 iso1<round(besti$iso1 %>% quantile(),digits = 3)[3],
+                 
+                 
+                 ) %>% arrange(desc(iso3))->isoExtra
+isoExtra %>%  pivot_longer(names_to = "isos",
+               "iso1":"iso10",
+               values_drop_na = TRUE)  %>% 
+  mutate(labelA=str_extract(Topic,pattern = "^.[a-zA_Z].+[^:{1}]"),
+         labelB=str_extract(Topic,pattern = "^.[a-zA_Z]+"),
+         labelC=str_extract(Topic,pattern = "^.[a-zA_Z].+:")
+         
+         ) ->isoExtraplot
+
+isoExtraplot$numericiso<-str_remove_all(isoExtraplot$isos,"iso")
+isoExtraplot[isoExtraplot$isos%in% c("iso1","iso2","iso3","iso4","iso4","iso5") &grepl("Enviroment|Education|Policy & debt|Social Protection|Private|Public|Health:$",isoExtraplot$labelC),] %>%  
+  ggplot(data= . ,aes(reorder(x=isos,sort(as.numeric(numericiso))),y=value,color=isos))+ geom_boxplot() +facet_wrap(~labelC,ncol = 3)+ theme_tufte()+ scale_color_brewer(palette = "Set1")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+ xlab("") + ggtitle("WDI ~ Iso3 and Iso 4")
+
+#ggsave("../fig/04_230509_extraiso3.png",device = "png",dpi = 900)  
+
+```
+
+### ISO4
+Third quantile
+```{r}
+besti %>% filter(iso4>round(besti$iso4 %>% quantile(),digits = 3)[3],
+                 iso1<round(besti$iso1 %>% quantile(),digits = 3)[3],
+                 
+                 
+                 ) %>% arrange(desc(iso4))->isoExtra
+isoExtra %>%  pivot_longer(names_to = "isos",
+               "iso1":"iso10",
+               values_drop_na = TRUE)  %>% 
+  mutate(labelA=str_extract(Topic,pattern = "^.[a-zA_Z].+[^:{1}]"),
+         labelB=str_extract(Topic,pattern = "^.[a-zA_Z]+"),
+         
+         ) ->isoExtraplot
+isoExtraplot$numericiso<-str_remove_all(isoExtraplot$isos,"iso")
+isoExtraplot %>%  
+  ggplot(data= . ,aes(reorder(x=isos,sort(as.numeric(numericiso))),y=value))+ geom_boxplot()+ geom_jitter(data=isoExtraplot[isoExtraplot$isos%in% c("iso1","iso2","iso3","iso4","iso10"),],aes(color=isos)) +facet_wrap(~labelB,ncol = 5)+ theme_bw()+ scale_color_brewer(palette = "Dark2")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+ xlab("")
+
+#ggsave("../fig/230404_iso4.png",device = "png",dpi = 900)  
+
+```
+Private Sector & Trade: Imports
+Textiles and clothing (% of value added in manufacturing)
+Public Sector: 
+
+### ISO4 Subt
+Third quantile
+```{r}
+besti %>% filter(iso3>round(besti$iso3 %>% quantile(),digits = 3)[3],
+                 iso1<round(besti$iso1 %>% quantile(),digits = 3)[3],
+                 
+                 
+                 ) %>% arrange(desc(iso4))->isoExtra
+
+isoExtra %>%  pivot_longer(names_to = "isos",
+               "iso1":"iso10",
+               values_drop_na = TRUE)  %>% 
+  mutate(labelA=str_extract(Topic,pattern = "^.[a-zA_Z].+[^:{1}]"),
+         labelB=str_extract(Topic,pattern = "^.[a-zA_Z]+"),
+         labelC=str_extract(Topic,pattern = "^.[a-zA_Z].+:")
+         
+         ) ->isoExtraplot
+
+isoExtraplot$numericiso<-str_remove_all(isoExtraplot$isos,"iso")
+isoExtraplot[isoExtraplot$isos%in% c("iso1","iso2","iso3","iso4","iso4","iso5")&grepl("Enviroment|Education|Policy & debt|Social Protection|Private|Public|Health:$",isoExtraplot$labelC), ,] %>%  
+  ggplot(data= . ,aes(reorder(x=isos,sort(as.numeric(numericiso))),y=value,color=isos))+ geom_boxplot() +facet_wrap(~labelC,ncol = 3)+ theme_tufte()+ scale_color_brewer(palette = "Set1")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+ xlab("") + ggtitle("WDI ~ Iso3")
+
+#ggsave("../fig/04_230509_extraiso4.png",device = "png",dpi = 900)  
+
+```
+
+### ISO10
+Third quantile
+```{r}
+besti %>% filter(iso4>round(besti$iso10 %>% quantile(),digits = 3)[3],
+                 iso1<round(besti$iso1 %>% quantile(),digits = 3)[3],
+                 
+                 
+                 ) %>% arrange(desc(iso10))->isoExtra
+isoExtra %>%  pivot_longer(names_to = "isos",
+               "iso1":"iso10",
+               values_drop_na = TRUE)  %>% 
+  mutate(labelA=str_extract(Topic,pattern = "^.[a-zA_Z].+[^:{1}]"),
+         labelB=str_extract(Topic,pattern = "^.[a-zA_Z]+"),
+         
+         ) ->isoExtraplot
+isoExtraplot$numericiso<-str_remove_all(isoExtraplot$isos,"iso")
+isoExtraplot %>%  
+  ggplot(data= . ,aes(reorder(x=isos,sort(as.numeric(numericiso))),y=value))+ geom_boxplot()+ geom_jitter(data=isoExtraplot[isoExtraplot$isos%in% c("iso1","iso2","iso3","iso4","iso10"),],aes(color=isos)) +facet_wrap(~labelB,ncol = 5)+ theme_bw()+ scale_color_brewer(palette = "Dark2")+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+ xlab("")
+
+#ggsave("../fig/230404_iso10.png",device = "png",dpi = 900)  
+
+```
+
+
+

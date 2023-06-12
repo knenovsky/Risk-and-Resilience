@@ -1,0 +1,1047 @@
+---
+title: "03_Non_linear_interpretaion"
+author: "Kolja Nenoff"
+date: "2023-06-12"
+output:
+  rmdformats::readthedown:
+    code_folding: hide
+    self_contained: true
+    css: custom.css 
+    lightbox: true
+    gallery: true
+    highlight: tango  
+    toc_depth: 5
+---
+
+Interpret which part of these dimension contributes to the excess mort
+
+In 3 Setups.
+1. 2020
+2. 2021
+3. rbind(2020,2021)
+
+# 0 Data and Methods
+```{r,include=T,message=FALSE}
+rm(list = ls())
+require(xgboost)
+require(caret)
+require(pdp)
+require(iml)
+require(data.table)
+require(tidyverse)
+```
+
+```{r}
+ExcessDimred<-fread("../output/02_230612_Dimred_ExcessMort_annual.csv")
+wdi_explained<-fread("../data/WDI_data_230609/WDI_CSV/WDISeries.csv")
+# For sanity check purpose you can run everythung with 2020 data
+# ExcessDimred<-load("../../23_01_COCAP/02_global_excess_death/data/230606_dimred_excessmort_annual")
+# ExcessDimred <-wdi_data_cons_df
+```
+
+
+
+# 1 Non linear Interpretation
+ 
+```{r}
+
+ExcessMort2020<-ExcessDimred[,.(iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,iso9,iso10,P_mort_2020,`Country Code`,year)]
+ExcessMort2021<-ExcessDimred[,.(iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,iso9,iso10,P_mort_2021,`Country Code`,year)]
+
+```
+## Dimred19~P20 
+
+```{r}
+thisData<-ExcessMort2020
+IsoYear<-"2019"
+Label<-"P_mort_2020"
+candidates<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10")
+```
+
+
+```{r message = F, warning = F}
+thisData[thisData$year%in%IsoYear,]  %>% drop_na() -> thisData_2
+thisData_2 %>% dplyr::select(-`Country Code`)%>% scale %>% data.frame() -> thisData_2_input
+  ## create and test models
+
+trainIndex <- createDataPartition(thisData_2_input[,paste(Label)], p=0.8, list=FALSE)
+train_df <- thisData_2_input[trainIndex,]
+test_df <- thisData_2_input[-trainIndex,]
+  
+## test different parameters
+xgb_caret <- caret::train(x = thisData_2_input %>% dplyr::select(candidates),
+                   y = thisData_2_input %>% pull(Label),
+                   method = "xgbTree",
+                   verbosity = 0,
+                   # objective = "reg:squarederror",
+                   ## CAST CV LLO (Hanna Meyer)
+                   trControl=trainControl(method="cv",
+                                          number = 6,
+                                          search = "random",
+                                          adaptive = list(
+                                            alpha = 0.05,
+                                            method = "BT", 
+                                            complete = TRUE)
+                                          ),
+                   tuneLength = 2
+                    # tuneGrid = expand.grid(nrounds = c(50, 100, 200),
+                    #                       eta = c(0.01, 0.05, 0.1),
+                    #                       max_depth = c(2, 4),
+                    #                       colsample_bytree = c(0.6, 0.8, 1),
+                    #                       subsample = c(0.6, 0.8, 1),
+                    #                       gamma = c(0, 10, 50),
+                    #                       min_child_weight = c(0, 10, 30))
+                    )
+
+finalmodel <- caret::train(x = thisData_2_input %>% dplyr::select(-Label, -year),
+                   y = thisData_2_input %>% pull(Label),
+                   method = "xgbTree",
+                   verbosity = 0,
+                   ## CAST CV LLO (Hanna Meyer)
+                   trControl=trainControl(method="cv",
+                                          number = 6),
+                   # early_stopping_rounds = 10,
+                   tuneGrid = xgb_caret$bestTune)
+```
+
+```{r}
+
+
+pdp_all <- lapply(candidates, function(x){#
+    pdp <- pdp::partial(finalmodel, pred.var = c(x), chull = TRUE)
+    df <- pdp %>%
+    gather(-yhat, key = key, value = value)
+  })
+pdp_all2<-do.call(rbind,pdp_all)
+```
+
+
+### Agnostic plots {.tabset}
+#### final model
+```{r}
+print(finalmodel)
+```
+
+#### Importance
+```{r warning = F, message = F}
+
+ggplot(varImp(finalmodel)$importance %>%
+         mutate(var = rownames(varImp(xgb_caret)$importance))%>%
+         dplyr::rename(importance = Overall)%>%
+         filter(importance > 0))+
+  geom_col(aes(
+    x = importance,
+    y = reorder(var, importance)
+  ),
+  fill = "Forestgreen")+
+  theme_minimal()+ ggtitle(paste0(Label,"~ Iso1 + .. + Iso10 for ",IsoYear))
+```
+
+#### Pdp
+```{r warning = F, message = F}
+
+
+pdp_all2 %>%   mutate(key = factor(key, levels=candidates)) %>%  ggplot(pdp_all2,
+       mapping = aes_string(x = "value",
+                           y = "yhat"))+
+  geom_point()+
+  geom_smooth(method = "loess", se=F)+
+  theme_minimal()+
+  facet_wrap(~(key), scales = "free", ncol = 3) 
+## produce single plots or bind rows for different variables and lay out as facets
+```
+
+#### ICE
+```{r}
+require(ICEbox)
+
+#create iceplot object
+iceplot = ice(object = finalmodel, 
+              X= thisData_2_input %>% dplyr::select(-Label, -year),
+                y = thisData_2_input %>% pull(Label),
+              predictor = "iso3")
+
+
+plot(iceplot, 
+     frac_to_plot = 0.1, 
+     centered = T, 
+     plot_orig_pts_preds = F)
+```
+
+#### Shapley
+```{r warning = F, message = F}
+xgboost::xgb.plot.shap(
+  data = as.matrix(thisData_2_input %>% 
+  dplyr::select(-year, -Label)),
+  model = finalmodel$finalModel,
+  top_n = 10,
+  n_col = 3
+)
+
+```
+#### ALE
+```{r}
+
+predictor = Predictor$new(finalmodel,data= thisData_2_input %>% dplyr::select( -Label,-year),
+                y = thisData_2_input %>% pull(Label),)
+
+effs = FeatureEffects$new(predictor)
+plot(effs)
+```
+
+
+
+## Dimred19~P21 
+
+```{r}
+thisData<-ExcessMort2021
+
+IsoYear<-"2019"
+Label<-"P_mort_2021"
+candidates<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10")
+```
+
+
+```{r message = F, warning = F}
+
+thisData[thisData$year%in%IsoYear,]  %>% drop_na() -> thisData_2
+thisData_2 %>%   dplyr::select(-`Country Code`)%>% scale %>% data.frame() -> thisData_2_input
+  ## create and test models
+
+trainIndex <- createDataPartition(thisData_2_input[,paste(Label)], p=0.8, list=FALSE)
+train_df <- thisData_2_input[trainIndex,]
+test_df <- thisData_2_input[-trainIndex,]
+  
+## test different parameters
+xgb_caret <- caret::train(x = thisData_2_input %>% dplyr::select(candidates),
+                   y = thisData_2_input %>% pull(Label),
+                   method = "xgbTree",
+                   verbosity = 0,
+                   # objective = "reg:squarederror",
+                   ## CAST CV LLO (Hanna Meyer)
+                   trControl=trainControl(method="cv",
+                                          number = 6,
+                                          search = "random",
+                                          adaptive = list(
+                                            alpha = 0.05,
+                                            method = "BT", 
+                                            complete = TRUE)
+                                          ),
+                   tuneLength = 2
+                    # tuneGrid = expand.grid(nrounds = c(50, 100, 200),
+                    #                       eta = c(0.01, 0.05, 0.1),
+                    #                       max_depth = c(2, 4),
+                    #                       colsample_bytree = c(0.6, 0.8, 1),
+                    #                       subsample = c(0.6, 0.8, 1),
+                    #                       gamma = c(0, 10, 50),
+                    #                       min_child_weight = c(0, 10, 30))
+                    )
+
+finalmodel <- caret::train(x = thisData_2_input %>% dplyr::select(-Label, -year),
+                   y = thisData_2_input %>% pull(Label),
+                   method = "xgbTree",
+                   verbosity = 0,
+                   ## CAST CV LLO (Hanna Meyer)
+                   trControl=trainControl(method="cv",
+                                          number = 6),
+                   # early_stopping_rounds = 10,
+                   tuneGrid = xgb_caret$bestTune)
+```
+
+```{r}
+
+
+pdp_all <- lapply(candidates, function(x){#
+    pdp <- pdp::partial(finalmodel, pred.var = c(x), chull = TRUE)
+    df <- pdp %>%
+    gather(-yhat, key = key, value = value)
+  })
+pdp_all2<-do.call(rbind,pdp_all)
+```
+
+
+### Agnostic plots {.tabset}
+#### final model
+```{r}
+print(finalmodel)
+```
+
+#### Importance
+```{r warning = F, message = F}
+
+ggplot(varImp(finalmodel)$importance %>%
+         mutate(var = rownames(varImp(xgb_caret)$importance))%>%
+         dplyr::rename(importance = Overall)%>%
+         filter(importance > 0))+
+  geom_col(aes(
+    x = importance,
+    y = reorder(var, importance)
+  ),
+  fill = "Forestgreen")+
+  theme_minimal()+ ggtitle(paste0(Label,"~ Iso1 + .. + Iso10 for ",IsoYear))
+```
+
+#### Pdp
+```{r warning = F, message = F}
+
+pdp_all2 %>%   mutate(key = factor(key, levels=candidates)) %>%  ggplot(pdp_all2,
+       mapping = aes_string(x = "value",
+                           y = "yhat"))+
+  geom_point()+
+  geom_smooth(method = "loess", se=F)+
+  theme_minimal()+
+  facet_wrap(~(key), scales = "free", ncol = 3) 
+## produce single plots or bind rows for different variables and lay out as facets
+```
+
+#### ICE
+```{r}
+require(ICEbox)
+
+#create iceplot object
+iceplot = ice(object = finalmodel, 
+              X= thisData_2_input %>% dplyr::select(-Label, -year),
+                y = thisData_2_input %>% pull(Label),
+              predictor = "iso3")
+
+
+plot(iceplot, 
+     frac_to_plot = 0.1, 
+     centered = T, 
+     plot_orig_pts_preds = F)
+```
+
+#### Shapley
+```{r warning = F, message = F}
+xgboost::xgb.plot.shap(
+  data = as.matrix(thisData_2_input %>% 
+  dplyr::select(-year, -Label)),
+  model = finalmodel$finalModel,
+  top_n = 10,
+  n_col = 3
+)
+
+```
+#### ALE
+```{r}
+
+predictor = Predictor$new(finalmodel,data= thisData_2_input %>% dplyr::select( -Label,-year),
+                y = thisData_2_input %>% pull(Label),)
+
+effs = FeatureEffects$new(predictor)
+plot(effs)
+```
+
+
+## Dimred20~P20 
+
+```{r}
+thisData<-ExcessMort2020
+IsoYear<-"2020"
+Label<-"P_mort_2020"
+candidates<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10")
+```
+
+
+```{r message = F, warning = F}
+thisData[thisData$year%in%IsoYear,]  %>% drop_na() -> thisData_2
+thisData_2 %>% dplyr::select(-`Country Code`)%>% scale %>% data.frame() -> thisData_2_input
+  ## create and test models
+
+trainIndex <- createDataPartition(thisData_2_input[,paste(Label)], p=0.8, list=FALSE)
+train_df <- thisData_2_input[trainIndex,]
+test_df <- thisData_2_input[-trainIndex,]
+  
+## test different parameters
+xgb_caret <- caret::train(x = thisData_2_input %>% dplyr::select(candidates),
+                   y = thisData_2_input %>% pull(Label),
+                   method = "xgbTree",
+                   verbosity = 0,
+                   # objective = "reg:squarederror",
+                   ## CAST CV LLO (Hanna Meyer)
+                   trControl=trainControl(method="cv",
+                                          number = 6,
+                                          search = "random",
+                                          adaptive = list(
+                                            alpha = 0.05,
+                                            method = "BT", 
+                                            complete = TRUE)
+                                          ),
+                   tuneLength = 2
+                    # tuneGrid = expand.grid(nrounds = c(50, 100, 200),
+                    #                       eta = c(0.01, 0.05, 0.1),
+                    #                       max_depth = c(2, 4),
+                    #                       colsample_bytree = c(0.6, 0.8, 1),
+                    #                       subsample = c(0.6, 0.8, 1),
+                    #                       gamma = c(0, 10, 50),
+                    #                       min_child_weight = c(0, 10, 30))
+                    )
+
+finalmodel <- caret::train(x = thisData_2_input %>% dplyr::select(-Label, -year),
+                   y = thisData_2_input %>% pull(Label),
+                   method = "xgbTree",
+                   verbosity = 0,
+                   ## CAST CV LLO (Hanna Meyer)
+                   trControl=trainControl(method="cv",
+                                          number = 6),
+                   # early_stopping_rounds = 10,
+                   tuneGrid = xgb_caret$bestTune)
+```
+
+```{r}
+
+
+pdp_all <- lapply(candidates, function(x){#
+    pdp <- pdp::partial(finalmodel, pred.var = c(x), chull = TRUE)
+    df <- pdp %>%
+    gather(-yhat, key = key, value = value)
+  })
+pdp_all2<-do.call(rbind,pdp_all)
+```
+
+
+### Agnostic plots {.tabset}
+#### final model
+```{r}
+print(finalmodel)
+```
+
+#### Importance
+```{r warning = F, message = F}
+
+ggplot(varImp(finalmodel)$importance %>%
+         mutate(var = rownames(varImp(xgb_caret)$importance))%>%
+         dplyr::rename(importance = Overall)%>%
+         filter(importance > 0))+
+  geom_col(aes(
+    x = importance,
+    y = reorder(var, importance)
+  ),
+  fill = "Forestgreen")+
+  theme_minimal()+ ggtitle(paste0(Label,"~ Iso1 + .. + Iso10 for ",IsoYear))
+```
+
+#### Pdp
+```{r warning = F, message = F}
+
+pdp_all2 %>%   mutate(key = factor(key, levels=candidates)) %>%  ggplot(pdp_all2,
+       mapping = aes_string(x = "value",
+                           y = "yhat"))+
+  geom_point()+
+  geom_smooth(method = "loess", se=F)+
+  theme_minimal()+
+  facet_wrap(~(key), scales = "free", ncol = 3) 
+## produce single plots or bind rows for different variables and lay out as facets
+```
+
+#### ICE
+```{r}
+require(ICEbox)
+
+#create iceplot object
+iceplot = ice(object = finalmodel, 
+              X= thisData_2_input %>% dplyr::select(-Label, -year),
+                y = thisData_2_input %>% pull(Label),
+              predictor = "iso3")
+
+
+plot(iceplot, 
+     frac_to_plot = 0.1, 
+     centered = T, 
+     plot_orig_pts_preds = F)
+```
+
+#### Shapley
+```{r warning = F, message = F}
+xgboost::xgb.plot.shap(
+  data = as.matrix(thisData_2_input %>% 
+  dplyr::select(-year, -Label)),
+  model = finalmodel$finalModel,
+  top_n = 10,
+  n_col = 3
+)
+
+```
+#### ALE
+```{r}
+
+predictor = Predictor$new(finalmodel,data= thisData_2_input %>% dplyr::select( -Label,-year),
+                y = thisData_2_input %>% pull(Label),)
+
+effs = FeatureEffects$new(predictor)
+plot(effs)
+```
+
+
+## Dimred20~P21 
+
+```{r}
+thisData<-ExcessMort2021
+IsoYear<-"2020"
+Label<-"P_mort_2021"
+candidates<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10")
+```
+
+
+```{r message = F, warning = F}
+thisData[thisData$year%in%IsoYear,]  %>% drop_na() -> thisData_2
+thisData_2 %>% dplyr::select(-`Country Code`)%>% scale %>% data.frame() -> thisData_2_input
+  ## create and test models
+
+trainIndex <- createDataPartition(thisData_2_input[,paste(Label)], p=0.8, list=FALSE)
+train_df <- thisData_2_input[trainIndex,]
+test_df <- thisData_2_input[-trainIndex,]
+  
+## test different parameters
+xgb_caret <- caret::train(x = thisData_2_input %>% dplyr::select(candidates),
+                   y = thisData_2_input %>% pull(Label),
+                   method = "xgbTree",
+                   verbosity = 0,
+                   # objective = "reg:squarederror",
+                   ## CAST CV LLO (Hanna Meyer)
+                   trControl=trainControl(method="cv",
+                                          number = 6,
+                                          search = "random",
+                                          adaptive = list(
+                                            alpha = 0.05,
+                                            method = "BT", 
+                                            complete = TRUE)
+                                          ),
+                   tuneLength = 2
+                    # tuneGrid = expand.grid(nrounds = c(50, 100, 200),
+                    #                       eta = c(0.01, 0.05, 0.1),
+                    #                       max_depth = c(2, 4),
+                    #                       colsample_bytree = c(0.6, 0.8, 1),
+                    #                       subsample = c(0.6, 0.8, 1),
+                    #                       gamma = c(0, 10, 50),
+                    #                       min_child_weight = c(0, 10, 30))
+                    )
+
+finalmodel <- caret::train(x = thisData_2_input %>% dplyr::select(-Label, -year),
+                   y = thisData_2_input %>% pull(Label),
+                   method = "xgbTree",
+                   verbosity = 0,
+                   ## CAST CV LLO (Hanna Meyer)
+                   trControl=trainControl(method="cv",
+                                          number = 6),
+                   # early_stopping_rounds = 10,
+                   tuneGrid = xgb_caret$bestTune)
+```
+
+```{r}
+
+
+pdp_all <- lapply(candidates, function(x){#
+    pdp <- pdp::partial(finalmodel, pred.var = c(x), chull = TRUE)
+    df <- pdp %>%
+    gather(-yhat, key = key, value = value)
+  })
+pdp_all2<-do.call(rbind,pdp_all)
+```
+
+
+### Agnostic plots {.tabset}
+#### final model
+```{r}
+print(finalmodel)
+```
+
+#### Importance
+```{r warning = F, message = F}
+
+ggplot(varImp(finalmodel)$importance %>%
+         mutate(var = rownames(varImp(xgb_caret)$importance))%>%
+         dplyr::rename(importance = Overall)%>%
+         filter(importance > 0))+
+  geom_col(aes(
+    x = importance,
+    y = reorder(var, importance)
+  ),
+  fill = "Forestgreen")+
+  theme_minimal()+ ggtitle(paste0(Label,"~ Iso1 + .. + Iso10 for ",IsoYear))
+```
+
+#### Pdp
+```{r warning = F, message = F}
+
+pdp_all2 %>%   mutate(key = factor(key, levels=candidates)) %>%  ggplot(pdp_all2,
+       mapping = aes_string(x = "value",
+                           y = "yhat"))+
+  geom_point()+
+  geom_smooth(method = "loess", se=F)+
+  theme_minimal()+
+  facet_wrap(~(key), scales = "free", ncol = 3) 
+## produce single plots or bind rows for different variables and lay out as facets
+```
+
+#### ICE
+```{r}
+require(ICEbox)
+
+#create iceplot object
+iceplot = ice(object = finalmodel, 
+              X= thisData_2_input %>% dplyr::select(-Label, -year),
+                y = thisData_2_input %>% pull(Label),
+              predictor = "iso3")
+
+
+plot(iceplot, 
+     frac_to_plot = 0.1, 
+     centered = T, 
+     plot_orig_pts_preds = F)
+```
+
+#### Shapley
+```{r warning = F, message = F}
+xgboost::xgb.plot.shap(
+  data = as.matrix(thisData_2_input %>% 
+  dplyr::select(-year, -Label)),
+  model = finalmodel$finalModel,
+  top_n = 10,
+  n_col = 3
+)
+
+```
+#### ALE
+```{r}
+
+predictor = Predictor$new(finalmodel,data= thisData_2_input %>% dplyr::select( -Label,-year),
+                y = thisData_2_input %>% pull(Label),)
+
+effs = FeatureEffects$new(predictor)
+plot(effs)
+```
+
+
+## Dimred21~P21 
+
+```{r}
+thisData<-ExcessMort2021
+IsoYear<-"2021"
+Label<-"P_mort_2021"
+candidates<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10")
+```
+
+
+```{r message = F, warning = F}
+thisData[thisData$year%in%IsoYear,]  %>% drop_na() -> thisData_2
+thisData_2 %>% dplyr::select(-`Country Code`)%>% scale %>% data.frame() -> thisData_2_input
+  ## create and test models
+
+trainIndex <- createDataPartition(thisData_2_input[,paste(Label)], p=0.8, list=FALSE)
+train_df <- thisData_2_input[trainIndex,]
+test_df <- thisData_2_input[-trainIndex,]
+  
+## test different parameters
+xgb_caret <- caret::train(x = thisData_2_input %>% dplyr::select(candidates),
+                   y = thisData_2_input %>% pull(Label),
+                   method = "xgbTree",
+                   verbosity = 0,
+                   # objective = "reg:squarederror",
+                   ## CAST CV LLO (Hanna Meyer)
+                   trControl=trainControl(method="cv",
+                                          number = 6,
+                                          search = "random",
+                                          adaptive = list(
+                                            alpha = 0.05,
+                                            method = "BT", 
+                                            complete = TRUE)
+                                          ),
+                   tuneLength = 2
+                    # tuneGrid = expand.grid(nrounds = c(50, 100, 200),
+                    #                       eta = c(0.01, 0.05, 0.1),
+                    #                       max_depth = c(2, 4),
+                    #                       colsample_bytree = c(0.6, 0.8, 1),
+                    #                       subsample = c(0.6, 0.8, 1),
+                    #                       gamma = c(0, 10, 50),
+                    #                       min_child_weight = c(0, 10, 30))
+                    )
+
+finalmodel <- caret::train(x = thisData_2_input %>% dplyr::select(-Label, -year),
+                   y = thisData_2_input %>% pull(Label),
+                   method = "xgbTree",
+                   verbosity = 0,
+                   ## CAST CV LLO (Hanna Meyer)
+                   trControl=trainControl(method="cv",
+                                          number = 6),
+                   # early_stopping_rounds = 10,
+                   tuneGrid = xgb_caret$bestTune)
+```
+
+```{r}
+
+
+pdp_all <- lapply(candidates, function(x){#
+    pdp <- pdp::partial(finalmodel, pred.var = c(x), chull = TRUE)
+    df <- pdp %>%
+    gather(-yhat, key = key, value = value)
+  })
+pdp_all2<-do.call(rbind,pdp_all)
+```
+
+
+### Agnostic plots {.tabset}
+#### final model
+```{r}
+print(finalmodel)
+```
+
+#### Importance
+```{r warning = F, message = F}
+
+ggplot(varImp(finalmodel)$importance %>%
+         mutate(var = rownames(varImp(xgb_caret)$importance))%>%
+         dplyr::rename(importance = Overall)%>%
+         filter(importance > 0))+
+  geom_col(aes(
+    x = importance,
+    y = reorder(var, importance)
+  ),
+  fill = "Forestgreen")+
+  theme_minimal()+ ggtitle(paste0(Label,"~ Iso1 + .. + Iso10 for ",IsoYear))
+```
+
+#### Pdp
+```{r warning = F, message = F}
+
+pdp_all2 %>%   mutate(key = factor(key, levels=candidates)) %>%  ggplot(pdp_all2,
+       mapping = aes_string(x = "value",
+                           y = "yhat"))+
+  geom_point()+
+  geom_smooth(method = "loess", se=F)+
+  theme_minimal()+
+  facet_wrap(~(key), scales = "free", ncol = 3) 
+## produce single plots or bind rows for different variables and lay out as facets
+```
+
+#### ICE
+```{r}
+require(ICEbox)
+
+#create iceplot object
+iceplot = ice(object = finalmodel, 
+              X= thisData_2_input %>% dplyr::select(-Label, -year),
+                y = thisData_2_input %>% pull(Label),
+              predictor = "iso3")
+
+
+plot(iceplot, 
+     frac_to_plot = 0.1, 
+     centered = T, 
+     plot_orig_pts_preds = F)
+```
+
+#### Shapley
+```{r warning = F, message = F}
+xgboost::xgb.plot.shap(
+  data = as.matrix(thisData_2_input %>% 
+  dplyr::select(-year, -Label)),
+  model = finalmodel$finalModel,
+  top_n = 10,
+  n_col = 3
+)
+
+```
+#### ALE
+```{r}
+
+predictor = Predictor$new(finalmodel,data= thisData_2_input %>% dplyr::select( -Label,-year),
+                y = thisData_2_input %>% pull(Label),)
+
+effs = FeatureEffects$new(predictor)
+plot(effs)
+```
+
+
+## Dimred19+20 ~P20+P21 
+
+```{r}
+candidates<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10")
+
+ExcessMort2020$P_mort<-ExcessMort2020$P_mort_2020
+ExcessMort2021$P_mort<-ExcessMort2021$P_mort_2021
+Label<-"P_mort"
+rbind(
+ExcessMort2020[ExcessMort2020$year%in%c(2019),c("P_mort",candidates),with=F] %>% na.omit(),
+ExcessMort2021[ExcessMort2021$year%in%c(2020),c("P_mort",candidates),with=F] %>% na.omit()
+)-> thisData
+
+
+
+```
+
+
+```{r message = F, warning = F}
+
+thisData %>% data.frame()-> thisData_2_input
+  ## create and test models
+
+trainIndex <- createDataPartition(thisData_2_input[,paste(Label)], p=0.8, list=FALSE)
+train_df <- thisData_2_input[trainIndex,]
+test_df <- thisData_2_input[-trainIndex,]
+  
+## test different parameters
+xgb_caret <- caret::train(x = thisData_2_input %>% dplyr::select(candidates),
+                   y = thisData_2_input %>% pull(Label),
+                   method = "xgbTree",
+                   verbosity = 0,
+                   # objective = "reg:squarederror",
+                   ## CAST CV LLO (Hanna Meyer)
+                   trControl=trainControl(method="cv",
+                                          number = 6,
+                                          search = "random",
+                                          adaptive = list(
+                                            alpha = 0.05,
+                                            method = "BT", 
+                                            complete = TRUE)
+                                          ),
+                   tuneLength = 2
+                    # tuneGrid = expand.grid(nrounds = c(50, 100, 200),
+                    #                       eta = c(0.01, 0.05, 0.1),
+                    #                       max_depth = c(2, 4),
+                    #                       colsample_bytree = c(0.6, 0.8, 1),
+                    #                       subsample = c(0.6, 0.8, 1),
+                    #                       gamma = c(0, 10, 50),
+                    #                       min_child_weight = c(0, 10, 30))
+                    )
+
+finalmodel <- caret::train(x = thisData_2_input %>% dplyr::select(-Label),
+                   y = thisData_2_input %>% pull(Label),
+                   method = "xgbTree",
+                   verbosity = 0,
+                   ## CAST CV LLO (Hanna Meyer)
+                   trControl=trainControl(method="cv",
+                                          number = 6),
+                   # early_stopping_rounds = 10,
+                   tuneGrid = xgb_caret$bestTune)
+```
+
+```{r}
+
+
+pdp_all <- lapply(candidates, function(x){#
+    pdp <- pdp::partial(finalmodel, pred.var = c(x), chull = TRUE)
+    df <- pdp %>%
+    gather(-yhat, key = key, value = value)
+  })
+pdp_all2<-do.call(rbind,pdp_all)
+```
+
+
+### Agnostic plots {.tabset}
+#### final model
+```{r}
+print(finalmodel)
+```
+
+#### Importance
+```{r warning = F, message = F}
+
+ggplot(varImp(finalmodel)$importance %>%
+         mutate(var = rownames(varImp(xgb_caret)$importance))%>%
+         dplyr::rename(importance = Overall)%>%
+         filter(importance > 0))+
+  geom_col(aes(
+    x = importance,
+    y = reorder(var, importance)
+  ),
+  fill = "Forestgreen")+
+  theme_minimal()+ ggtitle(paste0(Label,"~ Iso1 + .. + Iso10 for ",IsoYear))
+```
+
+#### Pdp
+```{r warning = F, message = F}
+
+pdp_all2 %>%   mutate(key = factor(key, levels=candidates)) %>%  ggplot(pdp_all2,
+       mapping = aes_string(x = "value",
+                           y = "yhat"))+
+  geom_point()+
+  geom_smooth(method = "loess", se=F)+
+  theme_minimal()+
+  facet_wrap(~(key), scales = "free", ncol = 3) 
+## produce single plots or bind rows for different variables and lay out as facets
+```
+
+#### ICE
+```{r}
+require(ICEbox)
+
+#create iceplot object
+iceplot = ice(object = finalmodel, 
+              X= thisData_2_input %>% dplyr::select(-Label),
+                y = thisData_2_input %>% pull(Label),
+              predictor = "iso3")
+
+
+plot(iceplot, 
+     frac_to_plot = 0.1, 
+     centered = T, 
+     plot_orig_pts_preds = F)
+```
+
+#### Shapley
+```{r warning = F, message = F}
+xgboost::xgb.plot.shap(
+  data = as.matrix(thisData_2_input %>% 
+  dplyr::select( -Label)),
+  model = finalmodel$finalModel,
+  top_n = 10,
+  n_col = 3
+)
+
+```
+#### ALE
+```{r}
+
+predictor = Predictor$new(finalmodel,data= thisData_2_input %>% dplyr::select( -Label),
+                y = thisData_2_input %>% pull(Label),)
+
+effs = FeatureEffects$new(predictor)
+plot(effs)
+```
+## Dimred20+21 ~P20+P21 
+
+```{r}
+candidates<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10")
+
+ExcessMort2020$P_mort<-ExcessMort2020$P_mort_2020
+ExcessMort2021$P_mort<-ExcessMort2021$P_mort_2021
+Label<-"P_mort"
+rbind(
+ExcessMort2020[ExcessMort2020$year%in%c(2020),c("P_mort",candidates),with=F] %>% na.omit(),
+ExcessMort2021[ExcessMort2021$year%in%c(2021),c("P_mort",candidates),with=F] %>% na.omit()
+)-> thisData
+
+
+
+```
+
+
+```{r message = F, warning = F}
+
+thisData %>% data.frame()-> thisData_2_input
+  ## create and test models
+
+trainIndex <- createDataPartition(thisData_2_input[,paste(Label)], p=0.8, list=FALSE)
+train_df <- thisData_2_input[trainIndex,]
+test_df <- thisData_2_input[-trainIndex,]
+  
+## test different parameters
+xgb_caret <- caret::train(x = thisData_2_input %>% dplyr::select(candidates),
+                   y = thisData_2_input %>% pull(Label),
+                   method = "xgbTree",
+                   verbosity = 0,
+                   # objective = "reg:squarederror",
+                   ## CAST CV LLO (Hanna Meyer)
+                   trControl=trainControl(method="cv",
+                                          number = 6,
+                                          search = "random",
+                                          adaptive = list(
+                                            alpha = 0.05,
+                                            method = "BT", 
+                                            complete = TRUE)
+                                          ),
+                   tuneLength = 2
+                    # tuneGrid = expand.grid(nrounds = c(50, 100, 200),
+                    #                       eta = c(0.01, 0.05, 0.1),
+                    #                       max_depth = c(2, 4),
+                    #                       colsample_bytree = c(0.6, 0.8, 1),
+                    #                       subsample = c(0.6, 0.8, 1),
+                    #                       gamma = c(0, 10, 50),
+                    #                       min_child_weight = c(0, 10, 30))
+                    )
+
+finalmodel <- caret::train(x = thisData_2_input %>% dplyr::select(-Label),
+                   y = thisData_2_input %>% pull(Label),
+                   method = "xgbTree",
+                   verbosity = 0,
+                   ## CAST CV LLO (Hanna Meyer)
+                   trControl=trainControl(method="cv",
+                                          number = 6),
+                   # early_stopping_rounds = 10,
+                   tuneGrid = xgb_caret$bestTune)
+```
+
+```{r}
+
+
+pdp_all <- lapply(candidates, function(x){#
+    pdp <- pdp::partial(finalmodel, pred.var = c(x), chull = TRUE)
+    df <- pdp %>%
+    gather(-yhat, key = key, value = value)
+  })
+pdp_all2<-do.call(rbind,pdp_all)
+```
+
+
+### Agnostic plots {.tabset}
+#### final model
+```{r}
+print(finalmodel)
+```
+
+#### Importance
+```{r warning = F, message = F}
+
+ggplot(varImp(finalmodel)$importance %>%
+         mutate(var = rownames(varImp(xgb_caret)$importance))%>%
+         dplyr::rename(importance = Overall)%>%
+         filter(importance > 0))+
+  geom_col(aes(
+    x = importance,
+    y = reorder(var, importance)
+  ),
+  fill = "Forestgreen")+
+  theme_minimal()+ ggtitle(paste0(Label,"~ Iso1 + .. + Iso10 for ",IsoYear))
+```
+
+#### Pdp
+```{r warning = F, message = F}
+
+pdp_all2 %>%   mutate(key = factor(key, levels=candidates)) %>%  ggplot(pdp_all2,
+       mapping = aes_string(x = "value",
+                           y = "yhat"))+
+  geom_point()+
+  geom_smooth(method = "loess", se=F)+
+  theme_minimal()+
+  facet_wrap(~(key), scales = "free", ncol = 3) 
+## produce single plots or bind rows for different variables and lay out as facets
+```
+
+#### ICE
+```{r}
+require(ICEbox)
+
+#create iceplot object
+iceplot = ice(object = finalmodel, 
+              X= thisData_2_input %>% dplyr::select(-Label),
+                y = thisData_2_input %>% pull(Label),
+              predictor = "iso3")
+
+
+plot(iceplot, 
+     frac_to_plot = 0.1, 
+     centered = T, 
+     plot_orig_pts_preds = F)
+```
+
+#### Shapley
+```{r warning = F, message = F}
+xgboost::xgb.plot.shap(
+  data = as.matrix(thisData_2_input %>% 
+  dplyr::select( -Label)),
+  model = finalmodel$finalModel,
+  top_n = 10,
+  n_col = 3
+)
+
+```
+#### ALE
+```{r}
+
+predictor = Predictor$new(finalmodel,data= thisData_2_input %>% dplyr::select( -Label),
+                y = thisData_2_input %>% pull(Label),)
+
+effs = FeatureEffects$new(predictor)
+plot(effs)
+```
