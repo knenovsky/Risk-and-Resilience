@@ -20,25 +20,28 @@ require(iml)
 require(data.table)
 require(tidyverse)
 require(parallel)
+setwd(dirname(getActiveDocumentContext()$path))
 ```
 
 ```{r}
 ExcessDimred<-fread("../output/02_230612_Dimred_ExcessMort_annual.csv")
+allcorr<-fread("../data/01_CorrWDI_dimred_10.csv")
+colnames(allcorr)[2:11]<-paste(colnames(allcorr)[2:11],"_all",sep="")
 ```
 
 
 ```{r}
 # wdi_data_raw<-fread("../data/WDI_data_230609/WDI_CSV/WDIData.csv",header = T)
-# wdi_data <- wdi_data_raw %>% 
+# wdi_data <- wdi_data_raw %>%
 #   mutate(...66 = NULL,
 #          V67 = NULL,
 #          `Indicator Name` = NULL) %>%
 #   pivot_longer(names_to = "year",
-#                "1960":"2021",
+#                "1960":"2022",
 #                values_drop_na = TRUE) %>%
 #   mutate(year = as.integer(year)) %>%
 #   pivot_wider(names_from = "Indicator Code")
-#fwrite(wdi_data,"../data/04_WDI_data.csv")
+# fwrite(wdi_data,"../data/04_WDI_data.csv")
 wdi_data<-fread("../data/04_WDI_data.csv")
 wdi_Explained<-fread("../data/WDI_data_230609/WDI_CSV/WDISeries.csv")
 ```
@@ -68,72 +71,610 @@ corrWDItest<-right_join(wdi_data_2,ExcessDimred2[],by="identifer")
  
 ```
 
-## iso 3 
 ```{r}
+cl <- parallel::makeCluster(.cluster, outfile = "../data/04_corrLogfile.log")
+on.exit(parallel::stopCluster(cl))
+wdi_data_cons_df<-corrWDItest %>% filter(!is.na(iso1))
+used_var_names = wdi_Explained$`Series Code`[wdi_Explained$`Series Code` %in% colnames(corrWDItest)]
 
-used_var_names = wdi_Explained$`Series Code`[wdi_Explained$`Series Code` %in% colnames(wdi_data_2)]
+.cluster = 10
 
-.cluster = 8
+```
+
+
+
+
+## iso 1 
+
+```{r}
+group_values<-wdi_data_cons_df$iso1 %>%  quantile()
+thisiso<-paste0("iso1")
 var_comb <- expand.grid(var_name = used_var_names,
-                          iso_name = paste0("iso", 1:5),
+                          iso_name = thisiso,
                           stringsAsFactors = FALSE)
 
-cl <- parallel::makeCluster(.cluster, outfile = "~/Documents/")
-on.exit(parallel::stopCluster(cl))
-parallel::clusterEvalQ(cl, library(energy))
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(
+  iso1<group_values[2]~"0to25",
+  iso1<group_values[3]~"25to50",
+  iso1<group_values[4]~"50to75",
+  iso1<group_values[5]~"75to100",
+))-> wdi_data_cons_df
+
+idx_0_25<-wdi_data_cons_df$categorie%in%"0to25"
+idx_25_50<-wdi_data_cons_df$categorie%in%"25to50"
+idx_50_75<-wdi_data_cons_df$categorie%in%"50to75"
+idx_75_100<-wdi_data_cons_df$categorie%in%"75to100"
+
+parallel::clusterEvalQ(cl, suppressWarnings(library(energy)))
 parallel::clusterExport(cl, "wdi_data_cons_df", envir = environment())
 parallel::clusterExport(cl, "var_comb", envir = environment())
+parallel::clusterExport(cl, "idx_0_25", envir = environment())
+parallel::clusterExport(cl, "idx_25_50", envir = environment())
+parallel::clusterExport(cl, "idx_50_75", envir = environment())
+parallel::clusterExport(cl, "idx_75_100", envir = environment())
+```
 
+
+```{r}
+for(groupA in c("idx_0_25","idx_25_50","idx_50_75","idx_75_100")){
+  
+
+variable<-groupA
+
+parallel::clusterExport(cl, "variable", envir = environment())
 res <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
   message("i: ", i, " / ", nrow(var_comb))
+
   idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+  idx<-eval(parse(text=paste0("idx&",variable,sep="")))
   energy::dcor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
                wdi_data_cons_df[[var_comb$iso_name[i]]][idx])
+  
 })
 
 res_Tsamples <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
   message("i: ", i, " / ", nrow(var_comb))
   idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
   sum(idx)
 })
 res_spear <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
   message("i: ", i, " / ", nrow(var_comb))
   idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
   cor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
-               wdi_data_cons_df[[var_comb$iso_name[i]]][idx],method = "spearman")
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx],method = "pearson")
 })
 
 wdi_data_cons_dcor <- matrix(
-  NA_real_, length(used_var_names), 4,
-  dimnames = list(used_var_names, paste0("iso", 1:4))
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
 )
-
 for (i in seq_len(nrow(var_comb))) {
   wdi_data_cons_dcor[var_comb$var_name[i],
-                     var_comb$iso_name[i]] <- res[[i]]
+                     thisiso] <- res[[i]]
 }
+
 wdi_data_cons_dcor2<- matrix(
-  NA_real_, length(used_var_names), 4,
-  dimnames = list(used_var_names, paste0("iso", 1:4))
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
 )
 for (i in seq_len(nrow(var_comb))) {
   wdi_data_cons_dcor2[var_comb$var_name[i],
-                       var_comb$iso_name[i]] <- res_spear[[i]]
+                       thisiso] <- res_spear[[i]]
 }
 wdi_data_cons_dcor3<- matrix(
-  NA_real_, length(used_var_names), 4,
-  dimnames = list(used_var_names, paste0("iso", 1:4))
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
 )
 for (i in seq_len(nrow(var_comb))) {
   wdi_data_cons_dcor3[var_comb$var_name[i],
-                       var_comb$iso_name[i]] <- res_Tsamples[[i]]
+                       thisiso] <- res_Tsamples[[i]]
 }
-colnames(wdi_data_cons_dcor2)<-paste("spearman",colnames(wdi_data_cons_dcor2),sep="_")
+colnames(wdi_data_cons_dcor2)<-paste("Pearson",colnames(wdi_data_cons_dcor2),sep="_")
 colnames(wdi_data_cons_dcor3)<-paste("N",colnames(wdi_data_cons_dcor3),sep="_")
 
 cbind(data.frame(wdi_data_cons_dcor),data.frame(N=wdi_data_cons_dcor3[,1]),wdi_data_cons_dcor2) %>% rownames_to_column(var = "indicators")-> outi
+categoriestr<-str_replace(str_remove(groupA,"idx_"),"_","to")
 
-outi-> WDI_dimred_iso3_shapley
+
+
+
+
+outi$range<- paste0(round(min(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3)," to ",
+       round(max(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3),sep="")
+colnames(outi)<-paste(colnames(outi),categoriestr,sep = "_")
+
+eval(parse(text=paste("outi-> WDI_dimred_iso1_",groupA,sep="")))
+
+}
 
 ```
+### make the frame
+```{r}
+wdi_dimred_iso1<-cbind(WDI_dimred_iso1_idx_0_25,WDI_dimred_iso1_idx_25_50,WDI_dimred_iso1_idx_50_75,WDI_dimred_iso1_idx_75_100)
+wdi_dimred_iso1_1<-data.frame("Indicators"=wdi_dimred_iso1$indicators_0to25,wdi_dimred_iso1[,!grepl("indicators",colnames(wdi_dimred_iso1))])
 
+
+
+wdi_dimred_iso1_2<-merge(allcorr,wdi_dimred_iso1_1,by="Indicators",all.y=T)
+wdi_dimred_iso1_3<-merge(wdi_Explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso1_2,by.x="Series Code",by.y="Indicators")
+fwrite(wdi_dimred_iso1_3,"../results/corrTable/04_CorrTable_iso1_quantiles_all.csv")
+```
+
+## iso 2
+
+```{r}
+group_values<-wdi_data_cons_df$iso2 %>%  quantile()
+thisiso<-paste0("iso2")
+var_comb <- expand.grid(var_name = used_var_names,
+                          iso_name = thisiso,
+                          stringsAsFactors = FALSE)
+
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(
+  iso2<group_values[2]~"0to25",
+  iso2<group_values[3]~"25to50",
+  iso2<group_values[4]~"50to75",
+  iso2<group_values[5]~"75to100",
+))-> wdi_data_cons_df
+
+idx_0_25<-wdi_data_cons_df$categorie%in%"0to25"
+idx_25_50<-wdi_data_cons_df$categorie%in%"25to50"
+idx_50_75<-wdi_data_cons_df$categorie%in%"50to75"
+idx_75_100<-wdi_data_cons_df$categorie%in%"75to100"
+
+parallel::clusterEvalQ(cl, suppressWarnings(library(energy)))
+parallel::clusterExport(cl, "wdi_data_cons_df", envir = environment())
+parallel::clusterExport(cl, "var_comb", envir = environment())
+parallel::clusterExport(cl, "idx_0_25", envir = environment())
+parallel::clusterExport(cl, "idx_25_50", envir = environment())
+parallel::clusterExport(cl, "idx_50_75", envir = environment())
+parallel::clusterExport(cl, "idx_75_100", envir = environment())
+```
+
+
+```{r}
+for(groupA in c("idx_0_25","idx_25_50","idx_50_75","idx_75_100")){
+  
+
+variable<-groupA
+
+parallel::clusterExport(cl, "variable", envir = environment())
+res <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+  idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  energy::dcor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx])
+  
+})
+
+res_Tsamples <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  sum(idx)
+})
+res_spear <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  cor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx],method = "pearson")
+})
+
+wdi_data_cons_dcor <- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor[var_comb$var_name[i],
+                     thisiso] <- res[[i]]
+}
+
+wdi_data_cons_dcor2<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor2[var_comb$var_name[i],
+                       thisiso] <- res_spear[[i]]
+}
+wdi_data_cons_dcor3<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor3[var_comb$var_name[i],
+                       thisiso] <- res_Tsamples[[i]]
+}
+colnames(wdi_data_cons_dcor2)<-paste("Pearson",colnames(wdi_data_cons_dcor2),sep="_")
+colnames(wdi_data_cons_dcor3)<-paste("N",colnames(wdi_data_cons_dcor3),sep="_")
+
+cbind(data.frame(wdi_data_cons_dcor),data.frame(N=wdi_data_cons_dcor3[,1]),wdi_data_cons_dcor2) %>% rownames_to_column(var = "indicators")-> outi
+categoriestr<-str_replace(str_remove(groupA,"idx_"),"_","to")
+
+
+
+
+
+outi$range<- paste0(round(min(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3)," to ",
+       round(max(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3),sep="")
+colnames(outi)<-paste(colnames(outi),categoriestr,sep = "_")
+
+eval(parse(text=paste("outi-> WDI_dimred_iso2_",groupA,sep="")))
+
+}
+
+```
+### make the frame
+```{r}
+wdi_dimred_iso2<-cbind(WDI_dimred_iso2_idx_0_25,WDI_dimred_iso2_idx_25_50,WDI_dimred_iso2_idx_50_75,WDI_dimred_iso2_idx_75_100)
+wdi_dimred_iso2_1<-data.frame("Indicators"=wdi_dimred_iso2$indicators_0to25,wdi_dimred_iso2[,!grepl("indicators",colnames(wdi_dimred_iso2))])
+
+
+
+wdi_dimred_iso2_2<-merge(allcorr,wdi_dimred_iso2_1,by="Indicators",all.y=T)
+wdi_dimred_iso2_3<-merge(wdi_Explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso2_2,by.x="Series Code",by.y="Indicators")
+fwrite(wdi_dimred_iso2_3,"../results/corrTable/04_CorrTable_iso2_quantiles_all.csv")
+```
+
+## iso 3 
+
+```{r}
+group_values<-wdi_data_cons_df$iso3 %>%  quantile()
+thisiso<-paste0("iso3")
+var_comb <- expand.grid(var_name = used_var_names,
+                          iso_name = thisiso,
+                          stringsAsFactors = FALSE)
+
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(
+  iso3<group_values[2]~"0to25",
+  iso3<group_values[3]~"25to50",
+  iso3<group_values[4]~"50to75",
+  iso3<group_values[5]~"75to100",
+))-> wdi_data_cons_df
+
+idx_0_25<-wdi_data_cons_df$categorie%in%"0to25"
+idx_25_50<-wdi_data_cons_df$categorie%in%"25to50"
+idx_50_75<-wdi_data_cons_df$categorie%in%"50to75"
+idx_75_100<-wdi_data_cons_df$categorie%in%"75to100"
+
+parallel::clusterEvalQ(cl, suppressWarnings(library(energy)))
+parallel::clusterExport(cl, "wdi_data_cons_df", envir = environment())
+parallel::clusterExport(cl, "var_comb", envir = environment())
+parallel::clusterExport(cl, "idx_0_25", envir = environment())
+parallel::clusterExport(cl, "idx_25_50", envir = environment())
+parallel::clusterExport(cl, "idx_50_75", envir = environment())
+parallel::clusterExport(cl, "idx_75_100", envir = environment())
+```
+
+
+```{r}
+for(groupA in c("idx_0_25","idx_25_50","idx_50_75","idx_75_100")){
+  
+
+variable<-groupA
+
+parallel::clusterExport(cl, "variable", envir = environment())
+res <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+  idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  energy::dcor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx])
+  
+})
+
+res_Tsamples <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  sum(idx)
+})
+res_spear <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  cor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx],method = "pearson")
+})
+
+wdi_data_cons_dcor <- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor[var_comb$var_name[i],
+                     thisiso] <- res[[i]]
+}
+
+wdi_data_cons_dcor2<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor2[var_comb$var_name[i],
+                       thisiso] <- res_spear[[i]]
+}
+wdi_data_cons_dcor3<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor3[var_comb$var_name[i],
+                       thisiso] <- res_Tsamples[[i]]
+}
+colnames(wdi_data_cons_dcor2)<-paste("Pearson",colnames(wdi_data_cons_dcor2),sep="_")
+colnames(wdi_data_cons_dcor3)<-paste("N",colnames(wdi_data_cons_dcor3),sep="_")
+
+cbind(data.frame(wdi_data_cons_dcor),data.frame(N=wdi_data_cons_dcor3[,1]),wdi_data_cons_dcor2) %>% rownames_to_column(var = "indicators")-> outi
+categoriestr<-str_replace(str_remove(groupA,"idx_"),"_","to")
+
+
+
+
+
+outi$range<- paste0(round(min(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3)," to ",
+       round(max(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3),sep="")
+colnames(outi)<-paste(colnames(outi),categoriestr,sep = "_")
+
+eval(parse(text=paste("outi-> WDI_dimred_iso3_",groupA,sep="")))
+
+}
+
+```
+### make the frame
+```{r}
+wdi_dimred_iso3<-cbind(WDI_dimred_iso3_idx_0_25,WDI_dimred_iso3_idx_25_50,WDI_dimred_iso3_idx_50_75,WDI_dimred_iso3_idx_75_100)
+wdi_dimred_iso3_1<-data.frame("Indicators"=wdi_dimred_iso3$indicators_0to25,wdi_dimred_iso3[,!grepl("indicators",colnames(wdi_dimred_iso3))])
+
+colnames(allcorr)[2:11]<-paste(colnames(allcorr)[2:11],"_all",sep="")
+
+wdi_dimred_iso3_2<-merge(allcorr,wdi_dimred_iso3_1,by="Indicators",all.y=T)
+wdi_dimred_iso3_3<-merge(wdi_Explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso3_2,by.x="Series Code",by.y="Indicators")
+fwrite(wdi_dimred_iso3_3,"../results/corrTable/04_CorrTable_iso3_quantiles_all.csv")
+```
+
+## iso 4 
+
+```{r}
+group_values<-wdi_data_cons_df$iso4 %>%  quantile()
+thisiso<-paste0("iso4")
+var_comb <- expand.grid(var_name = used_var_names,
+                          iso_name = thisiso,
+                          stringsAsFactors = FALSE)
+
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(
+  iso4<group_values[2]~"0to25",
+  iso4<group_values[3]~"25to50",
+  iso4<group_values[4]~"50to75",
+  iso4<group_values[5]~"75to100",
+))-> wdi_data_cons_df
+
+idx_0_25<-wdi_data_cons_df$categorie%in%"0to25"
+idx_25_50<-wdi_data_cons_df$categorie%in%"25to50"
+idx_50_75<-wdi_data_cons_df$categorie%in%"50to75"
+idx_75_100<-wdi_data_cons_df$categorie%in%"75to100"
+
+parallel::clusterEvalQ(cl, suppressWarnings(library(energy)))
+parallel::clusterExport(cl, "wdi_data_cons_df", envir = environment())
+parallel::clusterExport(cl, "var_comb", envir = environment())
+parallel::clusterExport(cl, "idx_0_25", envir = environment())
+parallel::clusterExport(cl, "idx_25_50", envir = environment())
+parallel::clusterExport(cl, "idx_50_75", envir = environment())
+parallel::clusterExport(cl, "idx_75_100", envir = environment())
+```
+
+
+```{r}
+for(groupA in c("idx_0_25","idx_25_50","idx_50_75","idx_75_100")){
+  
+
+variable<-groupA
+
+parallel::clusterExport(cl, "variable", envir = environment())
+res <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+  idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  energy::dcor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx])
+  
+})
+
+res_Tsamples <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  sum(idx)
+})
+res_spear <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  cor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx],method = "pearson")
+})
+
+wdi_data_cons_dcor <- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor[var_comb$var_name[i],
+                     thisiso] <- res[[i]]
+}
+
+wdi_data_cons_dcor2<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor2[var_comb$var_name[i],
+                       thisiso] <- res_spear[[i]]
+}
+wdi_data_cons_dcor3<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor3[var_comb$var_name[i],
+                       thisiso] <- res_Tsamples[[i]]
+}
+colnames(wdi_data_cons_dcor2)<-paste("Pearson",colnames(wdi_data_cons_dcor2),sep="_")
+colnames(wdi_data_cons_dcor3)<-paste("N",colnames(wdi_data_cons_dcor3),sep="_")
+
+cbind(data.frame(wdi_data_cons_dcor),data.frame(N=wdi_data_cons_dcor3[,1]),wdi_data_cons_dcor2) %>% rownames_to_column(var = "indicators")-> outi
+categoriestr<-str_replace(str_remove(groupA,"idx_"),"_","to")
+
+
+
+
+
+outi$range<- paste0(round(min(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3)," to ",
+       round(max(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3),sep="")
+colnames(outi)<-paste(colnames(outi),categoriestr,sep = "_")
+
+eval(parse(text=paste("outi-> WDI_dimred_iso4_",groupA,sep="")))
+
+}
+
+```
+### make the frame
+```{r}
+wdi_dimred_iso4<-cbind(WDI_dimred_iso4_idx_0_25,WDI_dimred_iso4_idx_25_50,WDI_dimred_iso4_idx_50_75,WDI_dimred_iso4_idx_75_100)
+wdi_dimred_iso4_1<-data.frame("Indicators"=wdi_dimred_iso4$indicators_0to25,wdi_dimred_iso4[,!grepl("indicators",colnames(wdi_dimred_iso4))])
+
+
+
+wdi_dimred_iso4_2<-merge(allcorr,wdi_dimred_iso4_1,by="Indicators",all.y=T)
+wdi_dimred_iso4_3<-merge(wdi_Explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso4_2,by.x="Series Code",by.y="Indicators")
+fwrite(wdi_dimred_iso4_3,"../results/corrTable/04_CorrTable_iso4_quantiles_all.csv")
+```
+
+## iso 5
+
+```{r}
+group_values<-wdi_data_cons_df$iso5 %>%  quantile()
+thisiso<-paste0("iso5")
+var_comb <- expand.grid(var_name = used_var_names,
+                          iso_name = thisiso,
+                          stringsAsFactors = FALSE)
+
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(
+  iso5<group_values[2]~"0to25",
+  iso5<group_values[3]~"25to50",
+  iso5<group_values[4]~"50to75",
+  iso5<group_values[5]~"75to100",
+))-> wdi_data_cons_df
+
+idx_0_25<-wdi_data_cons_df$categorie%in%"0to25"
+idx_25_50<-wdi_data_cons_df$categorie%in%"25to50"
+idx_50_75<-wdi_data_cons_df$categorie%in%"50to75"
+idx_75_100<-wdi_data_cons_df$categorie%in%"75to100"
+
+parallel::clusterEvalQ(cl, suppressWarnings(library(energy)))
+parallel::clusterExport(cl, "wdi_data_cons_df", envir = environment())
+parallel::clusterExport(cl, "var_comb", envir = environment())
+parallel::clusterExport(cl, "idx_0_25", envir = environment())
+parallel::clusterExport(cl, "idx_25_50", envir = environment())
+parallel::clusterExport(cl, "idx_50_75", envir = environment())
+parallel::clusterExport(cl, "idx_75_100", envir = environment())
+```
+
+
+```{r}
+for(groupA in c("idx_0_25","idx_25_50","idx_50_75","idx_75_100")){
+  
+
+variable<-groupA
+
+parallel::clusterExport(cl, "variable", envir = environment())
+res <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+  idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  energy::dcor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx])
+  
+})
+
+res_Tsamples <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  sum(idx)
+})
+res_spear <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  cor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx],method = "pearson")
+})
+
+wdi_data_cons_dcor <- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor[var_comb$var_name[i],
+                     thisiso] <- res[[i]]
+}
+
+wdi_data_cons_dcor2<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor2[var_comb$var_name[i],
+                       thisiso] <- res_spear[[i]]
+}
+wdi_data_cons_dcor3<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor3[var_comb$var_name[i],
+                       thisiso] <- res_Tsamples[[i]]
+}
+colnames(wdi_data_cons_dcor2)<-paste("Pearson",colnames(wdi_data_cons_dcor2),sep="_")
+colnames(wdi_data_cons_dcor3)<-paste("N",colnames(wdi_data_cons_dcor3),sep="_")
+
+cbind(data.frame(wdi_data_cons_dcor),data.frame(N=wdi_data_cons_dcor3[,1]),wdi_data_cons_dcor2) %>% rownames_to_column(var = "indicators")-> outi
+categoriestr<-str_replace(str_remove(groupA,"idx_"),"_","to")
+
+
+
+
+
+outi$range<- paste0(round(min(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3)," to ",
+       round(max(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3),sep="")
+colnames(outi)<-paste(colnames(outi),categoriestr,sep = "_")
+
+eval(parse(text=paste("outi-> WDI_dimred_iso5_",groupA,sep="")))
+
+}
+
+```
+### make the frame
+```{r}
+wdi_dimred_iso5<-cbind(WDI_dimred_iso5_idx_0_25,WDI_dimred_iso5_idx_25_50,WDI_dimred_iso5_idx_50_75,WDI_dimred_iso5_idx_75_100)
+wdi_dimred_iso5_1<-data.frame("Indicators"=wdi_dimred_iso5$indicators_0to25,wdi_dimred_iso5[,!grepl("indicators",colnames(wdi_dimred_iso5))])
+
+
+
+wdi_dimred_iso5_2<-merge(allcorr,wdi_dimred_iso5_1,by="Indicators",all.y=T)
+wdi_dimred_iso5_3<-merge(wdi_Explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso5_2,by.x="Series Code",by.y="Indicators")
+fwrite(wdi_dimred_iso5_3,"../results/corrTable/04_CorrTable_iso5_quantiles_all.csv")
+```
