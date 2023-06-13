@@ -19,7 +19,7 @@ require(pdp)
 require(iml)
 require(data.table)
 require(tidyverse)
- 
+require(parallel)
 ```
 
 ```{r}
@@ -40,19 +40,45 @@ ExcessDimred<-fread("../output/02_230612_Dimred_ExcessMort_annual.csv")
 #   pivot_wider(names_from = "Indicator Code")
 #fwrite(wdi_data,"../data/04_WDI_data.csv")
 wdi_data<-fread("../data/04_WDI_data.csv")
+wdi_Explained<-fread("../data/WDI_data_230609/WDI_CSV/WDISeries.csv")
 ```
 
 # 1 Correlation 2020
 
 ```{r}
-wdi_data_cons_df = corrWDItest %>%  filter(iso3< -0.1)
-used_var_names = thisetExplained$`Series Code`
-.cluster = CLUSTER
+ExcessDimred2<-ExcessDimred%>%  select(`Country Code`,year,iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,iso9,iso10,P_mort_2020,P_mort_2021) %>% 
+  mutate(identifer=paste0(`Country Code`,"_",year),
+                        "iso1"=unlist(scale(iso1)[,1]),
+                        "iso2"=scale(iso2)[,1],
+                        "iso3"=scale(iso3)[,1],
+                        "iso4"=scale(iso4)[,1],
+                        "iso5"=scale(iso5)[,1],
+                        "iso6"=scale(iso6)[,1],
+                        "iso7"=scale(iso7)[,1],
+                        "iso8"=scale(iso8)[,1],
+                        "iso9"=scale(iso9)[,1],
+                        "iso10"=scale(iso10)[,1]) 
+
+                  
+
+wdi_data[,] %>%  mutate(identifer=paste0(`Country Code`,"_",year))-> wdi_data_2
+# wer korreliert
+
+corrWDItest<-right_join(wdi_data_2,ExcessDimred2[],by="identifer")
+ 
+```
+
+## iso 3 
+```{r}
+
+used_var_names = wdi_Explained$`Series Code`[wdi_Explained$`Series Code` %in% colnames(wdi_data_2)]
+
+.cluster = 8
 var_comb <- expand.grid(var_name = used_var_names,
-                          iso_name = paste0("iso", 1:4),
+                          iso_name = paste0("iso", 1:5),
                           stringsAsFactors = FALSE)
 
-cl <- parallel::makeCluster(.cluster, outfile = "~/Documents/rsc4earth/projects/23_01_COCAP/02_global_excess_death/test/make_dcor_var_iso_cons.log")
+cl <- parallel::makeCluster(.cluster, outfile = "~/Documents/")
 on.exit(parallel::stopCluster(cl))
 parallel::clusterEvalQ(cl, library(energy))
 parallel::clusterExport(cl, "wdi_data_cons_df", envir = environment())
@@ -64,6 +90,7 @@ res <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
   energy::dcor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
                wdi_data_cons_df[[var_comb$iso_name[i]]][idx])
 })
+
 res_Tsamples <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
   message("i: ", i, " / ", nrow(var_comb))
   idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
@@ -107,6 +134,6 @@ colnames(wdi_data_cons_dcor3)<-paste("N",colnames(wdi_data_cons_dcor3),sep="_")
 cbind(data.frame(wdi_data_cons_dcor),data.frame(N=wdi_data_cons_dcor3[,1]),wdi_data_cons_dcor2) %>% rownames_to_column(var = "indicators")-> outi
 
 outi-> WDI_dimred_iso3_shapley
-save(WDI_dimred_iso3_shapley, file = "../results/08_corrtable_dimred_wdi_annual_iso3Shapley")
+
 ```
 
