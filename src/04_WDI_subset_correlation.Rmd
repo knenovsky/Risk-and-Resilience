@@ -200,8 +200,87 @@ wdi_dimred_iso1_1<-data.frame("Indicators"=wdi_dimred_iso1$indicators_0to25,wdi_
 
 wdi_dimred_iso1_2<-merge(allcorr,wdi_dimred_iso1_1,by="Indicators",all.y=T)
 wdi_dimred_iso1_3<-merge(wdi_Explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso1_2,by.x="Series Code",by.y="Indicators")
-fwrite(wdi_dimred_iso1_3,"../results/corrTable/04_CorrTable_iso1_quantiles_all.csv")
+#fwrite(wdi_dimred_iso1_3,"../results/corrTable/04_CorrTable_iso1_quantiles_all.csv")
 ```
+```{r}
+iso1_corr<-fread("../results/corrTable/04_CorrTable_iso1_quantiles_all.csv")
+```
+
+#### this value ist hight around the mean
+```{r}
+seriescode<-"SP.POP.0014.MA.ZS"
+wdi_data_cons_df %>%  mutate(categorie=if_else((scale(iso1) > (-0.1)&scale(iso1)<0.5),"Iso1_sig","Not")) %>% 
+  filter(!is.na(get(seriescode)),!is.na(categorie))-> yo
+
+series_label<-wdi_explained[wdi_explained$`Series Code` %in% seriescode,"Indicator Name"]
+
+ggstatsplot::ggbetweenstats(
+      data = yo,
+      x = categorie,
+      y = SP.POP.0014.MA.ZS ) + 
+      # Add labels and title
+      labs(x="",
+           y = seriescode,
+           title = series_label
+      )+theme(
+        # This is the new default font in the plot
+        text = element_text(family = "Roboto", size = 10, color = "black"),
+        plot.title = element_text(
+          family = "Lobster Two", 
+          size = 14,
+          face = "bold",
+          color = "#2a475e"
+        ),
+        # # Statistical annotations below the main title
+        plot.subtitle = element_text(
+          family = "Roboto",
+          size = 13,
+          face = "bold",
+          color="#1b2838"
+        ),
+        plot.title.position = "plot", # slightly different from default
+        axis.text = element_text(size = 10, color = "black"),
+        axis.title = element_text(size = 12)
+      )
+
+
+seriescode<-"SP.POP.0014.MA.ZS"
+wdi_data_cons_df %>%  mutate(categorie=if_else((scale(iso1) > (-0.1)&scale(iso1)<0.5),"Iso1_sig","Not")) %>% 
+  filter(!is.na(get(seriescode)),!is.na(categorie))-> yo
+
+series_label<-wdi_explained[wdi_explained$`Series Code` %in% seriescode,"Indicator Name"]
+
+ggstatsplot::ggbetweenstats(
+      data = yo,
+      x = categorie,
+      y = SP.POP.0014.MA.ZS ) + 
+      # Add labels and title
+      labs(x="",
+           y = seriescode,
+           title = series_label
+      )+theme(
+        # This is the new default font in the plot
+        text = element_text(family = "Roboto", size = 10, color = "black"),
+        plot.title = element_text(
+          family = "Lobster Two", 
+          size = 14,
+          face = "bold",
+          color = "#2a475e"
+        ),
+        # # Statistical annotations below the main title
+        plot.subtitle = element_text(
+          family = "Roboto",
+          size = 13,
+          face = "bold",
+          color="#1b2838"
+        ),
+        plot.title.position = "plot", # slightly different from default
+        axis.text = element_text(size = 10, color = "black"),
+        axis.title = element_text(size = 12)
+      )
+
+```
+
 
 ## iso 2
 
@@ -319,8 +398,13 @@ wdi_dimred_iso2_1<-data.frame("Indicators"=wdi_dimred_iso2$indicators_0to25,wdi_
 
 wdi_dimred_iso2_2<-merge(allcorr,wdi_dimred_iso2_1,by="Indicators",all.y=T)
 wdi_dimred_iso2_3<-merge(wdi_Explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso2_2,by.x="Series Code",by.y="Indicators")
-fwrite(wdi_dimred_iso2_3,"../results/corrTable/04_CorrTable_iso2_quantiles_all.csv")
+#fwrite(wdi_dimred_iso2_3,"../results/corrTable/04_CorrTable_iso2_quantiles_all.csv")
 ```
+
+```{r}
+wdi_dimred_iso2<-fread("../results/corrTable/04_CorrTable_iso2_quantiles_all.csv")
+```
+
 
 ## iso 3 
 
@@ -438,8 +522,26 @@ colnames(allcorr)[2:11]<-paste(colnames(allcorr)[2:11],"_all",sep="")
 
 wdi_dimred_iso3_2<-merge(allcorr,wdi_dimred_iso3_1,by="Indicators",all.y=T)
 wdi_dimred_iso3_3<-merge(wdi_Explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso3_2,by.x="Series Code",by.y="Indicators")
-fwrite(wdi_dimred_iso3_3,"../results/corrTable/04_CorrTable_iso3_quantiles_all.csv")
+#fwrite(wdi_dimred_iso3_3,"../results/corrTable/04_CorrTable_iso3_quantiles_all.csv")
 ```
+
+```{r}
+iso3_corrtable<-fread("../results/corrTable/04_CorrTable_iso3_quantiles_all.csv")
+
+
+UPPER25<-quantile(iso3_corrtable$iso3_all_all,na.rm = T)[4]
+UPPER25
+iso3_corrtable %>% 
+            pivot_longer(names_to = "isos",
+               c("iso3_all_all","iso3_0to25","iso3_25to50","iso3_50to75","iso3_75to100"),
+               values_drop_na = TRUE) %>% 
+  ggplot(aes(x=value,fill=isos))+geom_histogram()+geom_vline(xintercept = UPPER25)+ facet_wrap(~isos)#
+
+iso3_corrtable %>%filter(iso3_0to25>quantile(iso3_corrtable$iso3_0to25,na.rm = T)[4]) %>% filter(N_0to25>50) %>% arrange(desc(iso3_0to25))-> subset_a
+
+subset_a %>% select(`Indicator Name`,`Pearson_iso3_0to25`) %>% fwrite("../data/iso3negativefeatures.csv")
+```
+
 
 ## iso 4 
 
@@ -557,8 +659,21 @@ wdi_dimred_iso4_1<-data.frame("Indicators"=wdi_dimred_iso4$indicators_0to25,wdi_
 
 wdi_dimred_iso4_2<-merge(allcorr,wdi_dimred_iso4_1,by="Indicators",all.y=T)
 wdi_dimred_iso4_3<-merge(wdi_Explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso4_2,by.x="Series Code",by.y="Indicators")
-fwrite(wdi_dimred_iso4_3,"../results/corrTable/04_CorrTable_iso4_quantiles_all.csv")
+# fwrite(wdi_dimred_iso4_3,"../results/corrTable/04_CorrTable_iso4_quantiles_all.csv")
 ```
+
+```{r}
+iso4_corrtable<-fread("../results/corrTable/04_CorrTable_iso4_quantiles_all.csv")
+
+UPPER25<-quantile(iso4_corrtable$iso4_all_all,na.rm = T)[4]
+
+iso4_corrtable %>% 
+            pivot_longer(names_to = "isos",
+               c("iso4_all_all","iso4_0to25","iso4_25to50","iso4_50to75","iso4_75to100"),
+               values_drop_na = TRUE) %>% 
+  ggplot(aes(x=value,fill=isos))+geom_histogram()+geom_vline(xintercept = UPPER25)+ facet_wrap(~isos)
+```
+
 
 ## iso 5
 

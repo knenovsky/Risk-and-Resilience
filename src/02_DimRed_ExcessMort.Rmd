@@ -256,8 +256,8 @@ d<-lm(P_mort_2021~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,dimred2021_
 ```{r}
 require(GGally)
 
-aplot<-ggcoef_model(a) + ggtitle("WDI19~P21" )%>% suppressWarnings()
-bplot<-ggcoef_model(b)+  ggtitle("WDI20~P21" )%>% suppressWarnings()
+aplot<-ggcoef_model(a) + ggtitle("WDI19~P20" )%>% suppressWarnings()
+bplot<-ggcoef_model(b)+  ggtitle("WDI20~P20" )%>% suppressWarnings()
 
 cplot<-ggcoef_model(c) + ggtitle("WDI20~P21" )%>% suppressWarnings()
 dplot<-ggcoef_model(d)+  ggtitle("WDI21~P21" )%>% suppressWarnings()
@@ -492,8 +492,8 @@ death_all
 ```{r}
 wdi_data_cons_df<-dimred2021_knn250_pmort
 
-isos2019_to2021<-wdi_data_cons_df[wdi_data_cons_df$year%in%2021,c("Country Code","P_mort_2021","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10")]
-isos2019_to2020<-wdi_data_cons_df[wdi_data_cons_df$year%in%2020,c("Country Code","P_mort_2020","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10")]
+isos2019_to2021<-wdi_data_cons_df[wdi_data_cons_df$year%in%2021,c("Country Code","P_mort_2021","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10","year","pscore_mean","RegionSoviet")]
+isos2019_to2020<-wdi_data_cons_df[wdi_data_cons_df$year%in%2020,c("Country Code","P_mort_2020","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10","year","pscore_mean","RegionSoviet")]
 
 isos2019_to2020_2<-isos2019_to2020 %>% rename(Pmort=P_mort_2020)
 isos2019_to2021_2<-isos2019_to2021 %>% rename(Pmort=P_mort_2021)
@@ -506,7 +506,7 @@ library(apcluster)
 isos2020_2021 %>%   na.omit()->isos2020_2021
 
   # Calculate the similarity matrix
-cluster <- apcluster(negDistMat(r=2), scale(isos2020_2021[,c("Pmort","iso1","iso2","iso3","iso4","iso5")]) , q=0.001) 
+cluster <- apcluster(negDistMat(r=2), scale(isos2020_2021[,c("Pmort","iso1","iso2","iso3","iso4")]) , q=0.0001) 
 
 # Explore the resulting clusters
 # cluster_summary <- aggregate(data$x, by = list(affinity_result$cluster, affinity_result$label), FUN = mean)
@@ -528,11 +528,12 @@ cluster_ids <- integer(cluster@l)
   # glimpse(clustered)
 
 isos2020_2021$clusterid<-cluster_ids
-isos2020_2021 %>%
+isos2020_2021 %>% filter(year%in% 2021) %>% 
   pivot_longer(names_to = "isos",
                "iso1":"iso4",
                values_drop_na = TRUE) %>% 
-  ggplot(aes(x=scale(value),y=Pmort,color=as.factor(clusterid)))+ geom_point() +facet_wrap(~isos) +scale_color_brewer(palette = "Set1")+ggtitle("Both year 2020/2021 [2n]")
+  ggplot(aes(x=scale(value),y=pscore_mean,color=as.factor(clusterid)))+ geom_point() +facet_wrap(~isos,scales = "free_x") +scale_color_brewer("Cluster",palette = "Dark2")+ggtitle("P Score Mortality[2n]")+ xlab("")+ theme_bw()+ theme(legend.position = "bottom") 
+
 
 ```
 
@@ -718,52 +719,49 @@ isoExtraplot %>%
 # 5 Latent space of other disasters
 
 ## Disastets
-```{r}
 
-
-```
 
 ```{r}
-thidata<-fread("../../23_01_COCAP/01_data_prep/data/230526_OWID_emdat/natural-disasters.csv")
-events<-colnames(disaster)[grepl("per 100,000",colnames(disaster))]
-disaster<-thidata[,!duplicated(colnames(thidata)),with=F]
-disaster$identifier<-paste0(disaster$`Country name`,"_",disaster$Year)
-dimred2021_knn250_pmort$identifier<-paste0(dimred2021_knn250_pmort$`Short Name`,"_",dimred2021_knn250_pmort$year)
+# thidata<-fread("../data/230526_OWID_emdat/natural-disasters.csv")
+# events<-colnames(disaster)[grepl("per 100,000",colnames(disaster))]
+# disaster<-thidata[,!duplicated(colnames(thidata)),with=F]
+# disaster$identifier<-paste0(disaster$`Country name`,"_",disaster$Year)
+# dimred2021_knn250_pmort$identifier<-paste0(dimred2021_knn250_pmort$`Short Name`,"_",dimred2021_knn250_pmort$year)
 ```
 
 
 ```{r}
-
-for(i in 1:length(events)){
-  
-
-
-disaster %>% filter(!is.na(get(events[i]))) %>% group_by(identifier) %>% 
-
-  summarise(Disaster=mean(get(events[i]))) %>%  merge( . , dimred2021_knn250_pmort,by="identifier") %>%
-
-  filter(!is.na(iso1),!is.na(Disaster))   ->thisone
-  if(nrow(thisone)>2){
-    a<-lm(scale(Disaster)~iso1+iso2+iso3+iso4+iso5+iso6,thisone )%>%  summary
-    aplot<-ggcoef_model(a)+ggtitle(events[i])   %>% suppressWarnings()
-
-    b<-thisone %>%filter(year%in% c(2015:2022),(`Income Group`)!="") %>%  
-            pivot_longer(names_to = "isos",
-               "iso1":"iso4",
-               values_drop_na = TRUE)
-    b%>% 
-    ggplot(aes(x=scale(value),y=scale(Disaster),color=`Income Group`))+ geom_point() +facet_wrap(~isos) +scale_color_brewer(palette = "Set1")+ theme_classic() +ggtitle(events[i])-> b_plot
-    suppressWarnings(ggarrange(aplot,b_plot)) %>% ggsave(file = paste0("../figures/Dimred_Disasters/",i,"_dimplot.png",sep=""),device = "png",width = 14,height = 8)
-
-  }
-
-
-
-
-
-
-}
-plotlist
+# 
+# for(i in 1:length(events)){
+#   
+# 
+# 
+# disaster %>% filter(!is.na(get(events[i]))) %>% group_by(identifier) %>% 
+# 
+#   summarise(Disaster=mean(get(events[i]))) %>%  merge( . , dimred2021_knn250_pmort,by="identifier") %>%
+# 
+#   filter(!is.na(iso1),!is.na(Disaster))   ->thisone
+#   if(nrow(thisone)>2){
+#     a<-lm(scale(Disaster)~iso1+iso2+iso3+iso4+iso5+iso6,thisone )%>%  summary
+#     aplot<-ggcoef_model(a)+ggtitle(events[i])   %>% suppressWarnings()
+# 
+#     b<-thisone %>%filter(year%in% c(2015:2022),(`Income Group`)!="") %>%  
+#             pivot_longer(names_to = "isos",
+#                "iso1":"iso4",
+#                values_drop_na = TRUE)
+#     b%>% 
+#     ggplot(aes(x=scale(value),y=scale(Disaster),color=`Income Group`))+ geom_point() +facet_wrap(~isos) +scale_color_brewer(palette = "Set1")+ theme_classic() +ggtitle(events[i])-> b_plot
+#     suppressWarnings(ggarrange(aplot,b_plot)) %>% ggsave(file = paste0("../figures/Dimred_Disasters/",i,"_dimplot.png",sep=""),device = "png",width = 14,height = 8)
+# 
+#   }
+# 
+# 
+# 
+# 
+# 
+# 
+# }
+# plotlist
 ```
 
 
