@@ -492,8 +492,8 @@ death_all
 ```{r}
 wdi_data_cons_df<-dimred2021_knn250_pmort
 
-isos2019_to2021<-wdi_data_cons_df[wdi_data_cons_df$year%in%2021,c("Country Code","P_mort_2021","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10","year","pscore_mean","RegionSoviet")]
-isos2019_to2020<-wdi_data_cons_df[wdi_data_cons_df$year%in%2020,c("Country Code","P_mort_2020","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10","year","pscore_mean","RegionSoviet")]
+isos2019_to2021<-wdi_data_cons_df[wdi_data_cons_df$year%in%2021,c("Country Code","P_mort_2021","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10","year","pscore_mean","RegionSoviet","Income Group")]
+isos2019_to2020<-wdi_data_cons_df[wdi_data_cons_df$year%in%2020,c("Country Code","P_mort_2020","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10","year","pscore_mean","RegionSoviet","Income Group")]
 
 isos2019_to2020_2<-isos2019_to2020 %>% rename(Pmort=P_mort_2020)
 isos2019_to2021_2<-isos2019_to2021 %>% rename(Pmort=P_mort_2021)
@@ -506,36 +506,53 @@ library(apcluster)
 isos2020_2021 %>%   na.omit()->isos2020_2021
 
   # Calculate the similarity matrix
-cluster <- apcluster(negDistMat(r=2), scale(isos2020_2021[,c("Pmort","iso1","iso2","iso3","iso4")]) , q=0.0001) 
+set.seed(19) 
+# cluster <- apcluster(negDistMat(r=2), scale(isos2020_2021[,c("Pmort","iso1","iso2","iso3","iso4","iso5","iso6")]) , q=0.0001) 
+kmeans_result <- kmeans(scale(isos2020_2021[,c("iso1","iso2","iso3","iso4","iso5")]), centers = 6)
+cluster_assignments <- kmeans_result$cluster
+isos2020_2021$Kcluster <- cluster_assignments
 
-# Explore the resulting clusters
-# cluster_summary <- aggregate(data$x, by = list(affinity_result$cluster, affinity_result$label), FUN = mean)
 
 
-exemplars <- integer(length(cluster@exemplars)) 
-
-for(i in seq_along(cluster@exemplars)) {
-      exemplars[i] <- cluster@exemplars[[i]][1]
-    }
-cluster_ids <- integer(cluster@l)
-  for(i in seq_along(cluster@clusters)) {
-    cl <- cluster@clusters[[i]]
-    for(j in seq_along(cl)) {
-      cluster_ids[cl[j]] <- i
-    }
-  }
-  
-  # glimpse(clustered)
 
 isos2020_2021$clusterid<-cluster_ids
+isos2020_2021 %>% filter(year%in% c(2020,2021)) %>% 
+  pivot_longer(names_to = "isos",
+               "iso1":"iso4",
+               values_drop_na = TRUE) %>% 
+  ggplot(aes(x=scale(value),y=(pscore_mean),color=as.factor(Kcluster)))+ geom_point() +facet_wrap(~isos,scales = "free_x") +scale_color_brewer("Cluster",palette = "Dark2")+ggtitle("Excess Mortality in the latent space ")+ xlab("")+ theme_bw()+ theme(legend.position = "bottom",strip.text.x = element_text(size = 12, colour = "Black")) +ylab("P Score Excess Mortality")
+ggsave("../figures/02_ExcessMort_cluster.png",device = "png",width =9,height = 7,dpi = 320)
+
+```
+```{r}
+ordera<-c("North America","Sub-Saharan Africa","East Asia & Pacific","Europe & Central Asia","Post-Soviet","Latin America & Caribbean","Middle East & North Africa", "South Asia") 
+
+```
+
+```{r}
+
+
+sizes <- factor(as.factor(isos2020_2021$RegionSoviet), levels=ordera)
+isos2020_2021$RegionSoviet2<-sizes
+isos2020_2021 %>% filter(year%in% c(2020,2021)) %>% 
+  pivot_longer(names_to = "isos",
+               "iso1":"iso4",
+               values_drop_na = TRUE) %>% 
+  ggplot(aes(x=scale(value),y=(pscore_mean),color=as.factor(RegionSoviet2)))+ geom_point() +facet_wrap(~isos,scales = "free_x") +scale_color_brewer("Regions",palette = "Dark2")+ggtitle("Excess Mortality in the world")+ xlab("")+ylab("P Score Excess Mortality")+ theme_bw()+ theme(legend.position = "bottom") 
+
+ggsave("../figures/02_ExcessMort_worldregions.png",device = "png",width =9,height = 7,dpi = 320)
+```
+
+
+```{r}
 isos2020_2021 %>% filter(year%in% 2021) %>% 
   pivot_longer(names_to = "isos",
                "iso1":"iso4",
                values_drop_na = TRUE) %>% 
-  ggplot(aes(x=scale(value),y=pscore_mean,color=as.factor(clusterid)))+ geom_point() +facet_wrap(~isos,scales = "free_x") +scale_color_brewer("Cluster",palette = "Dark2")+ggtitle("P Score Mortality[2n]")+ xlab("")+ theme_bw()+ theme(legend.position = "bottom") 
-
-
+  ggplot(aes(x=scale(value),y=(pscore_mean),color=as.factor(`Income Group`)))+ geom_point() +facet_wrap(~isos,scales = "free_x") +scale_color_brewer("Regions",palette = "Dark2")+ggtitle("Excess Mortality in Income Groups")+ xlab("")+ylab("P Score Excess Mortality")+ theme_bw()+ theme(legend.position = "bottom") 
 ```
+
+
 
 
 # 3 Find bet correlation method
