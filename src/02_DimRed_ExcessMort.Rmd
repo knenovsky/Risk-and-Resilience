@@ -78,6 +78,8 @@ incomegroups<-read_excel("../../23_01_COCAP/01_data_prep/data/230224_WORLDBANK_I
 incomegroups2<-read_excel("../../23_01_COCAP/01_data_prep/data/230224_WORLDBANK_INCOME_GROUPS/OGHIST.xlsx",sheet = 2) 
 availability<-read.xlsx("../../23_01_COCAP/01_data_prep/data/230320_WHO_Mortality_availability/41586_2022_5522_availability.xlsx")
 wdi_explained<-fread("../data/WDI_data_230609/WDI_CSV/WDISeries.csv")
+
+
 ```
 
 
@@ -116,16 +118,46 @@ excessCounrty_year_pvalue2 %>% filter(!is.na(iso3_code))%>% pivot_wider(names_fr
 ```{r}
 ExcessMort_annual<-fread("../output/02_ExcessMort_annual.csv")
 
-ExcessMort_annual %>% select(country,Region,`Income group`,pscore_mean,pscore_cat,iso3_code,P_mort_2020,P_mort_2021)-> ExcessMort_annual_sd
+ExcessMort_annual %>% dplyr::select(country,Region,`Income group`,pscore_mean,pscore_cat,iso3_code,P_mort_2020,P_mort_2021)-> ExcessMort_annual_sd
+
+
 ```
 
 
 ### 2. WDI Dimred
 ```{r,message=FALSE}
-wdi_data_cons_df<-fread("../output/01_wdi_dimred_2021_k250.csv",header = T)
+wdi_data_cons_df<-fread("../output/01_wdi_dimred_2010to2021_k250.csv",header = T)
 thisdimensions<-wdi_data_cons_df[,c("Short Name","Country Code","year","Income Group","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8")]
 
 ```
+```{r}
+require(scales)
+require(dplyr)
+wdi_data_cons_df %>% filter(year%in% c(2016:2022)) %>% dplyr::select(year,RegionSoviet,NY.GDP.PCAP.CD,iso1,iso2,iso3,iso4,iso5) %>% 
+  group_by(year,RegionSoviet) %>% summarise(`GDP per capita`=mean(NY.GDP.PCAP.CD,na.rm = T),iso1=mean(iso1,na.rm = T)
+                                            ,iso2=mean(iso2,na.rm = T)
+                                            ,iso3=mean(iso3,na.rm = T)
+                                            ,iso5=mean(iso5,na.rm = T)
+                                            ,iso4=mean(iso4,na.rm = T)) %>% 
+   pivot_longer(names_to = "var",
+               "GDP per capita":"iso4",
+               values_drop_na = TRUE) %>% 
+  filter(var%in%c("GDP per capita","iso1","iso2","iso4"))%>% ggplot(aes(x=year,y=(value),color=RegionSoviet))+ geom_point() +geom_line() +theme_classic2() +ylab("")+ scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020,2022))+theme(legend.position = "asd")+ scale_color_brewer(palette = "Set1")+ facet_wrap(~var,scales = "free_y")
+ggsave("../figures/02_trajectories.png",device = "png",width = 9,height = 7)
+wdi_data_cons_df %>% filter(year%in% c(2016:2022)) %>% dplyr::select(year,RegionSoviet,NY.GDP.PCAP.CD,iso1,iso2,iso3,iso4,iso5) %>% 
+  group_by(year,RegionSoviet) %>% summarise(`GDP per capita`=mean(NY.GDP.PCAP.CD,na.rm = T),iso1=mean(iso1,na.rm = T)
+                                            ,iso2=mean(iso2,na.rm = T)
+                                            ,iso3=mean(iso3,na.rm = T)
+                                            ,iso5=mean(iso5,na.rm = T)
+                                            ,iso4=mean(iso4,na.rm = T)) %>% 
+   pivot_longer(names_to = "var",
+               "GDP per capita":"iso4",
+               values_drop_na = TRUE) %>% 
+  filter(var%in%c("GDP per capita","iso1","iso2","iso4"))%>% ggplot(aes(x=year,y=(value),color=RegionSoviet))+ geom_point() +geom_line() +theme_classic2() +ylab("")+ scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020,2022))+theme(legend.position = "bottom")+ scale_color_brewer(palette = "Set1")+ facet_wrap(~var,scales = "free_y")
+
+ggsave("../figures/02_trajectories_legend.png",device = "png",width = 9,height = 7)
+```
+
 
 ### Combine. Merge
 ```{r,message=F}
@@ -242,6 +274,14 @@ dimred4<-dimred2021_knn250_pmort[dimred2021_knn250_pmort$year%in%2019,]  %>%  mu
 suppressWarnings(ggarrange(dimred3,dimred4))
 ```
 
+```{r}
+dimred4<-dimred2021_knn250_pmort[dimred2021_knn250_pmort$year%in%2019,]  %>%  mutate(p_mort_text=case_when(P_mort_2020>40~`Country Code`,
+                               P_mort_2020<(-5)~`Country Code`,
+                               TRUE~"")) %>%  
+  ggplot(aes(y=P_mort_2020,x=iso4,label=p_mort_text))+ geom_point(alpha=0.8)+ geom_hline(yintercept =0)+geom_text(aes(color=`Income Group`))+ geom_smooth(method = "lm") +   theme_tufte()+ xlab("Isomap Dimension 4") + scale_color_brewer(palette = "Dark2")+  ggtitle("2019 Isomap Dimension 4 ~ P Mort 2020") + theme(legend.position = "bottom") 
+```
+
+
 ## Summary plots {.tabset}
 
 ```{r}
@@ -249,8 +289,9 @@ a<-lm(P_mort_2020~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,dimred2021_
 b<-lm(P_mort_2020~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,dimred2021_knn250_pmort[dimred2021_knn250_pmort$year%in%2020]) %>%  summary
 c<-lm(P_mort_2021~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,dimred2021_knn250_pmort[dimred2021_knn250_pmort$year%in%2020]) %>%  summary
 d<-lm(P_mort_2021~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,dimred2021_knn250_pmort[dimred2021_knn250_pmort$year%in%2021]) %>%  summary
-
 ```
+
+s
 
 
 ```{r}
@@ -262,6 +303,8 @@ bplot<-ggcoef_model(b)+  ggtitle("WDI20~P20" )%>% suppressWarnings()
 cplot<-ggcoef_model(c) + ggtitle("WDI20~P21" )%>% suppressWarnings()
 dplot<-ggcoef_model(d)+  ggtitle("WDI21~P21" )%>% suppressWarnings()
 ```
+
+
 
 ### WDI~P20
 ```{r}
@@ -490,6 +533,7 @@ death_all
 
 ## 2020/2021  Dimred + Pmort {.tabset}
 ```{r}
+
 wdi_data_cons_df<-dimred2021_knn250_pmort
 
 isos2019_to2021<-wdi_data_cons_df[wdi_data_cons_df$year%in%2021,c("Country Code","P_mort_2021","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10","year","pscore_mean","RegionSoviet","Income Group")]
@@ -514,14 +558,12 @@ isos2020_2021$Kcluster <- cluster_assignments
 
 
 
-
-isos2020_2021$clusterid<-cluster_ids
 isos2020_2021 %>% filter(year%in% c(2020,2021)) %>% 
   pivot_longer(names_to = "isos",
                "iso1":"iso4",
                values_drop_na = TRUE) %>% 
   ggplot(aes(x=scale(value),y=(pscore_mean),color=as.factor(Kcluster)))+ geom_point() +facet_wrap(~isos,scales = "free_x") +scale_color_brewer("Cluster",palette = "Dark2")+ggtitle("Excess Mortality in the latent space ")+ xlab("")+ theme_bw()+ theme(legend.position = "bottom",strip.text.x = element_text(size = 12, colour = "Black")) +ylab("P Score Excess Mortality")
-ggsave("../figures/02_ExcessMort_cluster.png",device = "png",width =9,height = 7,dpi = 320)
+#ggsave("../figures/02_ExcessMort_cluster.png",device = "png",width =9,height = 7,dpi = 320)
 
 ```
 ```{r}
@@ -586,7 +628,7 @@ combined_data <- data.frame(wdi_data_cons_df2[idx2,variable],
 
 
 # Calculate the mutual information
-
+wdi_data_cons_df[,c("Country Code","year","iso1")]
 ```
 dCOR is the best
 
@@ -779,6 +821,476 @@ isoExtraplot %>%
 # 
 # }
 # plotlist
+```
+
+```{r}
+# Example using two mite groups. The mite data are available in vegan
+data(mite)
+# Two mite species associations (Legendre 2005, Fig. 4)
+group.1 <- c(1,2,4:8,10:15,17,19:22,24,26:30)
+group.2 <- c(3,9,16,18,23,25,31:35)
+# Separate Hellinger transformations of the two groups of species 
+mite.hel.1 <- decostand(mite[,group.1], "hel")
+mite.hel.2 <- decostand(mite[,group.2], "hel")
+rownames(mite.hel.1) = paste("S",1:nrow(mite),sep="")
+rownames(mite.hel.2) = paste("S",1:nrow(mite),sep="")
+out <- CCorA(mite.hel.1, mite.hel.2)
+out
+biplot(out, "ob")                 # Two plots of objects
+biplot(out, "v", cex=c(0.7,0.6))  # Two plots of variables
+biplot(out, "ov", cex=c(0.7,0.6)) # Four plots (2 for objects, 2 for variables)
+biplot(out, "b", cex=c(0.7,0.6))  # Two biplots
+biplot(out, xlabs = NA, plot.axes = c(3,5))    # Plot axes 3, 5. No object names
+biplot(out, plot.type="biplots", xlabs = NULL) # Replace object names by numbers
+
+# Example using random numbers. No significant relationship is expected
+mat1 <- matrix(rnorm(60),20,3)
+mat2 <- matrix(rnorm(100),20,5)
+out2 = CCorA(mat1, mat2, permutations=99)
+out2
+biplot(out2, "b")
+```
+# 6 Add democracy
+## make data
+```{r}
+
+vdemdata<-fread("../data/CopyOfvdem_data_cons_df_75.csv")
+dimred2021_knn250_pmort$identifier<-paste0(dimred2021_knn250_pmort$`Country Code`,dimred2021_knn250_pmort$year,sep="_")
+vdemdata$identifier<-paste0(vdemdata$`Country Code`,vdemdata$year,sep="_")
+coolsubset<-merge(dimred2021_knn250_pmort,vdemdata,by="identifier",suffixes = c(".wdi",".vdem"))
+coolsubset %>% filter(year.wdi%in%2020) %>% ggplot(aes(x=iso2.vdem,y=P_mort_2021))+ geom_point()
+coolsubset %>% filter(year.wdi%in%2020) %>% ggplot(aes(x=iso1.vdem,y=iso1.wdi))+ geom_point()
+coolsubset %>% filter(year.wdi%in%2020) %>% ggplot(aes(x=iso2.vdem,y=iso1.wdi))+ geom_point()
+coolsubset %>% filter(year.wdi%in%2020) %>% ggplot(aes(x=PC1.vdem,y=iso1.vdem))+ geom_point()+ theme_classic()
+lm(P_mort_2021~iso1.wdi+iso2.wdi+iso3.wdi+iso4.wdi+PC1.vdem+PC2.vdem+iso3.vdem,coolsubset %>% filter(year.wdi%in%2019)) %>%  summary
+```
+```{r}
+coolsubset %>%  filter(year.wdi%in% 2020) %>%  ggplot(aes(x=iso4.wdi))+ geom_density()
+```
+
+```{r}
+coolsubset %>% ggplot(aes(x=iso1.vdem,y=iso2.vdem,color=P_mort_2020))+ geom_point() + scale_color_viridis() + theme_classic()
+
+```
+## cca
+
+```{r}
+
+coolsubset2<-coolsubset[,(grepl("year|Country Code.wdi|so[0-9]",colnames(coolsubset))),with=F] %>% na.omit()
+
+vdem_iso<-coolsubset2[,(grepl("year|Country Code.wdi|so[0-9].vdem",colnames(coolsubset2))),with=F]%>% data.frame()%>% na.omit() %>% filter(year.wdi%in% 2020)
+
+wdi_iso<-coolsubset2[,(grepl("year|Country Code.wdi|so[0-9].wdi",colnames(coolsubset2))),with=F] %>% data.frame()%>% na.omit() %>% filter(year.wdi%in% 2020)
+rownames(vdem_iso)<-vdem_iso$Country.Code.wdi
+rownames(wdi_iso)<-wdi_iso$Country.Code.wdi
+vdem_iso$Country.Code.wdi<-NULL
+vdem_iso$year.wdi<-NULL
+vdem_iso$year.vdem<-NULL
+wdi_iso$`Country.Code.wdi`<-NULL
+wdi_iso$year.wdi<-NULL
+wdi_iso$year.vdem<-NULL
+
+
+thisdata<-data.frame(vdem_iso[,],wdi_iso)  %>% data.frame()
+
+?cancor
+a<-cancor(wdi_iso,vdem_iso[c(1,2)])
+a
+```
+
+```{r}
+library(ggplot2)
+library(reshape2)
+library(corrplot)
+
+# Run canonical correlation analysis using cancor() function
+cca_result <-cancor(wdi_iso,vdem_iso[])  # Replace X and Y with your data matrices
+plot(cca_result)
+cca_result
+```
+```{r}
+library(cluster)
+library(stats)
+library(ggplot2)
+library(gridExtra)
+
+
+# Combine clusters
+X <- vdem_iso
+Y <- wdi_iso
+
+
+```
+
+
+### Visualtiosation
+```{r}
+require(candisc)
+setcancor<-cancor(vdem_iso[,c(1,2)],wdi_iso)
+setcancor2<- stats::cancor(vdem_iso,wdi_iso)
+# basic plot
+heplot(setcancor)
+cancor(vdem_iso[],wdi_iso)
+par(mfrow = c(1, 2))
+biplot(as.matrix(vdem_iso) %*% setcancor2$xcoef[,1:2], setcancor2$xcoef[,1:2], cex = 0.1)
+biplot(as.matrix(wdi_iso) %*% setcancor2$ycoef[,1:2], setcancor2$ycoef[,1:2], cex = 0.1)
+```
+
+
+```{r}
+# Calc CCA for global data
+cancor(X, Y)$cor
+
+
+
+### ANALYSIS
+
+# Basic CCA clustering function
+cca_clustering <- function(X, Y, k, max_iter, tol, num_corrs) {
+  n <- nrow(X)
+  
+  # Initialize clustering
+  initial_clusters <- sample(1:k, n, replace = T)
+  clusters <- initial_clusters
+  
+  for (iter in 1:max_iter) {
+    old_clusters <- clusters
+    cluster_ccas <- vector("list", k)
+    
+    for (i in unique(clusters)) {
+      indices <- which(clusters == i)
+      if (length(indices) > 1) {
+        cca_result <- cancor(X[indices,], Y[indices,])
+        cluster_ccas[[i]] <- cca_result
+      } else {
+        cluster_ccas[[i]] <- NULL
+      }
+    }
+    
+    for (j in 1:n) {
+      max_corr <- -Inf
+      closest_cluster <- 0
+      
+      for (i in unique(clusters)) {
+        temp_indices <- c(which(clusters == i), j)
+        if (length(temp_indices) > max(ncol(X), ncol(Y))) {
+          temp_cca_result <- cancor(X[temp_indices,], Y[temp_indices,])
+          temp_corr <- sum(temp_cca_result$cor[1:min(num_corrs, length(temp_cca_result$cor))])
+          
+          if (temp_corr > max_corr) {
+            max_corr <- temp_corr
+            closest_cluster <- i
+          }
+        }
+      }
+      clusters[j] <- closest_cluster
+    }
+    
+    if (sum(old_clusters != clusters) < tol * n) {
+      cat("Converged in", iter, "iterations.\n")
+      break
+    }
+  }
+  
+  # Compute the average canonical correlation across clusters
+  total_corr <- 0
+  valid_clusters <- 0
+  for (i in unique(clusters)) {
+    if (!is.null(cluster_ccas[[i]])) {
+      total_corr <- total_corr + sum(cluster_ccas[[i]]$cor[1:min(num_corrs, length(cluster_ccas[[i]]$cor))])
+      valid_clusters <- valid_clusters + 1
+    }
+  }
+  
+  avg_corr <- total_corr / (valid_clusters * num_corrs)
+  
+  return(list(clusters = clusters, avg_corr = avg_corr))
+} 
+     
+
+# Advanced CCA clustering function - add a penalty for distant points
+
+
+cca_clustering2 <- function(X, Y, k, max_iter, tol, num_corrs, distance_penalty_scale = 1) {
+  n <- nrow(X)
+  
+  # Initialize clustering
+  initial_clusters <- sample(1:k, n, replace = T)
+  clusters <- initial_clusters
+  
+  for (iter in 1:max_iter) {
+    old_clusters <- clusters
+    cluster_ccas <- vector("list", k)
+    cluster_centers <- matrix(0, nrow = k, ncol = ncol(X))
+    
+    for (i in unique(clusters)) {
+      indices <- which(clusters == i)
+      if (length(indices) > 1) {
+        cca_result <- cancor(X[indices,], Y[indices,])
+        cluster_ccas[[i]] <- cca_result
+        cluster_centers[i,] <- colMeans(X[indices,])
+      } else {
+        cluster_ccas[[i]] <- NULL
+      }
+    }
+    
+    for (j in 1:n) {
+      max_score <- -Inf
+      closest_cluster <- 0
+      
+      for (i in unique(clusters)) {
+        temp_indices <- c(which(clusters == i), j)
+        if (length(temp_indices) > max(ncol(X), ncol(Y))) {
+          temp_cca_result <- cancor(X[temp_indices,], Y[temp_indices,])
+          temp_corr <- sum(temp_cca_result$cor[1:min(num_corrs, length(temp_cca_result$cor))])
+          distance_penalty <- distance_penalty_scale * sum((X[j,] - cluster_centers[i,])^2)
+          temp_score <- temp_corr - distance_penalty
+          
+          if (temp_score > max_score) {
+            max_score <- temp_score
+            closest_cluster <- i
+          }
+        }
+      }
+      clusters[j] <- closest_cluster
+    }
+    
+    if (sum(old_clusters != clusters) < tol * n) {
+      cat("Converged in", iter, "iterations.\n")
+      break
+    }
+  }
+  
+  # Compute the average canonical correlation across clusters
+  total_corr <- 0
+  valid_clusters <- 0
+  for (i in unique(clusters)) {
+    if (!is.null(cluster_ccas[[i]])) {
+      total_corr <- total_corr + sum(cluster_ccas[[i]]$cor[1:min(num_corrs, length(cluster_ccas[[i]]$cor))])
+      valid_clusters <- valid_clusters + 1
+    }
+  }
+  
+  avg_corr <- total_corr / (valid_clusters * num_corrs)
+  
+  return(list(clusters = clusters, avg_corr = avg_corr))
+}
+
+# Example usage:
+# result <- cca_clustering(X, Y, k = 3, max_iter = 100, tol = 1e-4, num_corrs = 2, distance_penalty_scale = 1)
+
+
+
+# Parameters
+k_vals <- c(1:10)  # Number of clusters
+max_iter <- 100  # Maximum number of iterations
+tol <- 1e-6  # Tolerance for convergence
+num_corrs <- 2  # Number of canonical correlations to consider
+
+resu_corr <- array(NA, c(length(k_vals)))
+icount = 0
+for (k in k_vals) {
+  icount = icount + 1
+  result <- cca_clustering2(X, Y, 
+                            k = k_vals[k], 
+                            max_iter = max_iter, 
+                            tol = tol, 
+                            num_corrs = num_corrs, 
+                            distance_penalty_scale = 0.001)
+  resu_corr[icount] =  result$avg_corr
+  cat("For k =", k, " mean canonical correlation is", result$avg_corr, "\n")
+}
+
+plot(k_vals, resu_corr)
+
+# Seems like with higher # of data clusters the correlation does not go down
+# makes sense as somer fractions of data are still arranged on the same lines!
+# so it is good to use the "reverse elbow" where corr is high for the first time
+
+# So, we know already that k = 3 is the goal, for this case the result is shown here
+result <- cca_clustering2(X, Y, k = 3, 
+                          max_iter = max_iter, 
+                          tol = tol, 
+                          num_corrs = num_corrs,
+                          distance_penalty_scale = 0.001)
+
+clusters = result$clusters
+plot_data <- data.frame(X1 = X[,1], X2 = X[,2], Y1 = Y[,1], Y2 = Y[,2], Cluster = factor(clusters))
+
+p1 <- ggplot(plot_data, aes(x = X1, y = X2, color = Cluster)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "X dataset", x = "X1", y = "X2") +
+  theme(legend.position = "none")
+
+p2 <- ggplot(plot_data, aes(x = Y1, y = Y2, color = Cluster)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Y dataset", x = "Y1", y = "Y2") +
+  theme(legend.position = "none")
+
+grid.arrange(p1, p2, ncol = 2)
+```
+
+
+```{r}
+library(ggplot2)
+
+
+# Extract the canonical variates
+x_variates <- cca_result$xcoef
+y_variates <- cca_result$ycenter
+cca_result
+# Create a scatter plot of the canonical variates
+df <- data.frame(CanVar1 = cca_result[, 1], CanVar2 = y_variates[, 1])
+ggplot(df, aes(x = CanVar1, y = CanVar2)) +
+  geom_point() +
+  labs(title = "Canonical Variates") +
+  theme_minimal()
+
+# Plot the canonical loadings
+loadings <- cca_result$xcoef
+plot(loadings)
+
+# Plot the correlations between variables and variates
+cor_matrix <- cor(X, Y)
+plot(cor_matrix)
+
+# Plot the cumulative proportion of variance explained
+variance_explained <- cumsum(cca_result$cor^2) / sum(cca_result$cor^2)
+plot(variance_explained, type = "o", xlab = "Canonical Variates", ylab = "Cumulative Proportion of Variance Explained")
+
+```
+
+```{r}
+require(ComplexHeatmap)
+data_matrix %>% colnames()
+Heatmap(data_matrix,row_order =data_matrix %>% rownames())
+ggsave("take.png",device = "png")
+data_matrix <- cor_matrix  # Replace with your actual data matrix
+
+# Create a vector of row and column names
+row_names <- rownames(data_matrix)
+column_names <- colnames(data_matrix)
+
+# Order the row and column names alphabetically
+ordered_row_names <- sort(row_names)
+
+ordered_column_names <- sort(column_names)
+# Create the heatmap with ordered names
+Heatmap(data_matrix, rowInd = match(ordered_row_names, row_names), 
+        colInd = match(ordered_column_names, column_names), 
+        col = colorRampPalette(c("blue", "white", "red"))(100))
+
+
+```
+
+
+
+```{r}
+# Extract the canonical variates
+x_variates <- cca_result$xcoef
+y_variates <- cca_result$ycoef
+
+# Create a scatter plot of the canonical variates
+df <- data.frame(CanVar1 = x_variates[, 1], CanVar2 = y_variates[, 1])
+
+ggplot(df, aes(x = CanVar1, y = CanVar2)) +
+  geom_point() +
+  labs(title = "Canonical Variates") +
+  theme_minimal()
+
+
+
+```
+
+
+## iso plots
+
+```{r}
+coolsubset$pscore_cat %>% as.factor()
+coolsubset$pscore_cat2<-factor(coolsubset$pscore_cat,levels = c("<0", "0 to <5","5 to <10" , "10 to <20" ,"20 to <30" ,"30 to <40", "40 to <50",">=50" ))
+```
+
+
+```{r}
+coolsubset %>% filter(year.wdi%in% c(2010:2022)) %>% dplyr::select(pscore_cat2,year.wdi,RegionSoviet.vdem,NY.GDP.PCAP.CD,
+                                                        iso1.wdi,iso2.wdi,iso3.wdi,iso4.wdi,iso5.wdi,
+                                                          iso1.vdem,iso2.vdem,iso3.vdem,iso4.vdem,iso5.vdem) %>% 
+  group_by(year.wdi,pscore_cat2) %>% summarise(`GDP per capita`=mean(NY.GDP.PCAP.CD,na.rm = T),
+                                            iso1.wdi=mean(iso1.wdi,na.rm = T),
+                                            iso2.wdi=mean(iso2.wdi,na.rm = T),
+                                            iso3.wdi=mean(iso3.wdi,na.rm = T),
+                                            iso5.wdi=mean(iso5.wdi,na.rm = T),
+                                            iso4.wdi=mean(iso4.wdi,na.rm = T),
+                                            
+                                            iso1.vdem=mean(iso1.vdem,na.rm = T),
+                                            iso2.vdem=mean(iso2.vdem,na.rm = T),
+                                            iso3.vdem=mean(iso3.vdem,na.rm = T),
+                                            iso5.vdem=mean(iso5.vdem,na.rm = T),
+                                            iso4.vdem=mean(iso4.vdem,na.rm = T))%>% 
+   pivot_longer(names_to = "var",
+               "GDP per capita":"iso4.vdem",
+               values_drop_na = TRUE) %>% 
+  filter(var%in%c("GDP per capita","iso1.wdi","iso1.vdem"))%>% ggplot(aes(x=year.wdi,y=(value),color=pscore_cat2))+ geom_point() +geom_line() +theme_classic2() +ylab("")+ scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020,2022))+ scale_color_brewer(palette = "Set1")+ facet_wrap(~var,scales = "free_y")  + theme(axis.text.x = element_text(face="bold", color="black",
+                           size=10, angle=45))
+```
+
+```{r}
+coolsubset %>% filter(year.wdi%in% c(2010:2022)) %>% dplyr::select(pscore_cat,year.wdi,RegionSoviet.vdem,NY.GDP.PCAP.CD,
+                                                        iso1.wdi,iso2.wdi,iso3.wdi,iso4.wdi,iso5.wdi,
+                                                          iso1.vdem,iso2.vdem,iso3.vdem,iso4.vdem,iso5.vdem) %>% 
+  group_by(year.wdi,pscore_cat2) %>% summarise(`GDP per capita`=mean(NY.GDP.PCAP.CD,na.rm = T),
+                                            iso1.wdi=mean(iso1.wdi,na.rm = T),
+                                            iso2.wdi=mean(iso2.wdi,na.rm = T),
+                                            iso3.wdi=mean(iso3.wdi,na.rm = T),
+                                            iso5.wdi=mean(iso5.wdi,na.rm = T),
+                                            iso4.wdi=mean(iso4.wdi,na.rm = T),
+                                            
+                                            iso1.vdem=mean(iso1.vdem,na.rm = T),
+                                            iso2.vdem=mean(iso2.vdem,na.rm = T),
+                                            iso3.vdem=mean(iso3.vdem,na.rm = T),
+                                            iso5.vdem=mean(iso5.vdem,na.rm = T),
+                                            iso4.vdem=mean(iso4.vdem,na.rm = T))%>% 
+   pivot_longer(names_to = "var",
+               "GDP per capita":"iso4.vdem",
+               values_drop_na = TRUE) %>% 
+  filter(var%in%c("GDP per capita","iso2.wdi","iso2.vdem"))%>% ggplot(aes(x=year.wdi,y=(value),color=pscore_cat))+ geom_point() +geom_line() +theme_classic2() +ylab("")+ scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020,2022))+ scale_color_brewer(palette = "Set1")+ facet_wrap(~var,scales = "free_y")
+```
+
+```{r}
+
+coolsubset %>% filter(year.wdi%in% c(2010:2022)) %>% dplyr::select(pscore_cat,year.wdi,RegionSoviet.vdem,NY.GDP.PCAP.CD,
+                                                        iso1.wdi,iso2.wdi,iso3.wdi,iso4.wdi,iso5.wdi,
+                                                          iso1.vdem,iso2.vdem,iso3.vdem,iso4.vdem,iso5.vdem) %>% 
+  group_by(year.wdi,pscore_cat) %>% summarise(`GDP per capita`=mean(NY.GDP.PCAP.CD,na.rm = T),
+                                            iso1.wdi=mean(iso1.wdi,na.rm = T),
+                                            iso2.wdi=mean(iso2.wdi,na.rm = T),
+                                            iso3.wdi=mean(iso3.wdi,na.rm = T),
+                                            iso5.wdi=mean(iso5.wdi,na.rm = T),
+                                            iso4.wdi=mean(iso4.wdi,na.rm = T),
+                                            
+                                            iso1.vdem=mean(iso1.vdem,na.rm = T),
+                                            iso2.vdem=mean(iso2.vdem,na.rm = T),
+                                            iso3.vdem=mean(iso3.vdem,na.rm = T),
+                                            iso5.vdem=mean(iso5.vdem,na.rm = T),
+                                            iso4.vdem=mean(iso4.vdem,na.rm = T))%>% 
+   pivot_longer(names_to = "var",
+               "GDP per capita":"iso4.vdem",
+               values_drop_na = TRUE) %>% 
+  filter(var%in%c("GDP per capita","iso4.wdi","iso1.vdem"))%>% ggplot(aes(x=year.wdi,y=(value),color=pscore_cat))+ geom_point() +geom_line() +theme_classic2() +ylab("")+ scale_x_continuous(breaks=c(2010,2012,2014,2016,2018,2020,2022))+ scale_color_brewer(palette = "Set1")+ facet_wrap(~var,scales = "free_y")
+```
+
+
+```{r}
+
+coolsubset  %>% filter(year.wdi%in% c(2010:2022),`Country Code.wdi`%in% "PER")%>% dplyr::select(pscore_cat,year.wdi,RegionSoviet.vdem,NY.GDP.PCAP.CD,
+                                                        iso1.wdi,iso2.wdi,iso3.wdi,iso4.wdi,iso5.wdi,
+                                                          iso1.vdem,iso2.vdem,iso3.vdem,iso4.vdem,iso5.vdem) %>% 
+  pivot_longer(names_to = "var",
+               c("iso2.wdi","iso1.vdem"),
+               values_drop_na = TRUE) %>% 
+   ggplot(aes(x=year.wdi,y=value,color=var))+ geom_point()+geom_line()+ scale_color_brewer(palette = "Set1")+ theme_classic()
 ```
 
 

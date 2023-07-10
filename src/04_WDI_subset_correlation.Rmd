@@ -215,6 +215,7 @@ wdi_dimred_iso1_3<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name"
 
 ```{r}
 iso1_corr<-fread("../results/corrTable/04_CorrTable_iso1_quantiles_all.csv")
+iso1_corr %>% filter(!is.na(iso1_all))%>%  
 
 ```
 
@@ -235,7 +236,7 @@ yo$categorie<-factor(as.factor(yo$categorie),levels=c("Lower","Iso1_peak","Highe
 yo2<-yo[,colnames(yo)[colnames(yo)%in% c(paste(seriescode),"categorie")],with=F]
 colnames(yo2)[1]<-"value"
 series_label<-wdi_explained[wdi_explained$`Series Code` %in% seriescode,"Indicator Name"]
-?ggbetweenstats
+
 ggstatsplot::ggbetweenstats(,plot.type = "boxviolin",
                             p.adjust.method = "BH",
         point.args = list(alpha = 0),
@@ -529,12 +530,14 @@ wdi_dimred_iso2<-fread("../results/corrTable/04_CorrTable_iso2_quantiles_all.csv
 ```
 ### age structure
 ```{r}
+
 seriescode<-"SP.POP.7074.FE.5Y"
 wdi_data_cons_df %>% filter(scale(iso1)<2&scale(iso1)>1.5,P_mort_2020>25) 
 ```
 
 
 ```{r}
+wdi_data_cons_df<-dimred2021_knn250_pmort
 wdi_data_cons_df %>%  mutate(categorie=case_when(scale(iso2)>1.5~"Iso2 peak  high",
                                                  scale(iso2)<  -0.5~"Iso2 peak  Low",
                                                  (scale(iso2)> (-0.5) &scale(iso2)<1.5)~"normal",
@@ -581,7 +584,13 @@ ggstatsplot::ggbetweenstats(
 
 #ggsave("../figures/04_iso2_sig_agestructure_boxpplot.png",device = "png")
 ```
-#### vulnarable work
+
+```{r}
+seriescode
+wdi_data_cons_df %>% ggplot(aes(x=iso4,y=SP.POP.7074.FE.5Y))+ geom_point()
+```
+
+### vulnarable work
 ```{r}
 seriescode<-"SL.EMP.WORK.ZS"
 
