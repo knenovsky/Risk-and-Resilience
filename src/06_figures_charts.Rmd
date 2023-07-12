@@ -244,3 +244,6 @@ bothyears %>% filter(year%in% 2019:2021) %>% mutate(Income_group=`Income Group`)
   ggplot(aes(x=(iso2),y=TX.VAL.MRCH.R2.ZS))+geom_point()+geom_smooth(method = "gam")+ theme_bw()+xlab("Dimension 2")+ylab("Merchandise exports to low- and middle-income economies in Europe & Central Asia (% of total merchandise exports)") +scale_color_viridis(discrete = T) 
 ```
 
+# 4 Shapley values
+
+# 5 Signficant correlated WDI features in a circular plot

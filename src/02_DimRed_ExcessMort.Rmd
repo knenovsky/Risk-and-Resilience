@@ -556,7 +556,7 @@ kmeans_result <- kmeans(scale(isos2020_2021[,c("iso1","iso2","iso3","iso4","iso5
 cluster_assignments <- kmeans_result$cluster
 isos2020_2021$Kcluster <- cluster_assignments
 
-
+?kmeans
 
 isos2020_2021 %>% filter(year%in% c(2020,2021)) %>% 
   pivot_longer(names_to = "isos",
