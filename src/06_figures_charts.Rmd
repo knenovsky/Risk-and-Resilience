@@ -103,7 +103,7 @@ models <- list(
 # ?ggcoef_compare
 ```
 
-# 3 Figure Exmort types
+# 3 Figure nonlinear isomap types
 
 ```{r}
 wdi_data_cons_df<-wdi_data_cons_df
@@ -112,14 +112,13 @@ featureList<-c("NY.GDP.PCAP.CD","Country Code","P_mort_2020","P_mort_2021","iso1
 ```
 
 
-## Plot gdp iso
+## Plot gdp iso 1
 ```{r}
 subset2020<-dimred2021_knn250_2 %>% filter(year%in% 2020) %>% select(any_of(featureList)) %>% rename(ExcessMort=P_mort_2020) %>%  mutate(P_mort_2020=NULL)
 subset2021<-dimred2021_knn250_2 %>% filter(year%in% 2021) %>% select(any_of(featureList)) %>% rename(ExcessMort=P_mort_2021) %>% mutate(P_mort_2021=NULL)
 
 bothyears<-rbind(subset2020,subset2021,use.names=FALSE)
 
-wdi?
 
 bothyears %>% filter(year%in% 2021) %>% mutate(Income_group=`Income Group`) %>% filter(!is.na(Income_group))%>% 
   mutate(Income_group = factor(Income_group, levels=c("High income",
@@ -134,9 +133,9 @@ bothyears %>% filter(year%in% 2021) %>% mutate(Income_group=`Income Group`) %>% 
                c("Isomap dimension 1","GDP per Capita (log)"),
                values_drop_na = TRUE) %>% 
   ggplot(aes(x=(value),y=ExcessMort,color=Income_group))+geom_point()+ theme_bw()+xlab("")+ylab("Excess Mortality") +scale_color_viridis(discrete = T)+facet_wrap(~var,scales = "free_x")+theme(legend.position = "bottom") 
-ggsave("../figures/06_figures_GDP_Iso1.png",device = "png", width = 7, height = 5, dpi = 300, units = "in")
+#ggsave("../figures/06_figures_GDP_Iso1.png",device = "png", width = 7, height = 5, dpi = 300, units = "in")
 ```
-## Plot iso 2 
+## Plot iso 2
 
 ### check all the plots
 ```{r}
@@ -218,32 +217,99 @@ wool2 %>% ggsave(file = paste0("../figures/06_iso2plots/",i,".png",sep=""),devic
 
 ### plots
 ```{r}
-featureList<-c("VC.IHR.PSRC.MA.P5","TM.VAL.MRCH.R3.ZS","TX.VAL.MRCH.R2.ZS","SP.DYN.CDRT.IN","SP.POP.2024.FE.5Y","Country Code","P_mort_2020","P_mort_2021","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10","year","pscore_mean","RegionSoviet","Income Group")
-subset2020<-dimred2021_knn250_2 %>% filter(year%in% 2020) %>% select(any_of(featureList)) %>% rename(ExcessMort=P_mort_2020) %>%  mutate(P_mort_2020=NULL)
-subset2021<-dimred2021_knn250_2 %>% filter(year%in% 2021) %>% select(any_of(featureList)) %>% rename(ExcessMort=P_mort_2021) %>% mutate(P_mort_2021=NULL)
+featureList<-c("SH.STA.OWGH.ME.ZS","VC.IHR.PSRC.MA.P5","TM.VAL.MRCH.R3.ZS","TX.VAL.MRCH.R2.ZS","SP.DYN.CDRT.IN","SP.POP.2024.FE.5Y","Country Code","P_mort_2020","P_mort_2021","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10","year","pscore_mean","RegionSoviet","Income Group")
 
-bothyears<-rbind(subset2020,subset2021,use.names=FALSE)
 
 #
 # 
 # ggsave("../figures/06_figuressa_GDP_Iso1.png",device = "png", width = 7, height = 5, dpi = 300, units = "in")
 ```
 ```{r}
-bothyears %>% filter(year%in% 2019:2021) %>% mutate(Income_group=`Income Group`) %>% filter(!is.na(Income_group)) %>% 
-  ggplot(aes(x=(iso2),y=log(SP.DYN.CDRT.IN)))+geom_point()+geom_smooth(method = "gam")+ theme_bw()+xlab("Dimension 2")+ylab("Death rate, crude (per 1,000 people)") +scale_color_viridis(discrete = T) 
+dimred2021_knn250_2 %>% filter(year%in% 2019:2021) %>% mutate(Income_group=`Income Group`) %>% filter(!is.na(Income_group)) %>% 
+  ggplot(aes(x=(iso2),y=(SP.DYN.CDRT.IN)))+geom_point()+geom_smooth(method = "lm")+ theme_bw()+xlab("Dimension 2")+ylab("Death rate, crude (per 1,000 people)") +scale_color_viridis(discrete = T) 
 
 
-
-bothyears %>% filter(year%in% 2019:2021) %>% mutate(Income_group=`Income Group`) %>% filter(!is.na(Income_group)) %>% 
-  ggplot(aes(x=(iso2),y=log(VC.IHR.PSRC.MA.P5)))+geom_point()+geom_smooth(method = "lm")+ theme_bw()+xlab("Dimension 2")+ylab("Death rate, crude (per 1,000 people)") +scale_color_viridis(discrete = T) 
 ```
 ```{r}
-bothyears %>% filter(year%in% 2019:2021) %>% mutate(Income_group=`Income Group`) %>% filter(!is.na(Income_group)) %>% 
-  ggplot(aes(x=(iso2),y=TM.VAL.MRCH.R3.ZS))+geom_point()+geom_smooth(method = "gam")+ theme_bw()+xlab("Dimension 2")+ylab("Merchandise imports from low- and middle-income economies in Latin America & the Caribbean (% of total merchandise imports)") +scale_color_viridis(discrete = T) 
-bothyears %>% filter(year%in% 2019:2021) %>% mutate(Income_group=`Income Group`) %>% filter(!is.na(Income_group)) %>% 
-  ggplot(aes(x=(iso2),y=TX.VAL.MRCH.R2.ZS))+geom_point()+geom_smooth(method = "gam")+ theme_bw()+xlab("Dimension 2")+ylab("Merchandise exports to low- and middle-income economies in Europe & Central Asia (% of total merchandise exports)") +scale_color_viridis(discrete = T) 
+dimred2021_knn250_2 %>% filter(year%in% 2019:2021) %>% mutate(Income_group=`Income Group`) %>% filter(!is.na(Income_group)) %>% 
+  ggplot(aes(x=(iso2),y=TM.VAL.MRCH.R3.ZS))+geom_point()+geom_smooth(method = "lm")+ theme_bw()+xlab("Dimension 2")+ylab("Merchandise imports from low- and middle-income economies in Latin America & the Caribbean (% of total merchandise imports)") +scale_color_viridis(discrete = T) 
+dimred2021_knn250_2 %>% filter(year%in% 2019:2021) %>% mutate(Income_group=`Income Group`) %>% filter(!is.na(Income_group)) %>% 
+  ggplot(aes(x=(iso2),y=TX.VAL.MRCH.R2.ZS))+geom_point()+geom_smooth(method = "lm")+ theme_bw()+xlab("Dimension 2")+ylab("Merchandise exports to low- and middle-income economies in Europe & Central Asia (% of total merchandise exports)") +scale_color_viridis(discrete = T) 
 ```
 
+## Plot iso 1
+
+### check all the plots
+```{r}
+wdi_dimred_iso1<-fread("../results/corrTable/04_CorrTable_iso1_quantiles_all.csv")
+wdi_dimred_iso1 %>% filter(!is.na(iso1_all))%>%  mutate(maxdisthighlow=abs(iso1_0to25-iso1_50to75),
+                                                        adjustvalue=iso1_75to100/maxdisthighlow) %>% arrange(desc(maxdisthighlow))-> subsetiso1
+```
+
+
+```{r}
+for(i in 1:100){
+nameVar<-subsetiso1[i,"Series Code"] %>%  unlist
+applySD<-!is.na(dimred2021_knn250_2[,..nameVar]) %>%  unlist
+
+wool<-dimred2021_knn250_2[applySD[,1]] %>% filter(year%in% 2010:2021) %>% filter(!is.na(iso2)) %>%
+ggplot(aes_string(x="iso1",y=paste(nameVar)))+geom_point()
+wool %>% ggsave(file = paste0("../test/run",i,".png",sep=""),device = "png")
+}
+
+```
+#### candidates
+```{r}
+iso1_candidates<-c(24,3,34,58)
+nameVar_iso1_candidates<-subsetiso1[iso1_candidates,"Series Code"] 
+
+indicator_a<-nameVar_iso1_candidates$`Series Code`[1]
+
+a<-dimred2021_knn250_2 %>% filter(year%in% 2000:2021) %>% 
+  ggplot(aes_string(x="iso1",y=indicator_a))+geom_point(color="firebrick4")+ggtitle(paste(wdi_explained[wdi_explained$`Series Code`%in% indicator_a,"Indicator Name"]))+theme_bw()
+
+indicator_b<-nameVar_iso1_candidates$`Series Code`[2]
+
+b<-dimred2021_knn250_2 %>% filter(year%in% 2000:2021) %>% 
+  ggplot(aes_string(x="iso1",y=indicator_b))+geom_point(color="blue4")+ggtitle(paste(wdi_explained[wdi_explained$`Series Code`%in% indicator_b,"Indicator Name"]))+theme_bw()
+ggarrange(a,b,ncol = 1) %>% ggsave(file="../figures/06_figures_iso1_nonlinear.png",device = "png", width = 7, height = 5, dpi = 300, units = "in")
+```
+
+## Plot iso 4
+
+### check all the plots
+```{r}
+wdi_dimred_iso4<-fread("../results/corrTable/04_CorrTable_iso4_quantiles_all.csv")
+wdi_dimred_iso4 %>% filter(!is.na(iso4_all_all))%>%  mutate(maxdisthighlow=abs(iso4_0to25-iso4_75to100),
+                                                        adjustvalue=iso4_50to75/maxdisthighlow) %>% arrange(desc(maxdisthighlow))-> subsetiso4
+```
+
+
+```{r}
+for(i in 1:100){
+nameVar<-subsetiso4[i,"Series Code"] %>%  unlist
+applySD<-!is.na(dimred2021_knn250_2[,..nameVar]) %>%  unlist
+
+wool<-dimred2021_knn250_2[applySD[,1]] %>% filter(year%in% 2010:2021) %>% filter(!is.na(iso4)) %>%
+ggplot(aes_string(x="iso4",y=paste(nameVar)))+geom_point()
+wool %>% ggsave(file = paste0("../test/run",i,".png",sep=""),device = "png")
+}
+
+```
+#### candidates
+```{r}
+iso1_candidates<-c(24,3,34,58)
+nameVar_iso1_candidates<-subsetiso1[iso1_candidates,"Series Code"] 
+
+indicator_a<-nameVar_iso1_candidates$`Series Code`[1]
+
+dimred2021_knn250_2 %>% filter(year%in% 2000:2021) %>% 
+  ggplot(aes_string(x="iso1",y=indicator_a))+geom_point()+ggtitle(paste(wdi_explained[wdi_explained$`Series Code`%in% indicator_a,"Indicator Name"]))
+
+<<<<<<< HEAD
 # 4 Shapley values
 
 # 5 Signficant correlated WDI features in a circular plot
+=======
+```
+>>>>>>> a36688c1d640161bdf95f4657ad41be0c39f03c1
