@@ -1,0 +1,1413 @@
+---
+title: "05_WDI_subset_correlation"
+author: "Kolja Nenoff"
+date: "2023-06-12"
+output:
+  rmdformats::readthedown:
+    code_folding: hide
+    self_contained: true
+    css: custom.css 
+    lightbox: true
+    gallery: true
+    highlight: tango  
+    toc_depth: 5
+---
+
+We have described the dimension and their relationship to Excess Mort.
+Now we are looing at the subsets and correlate them with the WDI.
+The decision will be based on PDP and Shapley values.
+We will look for subset for 2020 and 2021
+
+# 0 Data and Methods
+```{r,include=T,message=FALSE}
+rm(list = ls())
+require(xgboost)
+require(caret)
+require(pdp)
+require(iml)
+require(data.table)
+require(tidyverse)
+require(parallel)
+
+```
+
+```{r}
+ExcessDimred<-fread("../output/02_230612_Dimred_ExcessMort_annual.csv")
+allcorr<-fread("../data/01_CorrWDI_dimred_10.csv")
+colnames(allcorr)[2:11]<-paste(colnames(allcorr)[2:11],"_all",sep="")
+```
+
+
+```{r}
+# wdi_data_raw<-fread("../data/WDI_data_230609/WDI_CSV/WDIData.csv",header = T)
+# wdi_data <- wdi_data_raw %>%
+#   mutate(...66 = NULL,
+#          V67 = NULL,
+#          `Indicator Name` = NULL) %>%
+#   pivot_longer(names_to = "year",
+#                "1960":"2022",
+#                values_drop_na = TRUE) %>%
+#   mutate(year = as.integer(year)) %>%
+#   pivot_wider(names_from = "Indicator Code")
+# fwrite(wdi_data,"../data/04_WDI_data.csv")
+wdi_data<-fread("../data/04_WDI_data.csv")
+wdi_explained<-fread("../data/WDI_data_230609/WDI_CSV/WDISeries.csv")
+```
+
+# 1 Correlation WDI ~ Shapley
+
+```{r}
+ExcessDimred2<-ExcessDimred%>%  select(`Country Code`,year,iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,iso9,iso10,P_mort_2020,P_mort_2021) %>% 
+  mutate(identifer=paste0(`Country Code`,"_",year))
+
+                  
+
+wdi_data[,] %>%  mutate(identifer=paste0(`Country Code`,"_",year))-> wdi_data_2
+# wer korreliert
+
+corrWDItest<-right_join(wdi_data_2,ExcessDimred2[],by="identifer")
+ 
+```
+
+```{r,eval=TRUE}
+
+.cluster <- 30
+cl <- parallel::makeCluster(.cluster, outfile = "../data/04_corrLogfile.log")
+# on.exit(parallel::stopCluster(cl))
+wdi_data_cons_df<-corrWDItest %>% filter(!is.na(iso1))
+used_var_names = wdi_explained$`Series Code`[wdi_explained$`Series Code` %in% colnames(corrWDItest)]
+
+
+```
+
+
+
+
+## iso 1 
+
+```{r,eval=FALSE}
+group_values<-wdi_data_cons_df$iso1 %>%  quantile()
+thisiso<-paste0("iso1")
+var_comb <- expand.grid(var_name = used_var_names,
+                          iso_name = thisiso,
+                          stringsAsFactors = FALSE)
+
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(
+  iso1<group_values[2]~"0to25",
+  iso1<group_values[3]~"25to50",
+  iso1<group_values[4]~"50to75",
+  iso1<group_values[5]~"75to100",
+))-> wdi_data_cons_df
+
+idx_0_25<-wdi_data_cons_df$categorie%in%"0to25"
+idx_25_50<-wdi_data_cons_df$categorie%in%"25to50"
+idx_50_75<-wdi_data_cons_df$categorie%in%"50to75"
+idx_75_100<-wdi_data_cons_df$categorie%in%"75to100"
+
+parallel::clusterEvalQ(cl, suppressWarnings(library(energy)))
+parallel::clusterExport(cl, "wdi_data_cons_df", envir = environment())
+parallel::clusterExport(cl, "var_comb", envir = environment())
+parallel::clusterExport(cl, "idx_0_25", envir = environment())
+parallel::clusterExport(cl, "idx_25_50", envir = environment())
+parallel::clusterExport(cl, "idx_50_75", envir = environment())
+parallel::clusterExport(cl, "idx_75_100", envir = environment())
+```
+
+
+```{r,eval=FALSE}
+for(groupA in c("idx_0_25","idx_25_50","idx_50_75","idx_75_100")){
+  
+
+variable<-groupA
+
+parallel::clusterExport(cl, "variable", envir = environment())
+res <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+  idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  energy::dcor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx])
+  
+})
+
+res_Tsamples <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  sum(idx)
+})
+res_spear <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  cor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx],method = "pearson")
+})
+
+wdi_data_cons_dcor <- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor[var_comb$var_name[i],
+                     thisiso] <- res[[i]]
+}
+
+wdi_data_cons_dcor2<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor2[var_comb$var_name[i],
+                       thisiso] <- res_spear[[i]]
+}
+wdi_data_cons_dcor3<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor3[var_comb$var_name[i],
+                       thisiso] <- res_Tsamples[[i]]
+}
+colnames(wdi_data_cons_dcor2)<-paste("Pearson",colnames(wdi_data_cons_dcor2),sep="_")
+colnames(wdi_data_cons_dcor3)<-paste("N",colnames(wdi_data_cons_dcor3),sep="_")
+
+cbind(data.frame(wdi_data_cons_dcor),data.frame(N=wdi_data_cons_dcor3[,1]),wdi_data_cons_dcor2) %>% rownames_to_column(var = "indicators")-> outi
+categoriestr<-str_replace(str_remove(groupA,"idx_"),"_","to")
+
+
+
+
+
+outi$range<- paste0(round(min(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3)," to ",
+       round(max(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3),sep="")
+colnames(outi)<-paste(colnames(outi),categoriestr,sep = "_")
+
+eval(parse(text=paste("outi-> WDI_dimred_iso1_",groupA,sep="")))
+
+}
+
+```
+### save
+```{r,eval=FALSE}
+wdi_dimred_iso1<-cbind(WDI_dimred_iso1_idx_0_25,WDI_dimred_iso1_idx_25_50,WDI_dimred_iso1_idx_50_75,WDI_dimred_iso1_idx_75_100)
+wdi_dimred_iso1_1<-data.frame("Indicators"=wdi_dimred_iso1$indicators_0to25,wdi_dimred_iso1[,!grepl("indicators",colnames(wdi_dimred_iso1))])
+
+
+
+wdi_dimred_iso1_2<-merge(allcorr,wdi_dimred_iso1_1,by="Indicators",all.y=T)
+wdi_dimred_iso1_3<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso1_2,by.x="Series Code",by.y="Indicators")
+#fwrite(wdi_dimred_iso1_3,"../results/corrTable/04_CorrTable_iso1_quantiles_all.csv")
+```
+
+
+```{r}
+iso1_corr<-fread("../results/corrTable/04_CorrTable_iso1_quantiles_all.csv")
+iso1_corr %>% filter(!is.na(iso1_all))%>%  
+
+```
+
+
+
+### subset -1 to 1 {.tabset}
+
+#### age
+```{r}
+seriescode<-"SP.POP.0014.MA.ZS"
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(scale(iso1)>0.5~"Higher",
+                                                 scale(iso1)<  -0.5~"Lower",
+                                                  TRUE~"Iso1_peak"
+                                                  ))%>% 
+  filter(!is.na(get(seriescode)),!is.na(categorie)) -> yo
+yo$categorie<-factor(as.factor(yo$categorie),levels=c("Lower","Iso1_peak","Higher"))
+yo2<-yo[,colnames(yo)[colnames(yo)%in% c(paste(seriescode),"categorie")],with=F]
+colnames(yo2)[1]<-"value"
+series_label<-wdi_explained[wdi_explained$`Series Code` %in% seriescode,"Indicator Name"]
+
+ggstatsplot::ggbetweenstats(,plot.type = "boxviolin",
+                            p.adjust.method = "BH",
+        point.args = list(alpha = 0),
+      data = yo2,
+      x = categorie,
+      y = value ) + 
+      # Add labels and title
+      labs(x="",
+           y = seriescode,
+           title = series_label
+      )+theme(
+        # This is the new default font in the plot
+        text = element_text(family = "Roboto", size = 10, color = "black"),
+        plot.title = element_text(
+          family = "Lobster Two", 
+          size = 14,
+          face = "bold",
+          color = "#2a475e"
+        ),
+        # # Statistical annotations below the main title
+        plot.subtitle = element_text(
+          family = "Roboto",
+          face = "bold",
+          color="#1b2838"
+        ),
+        plot.title.position = "plot", # slightly different from default
+        axis.text = element_text(size = 10, color = "black"),
+        axis.title = element_text(size = 12)
+      )
+
+```
+#### age 2
+
+
+```{r}
+seriescode<-"SE.SEC.NENR"
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(scale(iso1)>0.5~"Higher",
+                                                 scale(iso1)<  -0.5~"Lower",
+                                                  TRUE~"Iso1_peak"
+                                                  ))%>% 
+  filter(!is.na(get(seriescode)),!is.na(categorie)) -> yo
+yo$categorie<-factor(as.factor(yo$categorie),levels=c("Lower","Iso1_peak","Higher"))
+yo2<-yo[,colnames(yo)[colnames(yo)%in% c(paste(seriescode),"categorie")],with=F]
+colnames(yo2)[1]<-"value"
+series_label<-wdi_explained[wdi_explained$`Series Code` %in% seriescode,"Indicator Name"]
+
+ggstatsplot::ggbetweenstats(
+      data = yo2,
+      x = categorie,
+      y = value ) + 
+      # Add labels and title
+      labs(x="",
+           y = seriescode,
+           title = series_label
+      )+theme(
+        # This is the new default font in the plot
+        text = element_text(family = "Roboto", size = 10, color = "black"),
+        plot.title = element_text(
+          family = "Lobster Two", 
+          size = 14,
+          face = "bold",
+          color = "#2a475e"
+        ),
+        # # Statistical annotations below the main title
+        plot.subtitle = element_text(
+          family = "Roboto",
+          face = "bold",
+          color="#1b2838"
+        ),
+        plot.title.position = "plot", # slightly different from default
+        axis.text = element_text(size = 10, color = "black"),
+        axis.title = element_text(size = 12)
+      )
+```
+
+#### Hospital beds 
+
+
+```{r}
+seriescode<-"SH.MED.BEDS.ZS"
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(scale(iso1)>0.5~"Higher",
+                                                 scale(iso1)<  -0.5~"Lower",
+                                                  TRUE~"Iso1_peak"
+                                                  ))%>% 
+  filter(!is.na(get(seriescode)),!is.na(categorie)) -> yo
+yo$categorie<-factor(as.factor(yo$categorie),levels=c("Lower","Iso1_peak","Higher"))
+yo2<-yo[,colnames(yo)[colnames(yo)%in% c(paste(seriescode),"categorie")],with=F]
+colnames(yo2)[1]<-"value"
+series_label<-wdi_explained[wdi_explained$`Series Code` %in% seriescode,"Indicator Name"]
+
+ggstatsplot::ggbetweenstats(
+      data = yo2,
+      x = categorie,
+      y = value ) + 
+      # Add labels and title
+      labs(x="",
+           y = seriescode,
+           title = series_label
+      )+theme(
+        # This is the new default font in the plot
+        text = element_text(family = "Roboto", size = 10, color = "black"),
+        plot.title = element_text(
+          family = "Lobster Two", 
+          size = 14,
+          face = "bold",
+          color = "#2a475e"
+        ),
+        # # Statistical annotations below the main title
+        plot.subtitle = element_text(
+          family = "Roboto",
+          face = "bold",
+          color="#1b2838"
+        ),
+        plot.title.position = "plot", # slightly different from default
+        axis.text = element_text(size = 10, color = "black"),
+        axis.title = element_text(size = 12)
+      )
+
+
+ggsave("../figures/04_iso1_sig_hospitalbeds_boxpplot.png",device = "png")
+```
+#### Employment
+```{r}
+
+seriescode<-"SL.EMP.WORK.FE.ZS"
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(scale(iso1)>0.5~"Higher",
+                                                 scale(iso1)<  -0.5~"Lower",
+                                                  TRUE~"Iso1_peak"
+                                                  ))%>% 
+  filter(!is.na(get(seriescode)),!is.na(categorie)) -> yo
+yo$categorie<-factor(as.factor(yo$categorie),levels=c("Lower","Iso1_peak","Higher"))
+yo2<-yo[,colnames(yo)[colnames(yo)%in% c(paste(seriescode),"categorie")],with=F]
+colnames(yo2)[1]<-"value"
+series_label<-wdi_explained[wdi_explained$`Series Code` %in% seriescode,"Indicator Name"]
+
+ggstatsplot::ggbetweenstats(
+      data = yo2,
+      x = categorie,
+      y = value ) + 
+      # Add labels and title
+      labs(x="",
+           y = seriescode,
+           title = series_label
+      )+theme(
+        # This is the new default font in the plot
+        text = element_text(family = "Roboto", size = 10, color = "black"),
+        plot.title = element_text(
+          family = "Lobster Two", 
+          size = 14,
+          face = "bold",
+          color = "#2a475e"
+        ),
+        # # Statistical annotations below the main title
+        plot.subtitle = element_text(
+          family = "Roboto",
+          face = "bold",
+          color="#1b2838"
+        ),
+        plot.title.position = "plot", # slightly different from default
+        axis.text = element_text(size = 10, color = "black"),
+        axis.title = element_text(size = 12)
+      )
+ggsave("../figures/04_iso1_sig_employment_boxpplot.png",device = "png")
+```
+
+
+## iso 2
+
+```{r,eval=FALSE}
+group_values<-wdi_data_cons_df$iso2 %>%  quantile()
+thisiso<-paste0("iso2")
+var_comb <- expand.grid(var_name = used_var_names,
+                          iso_name = thisiso,
+                          stringsAsFactors = FALSE)
+
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(
+  iso2<group_values[2]~"0to25",
+  iso2<group_values[3]~"25to50",
+  iso2<group_values[4]~"50to75",
+  iso2<group_values[5]~"75to100",
+))-> wdi_data_cons_df
+
+idx_0_25<-wdi_data_cons_df$categorie%in%"0to25"
+idx_25_50<-wdi_data_cons_df$categorie%in%"25to50"
+idx_50_75<-wdi_data_cons_df$categorie%in%"50to75"
+idx_75_100<-wdi_data_cons_df$categorie%in%"75to100"
+
+parallel::clusterEvalQ(cl, suppressWarnings(library(energy)))
+parallel::clusterExport(cl, "wdi_data_cons_df", envir = environment())
+parallel::clusterExport(cl, "var_comb", envir = environment())
+parallel::clusterExport(cl, "idx_0_25", envir = environment())
+parallel::clusterExport(cl, "idx_25_50", envir = environment())
+parallel::clusterExport(cl, "idx_50_75", envir = environment())
+parallel::clusterExport(cl, "idx_75_100", envir = environment())
+```
+
+
+```{r,eval=F}
+for(groupA in c("idx_0_25","idx_25_50","idx_50_75","idx_75_100")){
+  
+
+variable<-groupA
+
+parallel::clusterExport(cl, "variable", envir = environment())
+res <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+  idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  energy::dcor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx])
+  
+})
+
+res_Tsamples <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  sum(idx)
+})
+res_spear <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  cor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx],method = "pearson")
+})
+
+wdi_data_cons_dcor <- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor[var_comb$var_name[i],
+                     thisiso] <- res[[i]]
+}
+
+wdi_data_cons_dcor2<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor2[var_comb$var_name[i],
+                       thisiso] <- res_spear[[i]]
+}
+wdi_data_cons_dcor3<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor3[var_comb$var_name[i],
+                       thisiso] <- res_Tsamples[[i]]
+}
+colnames(wdi_data_cons_dcor2)<-paste("Pearson",colnames(wdi_data_cons_dcor2),sep="_")
+colnames(wdi_data_cons_dcor3)<-paste("N",colnames(wdi_data_cons_dcor3),sep="_")
+
+cbind(data.frame(wdi_data_cons_dcor),data.frame(N=wdi_data_cons_dcor3[,1]),wdi_data_cons_dcor2) %>% rownames_to_column(var = "indicators")-> outi
+categoriestr<-str_replace(str_remove(groupA,"idx_"),"_","to")
+
+
+
+
+
+outi$range<- paste0(round(min(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3)," to ",
+       round(max(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3),sep="")
+colnames(outi)<-paste(colnames(outi),categoriestr,sep = "_")
+
+eval(parse(text=paste("outi-> WDI_dimred_iso2_",groupA,sep="")))
+
+}
+
+```
+### save
+```{r,eval=FALSE}
+wdi_dimred_iso2<-cbind(WDI_dimred_iso2_idx_0_25,WDI_dimred_iso2_idx_25_50,WDI_dimred_iso2_idx_50_75,WDI_dimred_iso2_idx_75_100)
+wdi_dimred_iso2_1<-data.frame("Indicators"=wdi_dimred_iso2$indicators_0to25,wdi_dimred_iso2[,!grepl("indicators",colnames(wdi_dimred_iso2))])
+
+
+
+wdi_dimred_iso2_2<-merge(allcorr,wdi_dimred_iso2_1,by="Indicators",all.y=T)
+wdi_dimred_iso2_3<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso2_2,by.x="Series Code",by.y="Indicators")
+#fwrite(wdi_dimred_iso2_3,"../results/corrTable/04_CorrTable_iso2_quantiles_all.csv")
+```
+
+```{r}
+wdi_dimred_iso2<-fread("../results/corrTable/04_CorrTable_iso2_quantiles_all.csv")
+```
+### age structure
+```{r}
+
+seriescode<-"SP.POP.7074.FE.5Y"
+wdi_data_cons_df %>% filter(scale(iso1)<2&scale(iso1)>1.5,P_mort_2020>25) 
+```
+
+
+```{r}
+wdi_data_cons_df<-dimred2021_knn250_pmort
+wdi_data_cons_df %>%  mutate(categorie=case_when(scale(iso2)>1.5~"Iso2 peak  high",
+                                                 scale(iso2)<  -0.5~"Iso2 peak  Low",
+                                                 (scale(iso2)> (-0.5) &scale(iso2)<1.5)~"normal",
+                                                  TRUE~"a"
+                                                  ))%>% 
+  filter(!is.na(get(seriescode)),!is.na(categorie)) -> yo
+yo$categorie<-factor(as.factor(yo$categorie),levels=c("Iso2 peak  Low","normal","Iso2 peak  high","a"))
+yo2<-yo[,colnames(yo)[colnames(yo)%in% c(paste(seriescode),"categorie")],with=F]
+colnames(yo2)[1]<-"value"
+series_label<-wdi_explained[wdi_explained$`Series Code` %in% seriescode,"Indicator Name"]
+
+ggstatsplot::ggbetweenstats(
+  plot.type = "boxviolin",
+                            p.adjust.method = "BH",
+        point.args = list(alpha = 0),
+
+      data = yo2,
+      x = categorie,
+      y = value ) + 
+      # Add labels and title
+      labs(x="",
+           y = seriescode,
+           title = series_label
+      )+theme(
+        # This is the new default font in the plot
+        text = element_text(family = "Roboto", size = 10, color = "black"),
+        plot.title = element_text(
+          family = "Lobster Two", 
+          size = 14,
+          face = "bold",
+          color = "#2a475e"
+        ),
+        # # Statistical annotations below the main title
+        plot.subtitle = element_text(
+          family = "Roboto",
+          face = "bold",
+          color="#1b2838"
+        ),
+        plot.title.position = "plot", # slightly different from default
+        axis.text = element_text(size = 10, color = "black"),
+        axis.title = element_text(size = 12)
+      )
+
+
+#ggsave("../figures/04_iso2_sig_agestructure_boxpplot.png",device = "png")
+```
+
+```{r}
+seriescode
+wdi_data_cons_df %>% ggplot(aes(x=iso4,y=SP.POP.7074.FE.5Y))+ geom_point()
+```
+
+### vulnarable work
+```{r}
+seriescode<-"SL.EMP.WORK.ZS"
+
+wdi_data_cons_df %>% filter(year%in% c(2015:2021))%>%  mutate(categorie=case_when(scale(iso2)>1.5~"Iso2 peak  high",
+                                                 scale(iso2)<  -0.5~"Iso2 peak  Low",
+                                                  TRUE~"Iso2_normal"
+                                                  ))%>% 
+  filter(!is.na(get(seriescode)),!is.na(categorie)) -> yo
+yo$categorie<-factor(as.factor(yo$categorie),levels=c("Iso2 peak  Low","Iso2_normal","Iso2 peak  high"))
+yo2<-yo[,colnames(yo)[colnames(yo)%in% c(paste(seriescode),"categorie")],with=F]
+colnames(yo2)[1]<-"value"
+series_label<-wdi_explained[wdi_explained$`Series Code` %in% seriescode,"Indicator Name"]
+
+ggstatsplot::ggbetweenstats(
+      data = yo2,
+      x = categorie,
+      y = value ) + 
+      # Add labels and title
+      labs(x="",
+           y = seriescode,
+           title = series_label
+      )+theme(
+        # This is the new default font in the plot
+        text = element_text(family = "Roboto", size = 10, color = "black"),
+        plot.title = element_text(
+          family = "Lobster Two", 
+          size = 14,
+          face = "bold",
+          color = "#2a475e"
+        ),
+        # # Statistical annotations below the main title
+        plot.subtitle = element_text(
+          family = "Roboto",
+          face = "bold",
+          color="#1b2838"
+        ),
+        plot.title.position = "plot", # slightly different from default
+        axis.text = element_text(size = 10, color = "black"),
+        axis.title = element_text(size = 12)
+      )
+
+
+#ggsave("../figures/04_iso2_sig_work_boxpplot.png",device = "png")
+```
+`
+
+
+
+## iso 3 
+
+```{r,eval=FALSE}
+group_values<-wdi_data_cons_df$iso3 %>%  quantile()
+thisiso<-paste0("iso3")
+var_comb <- expand.grid(var_name = used_var_names,
+                          iso_name = thisiso,
+                          stringsAsFactors = FALSE)
+
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(
+  iso3<group_values[2]~"0to25",
+  iso3<group_values[3]~"25to50",
+  iso3<group_values[4]~"50to75",
+  iso3<group_values[5]~"75to100",
+))-> wdi_data_cons_df
+
+idx_0_25<-wdi_data_cons_df$categorie%in%"0to25"
+idx_25_50<-wdi_data_cons_df$categorie%in%"25to50"
+idx_50_75<-wdi_data_cons_df$categorie%in%"50to75"
+idx_75_100<-wdi_data_cons_df$categorie%in%"75to100"
+
+parallel::clusterEvalQ(cl, suppressWarnings(library(energy)))
+parallel::clusterExport(cl, "wdi_data_cons_df", envir = environment())
+parallel::clusterExport(cl, "var_comb", envir = environment())
+parallel::clusterExport(cl, "idx_0_25", envir = environment())
+parallel::clusterExport(cl, "idx_25_50", envir = environment())
+parallel::clusterExport(cl, "idx_50_75", envir = environment())
+parallel::clusterExport(cl, "idx_75_100", envir = environment())
+```
+
+
+```{r,eval=F}
+for(groupA in c("idx_0_25","idx_25_50","idx_50_75","idx_75_100")){
+  
+
+variable<-groupA
+
+parallel::clusterExport(cl, "variable", envir = environment())
+res <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+  idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  energy::dcor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx])
+  
+})
+
+res_Tsamples <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  sum(idx)
+})
+res_spear <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  cor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx],method = "pearson")
+})
+
+wdi_data_cons_dcor <- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor[var_comb$var_name[i],
+                     thisiso] <- res[[i]]
+}
+
+wdi_data_cons_dcor2<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor2[var_comb$var_name[i],
+                       thisiso] <- res_spear[[i]]
+}
+wdi_data_cons_dcor3<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor3[var_comb$var_name[i],
+                       thisiso] <- res_Tsamples[[i]]
+}
+colnames(wdi_data_cons_dcor2)<-paste("Pearson",colnames(wdi_data_cons_dcor2),sep="_")
+colnames(wdi_data_cons_dcor3)<-paste("N",colnames(wdi_data_cons_dcor3),sep="_")
+
+cbind(data.frame(wdi_data_cons_dcor),data.frame(N=wdi_data_cons_dcor3[,1]),wdi_data_cons_dcor2) %>% rownames_to_column(var = "indicators")-> outi
+categoriestr<-str_replace(str_remove(groupA,"idx_"),"_","to")
+
+
+
+
+
+outi$range<- paste0(round(min(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3)," to ",
+       round(max(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3),sep="")
+colnames(outi)<-paste(colnames(outi),categoriestr,sep = "_")
+
+eval(parse(text=paste("outi-> WDI_dimred_iso3_",groupA,sep="")))
+
+}
+
+```
+### save
+```{r,eval=FALSE}
+wdi_dimred_iso3<-cbind(WDI_dimred_iso3_idx_0_25,WDI_dimred_iso3_idx_25_50,WDI_dimred_iso3_idx_50_75,WDI_dimred_iso3_idx_75_100)
+wdi_dimred_iso3_1<-data.frame("Indicators"=wdi_dimred_iso3$indicators_0to25,wdi_dimred_iso3[,!grepl("indicators",colnames(wdi_dimred_iso3))])
+
+colnames(allcorr)[2:11]<-paste(colnames(allcorr)[2:11],"_all",sep="")
+
+wdi_dimred_iso3_2<-merge(allcorr,wdi_dimred_iso3_1,by="Indicators",all.y=T)
+wdi_dimred_iso3_3<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso3_2,by.x="Series Code",by.y="Indicators")
+#fwrite(wdi_dimred_iso3_3,"../results/corrTable/04_CorrTable_iso3_quantiles_all.csv")
+```
+
+```{r}
+iso3_corrtable<-fread("../results/corrTable/04_CorrTable_iso3_quantiles_all.csv")
+
+```
+
+#### share of textile production
+```{r}
+seriescode<-"NV.MNF.TXTL.ZS.UN"
+
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(scale(iso3)>1~"Iso3_negative",
+                                                 scale(iso3)<  -0.5~"Iso3 peak  Low",
+                                                  TRUE~"high_mort_no_peak"
+                                                  ))%>% 
+  filter(!is.na(get(seriescode)),!is.na(categorie)) -> yo
+
+yo$categorie<-factor(as.factor(yo$categorie),levels=c("Iso3 peak  Low","high_mort_no_peak","Iso3_negative"))
+yo2<-yo[,colnames(yo)[colnames(yo)%in% c(paste(seriescode),"categorie")],with=F]
+colnames(yo2)[1]<-"value"
+series_label<-wdi_explained[wdi_explained$`Series Code` %in% seriescode,"Indicator Name"]
+
+ggstatsplot::ggbetweenstats(
+      data = yo2,
+      x = categorie,
+      y = value ) + 
+      # Add labels and title
+      labs(x="",
+           y = seriescode,
+           title = series_label
+      )+theme(
+        # This is the new default font in the plot
+        text = element_text(family = "Roboto", size = 10, color = "black"),
+        plot.title = element_text(
+          family = "Lobster Two", 
+          size = 14,
+          face = "bold",
+          color = "#2a475e"
+        ),
+        # # Statistical annotations below the main title
+        plot.subtitle = element_text(
+          family = "Roboto",
+          face = "bold",
+          color="#1b2838"
+        ),
+        plot.title.position = "plot", # slightly different from default
+        axis.text = element_text(size = 10, color = "black"),
+        axis.title = element_text(size = 12)
+      )
+
+
+ggsave("../figures/04_iso3_sig_textile_production_boxpplot.png",device = "png")
+```
+#### Unemployment
+```{r}
+seriescode<-"SL.UEM.TOTL.FE.ZS"
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(scale(iso3)>1~"Iso3_negative",
+                                                 scale(iso3)<  -0.5~"Iso3 peak  Low",
+                                                  TRUE~"high_mort_no_peak"
+                                                  ))%>% 
+  filter(!is.na(get(seriescode)),!is.na(categorie)) -> yo
+yo$categorie<-factor(as.factor(yo$categorie),levels=c("Iso3 peak  Low","high_mort_no_peak","Iso3_negative"))
+yo2<-yo[,colnames(yo)[colnames(yo)%in% c(paste(seriescode),"categorie")],with=F]
+colnames(yo2)[1]<-"value"
+series_label<-wdi_explained[wdi_explained$`Series Code` %in% seriescode,"Indicator Name"]
+
+ggstatsplot::ggbetweenstats(
+      data = yo2,
+      x = categorie,
+      y = value ) + 
+      # Add labels and title
+      labs(x="",
+           y = seriescode,
+           title = series_label
+      )+theme(
+        # This is the new default font in the plot
+        text = element_text(family = "Roboto", size = 10, color = "black"),
+        plot.title = element_text(
+          family = "Lobster Two", 
+          size = 14,
+          face = "bold",
+          color = "#2a475e"
+        ),
+        # # Statistical annotations below the main title
+        plot.subtitle = element_text(
+          family = "Roboto",
+          face = "bold",
+          color="#1b2838"
+        ),
+        plot.title.position = "plot", # slightly different from default
+        axis.text = element_text(size = 10, color = "black"),
+        axis.title = element_text(size = 12)
+      )
+
+
+ggsave("../figures/04_iso3_sig_poverty_boxpplot.png",device = "png")
+```
+#### Unemployment
+```{r}
+seriescode<-"SN.ITK.SVFI.ZS"
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(scale(iso3)>1~"Iso3_negative",
+                                                 scale(iso3)<  -0.5~"Iso3 peak  Low",
+                                                  TRUE~"high_mort_no_peak"
+                                                  ))%>% 
+  filter(!is.na(get(seriescode)),!is.na(categorie)) -> yo
+yo$categorie<-factor(as.factor(yo$categorie),levels=c("Iso3 peak  Low","high_mort_no_peak","Iso3_negative"))
+yo2<-yo[,colnames(yo)[colnames(yo)%in% c(paste(seriescode),"categorie")],with=F]
+colnames(yo2)[1]<-"value"
+series_label<-wdi_explained[wdi_explained$`Series Code` %in% seriescode,"Indicator Name"]
+
+ggstatsplot::ggbetweenstats(
+      data = yo2,
+      x = categorie,
+      y = value ) + 
+      # Add labels and title
+      labs(x="",
+           y = seriescode,
+           title = series_label
+      )+theme(
+        # This is the new default font in the plot
+        text = element_text(family = "Roboto", size = 10, color = "black"),
+        plot.title = element_text(
+          family = "Lobster Two", 
+          size = 14,
+          face = "bold",
+          color = "#2a475e"
+        ),
+        # # Statistical annotations below the main title
+        plot.subtitle = element_text(
+          family = "Roboto",
+          face = "bold",
+          color="#1b2838"
+        ),
+        plot.title.position = "plot", # slightly different from default
+        axis.text = element_text(size = 10, color = "black"),
+        axis.title = element_text(size = 12)
+      )
+
+
+ggsave("../figures/04_iso3_insecurity.png",device = "png")
+```
+
+
+## iso 4 
+
+```{r,eval=FALSE}
+group_values<-wdi_data_cons_df$iso4 %>%  quantile()
+thisiso<-paste0("iso4")
+var_comb <- expand.grid(var_name = used_var_names,
+                          iso_name = thisiso,
+                          stringsAsFactors = FALSE)
+
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(
+  iso4<group_values[2]~"0to25",
+  iso4<group_values[3]~"25to50",
+  iso4<group_values[4]~"50to75",
+  iso4<group_values[5]~"75to100",
+))-> wdi_data_cons_df
+
+idx_0_25<-wdi_data_cons_df$categorie%in%"0to25"
+idx_25_50<-wdi_data_cons_df$categorie%in%"25to50"
+idx_50_75<-wdi_data_cons_df$categorie%in%"50to75"
+idx_75_100<-wdi_data_cons_df$categorie%in%"75to100"
+
+parallel::clusterEvalQ(cl, suppressWarnings(library(energy)))
+parallel::clusterExport(cl, "wdi_data_cons_df", envir = environment())
+parallel::clusterExport(cl, "var_comb", envir = environment())
+parallel::clusterExport(cl, "idx_0_25", envir = environment())
+parallel::clusterExport(cl, "idx_25_50", envir = environment())
+parallel::clusterExport(cl, "idx_50_75", envir = environment())
+parallel::clusterExport(cl, "idx_75_100", envir = environment())
+```
+
+
+```{r,eval=F}
+for(groupA in c("idx_0_25","idx_25_50","idx_50_75","idx_75_100")){
+  
+
+variable<-groupA
+
+parallel::clusterExport(cl, "variable", envir = environment())
+res <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+  idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  energy::dcor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx])
+  
+})
+
+res_Tsamples <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  sum(idx)
+})
+res_spear <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  cor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx],method = "pearson")
+})
+
+wdi_data_cons_dcor <- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor[var_comb$var_name[i],
+                     thisiso] <- res[[i]]
+}
+
+wdi_data_cons_dcor2<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor2[var_comb$var_name[i],
+                       thisiso] <- res_spear[[i]]
+}
+wdi_data_cons_dcor3<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor3[var_comb$var_name[i],
+                       thisiso] <- res_Tsamples[[i]]
+}
+colnames(wdi_data_cons_dcor2)<-paste("Pearson",colnames(wdi_data_cons_dcor2),sep="_")
+colnames(wdi_data_cons_dcor3)<-paste("N",colnames(wdi_data_cons_dcor3),sep="_")
+
+cbind(data.frame(wdi_data_cons_dcor),data.frame(N=wdi_data_cons_dcor3[,1]),wdi_data_cons_dcor2) %>% rownames_to_column(var = "indicators")-> outi
+categoriestr<-str_replace(str_remove(groupA,"idx_"),"_","to")
+
+
+
+
+
+outi$range<- paste0(round(min(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3)," to ",
+       round(max(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3),sep="")
+colnames(outi)<-paste(colnames(outi),categoriestr,sep = "_")
+
+eval(parse(text=paste("outi-> WDI_dimred_iso4_",groupA,sep="")))
+
+}
+
+```
+### save
+```{r,eval=FALSE}
+wdi_dimred_iso4<-cbind(WDI_dimred_iso4_idx_0_25,WDI_dimred_iso4_idx_25_50,WDI_dimred_iso4_idx_50_75,WDI_dimred_iso4_idx_75_100)
+wdi_dimred_iso4_1<-data.frame("Indicators"=wdi_dimred_iso4$indicators_0to25,wdi_dimred_iso4[,!grepl("indicators",colnames(wdi_dimred_iso4))])
+
+
+
+wdi_dimred_iso4_2<-merge(allcorr,wdi_dimred_iso4_1,by="Indicators",all.y=T)
+wdi_dimred_iso4_3<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso4_2,by.x="Series Code",by.y="Indicators")
+# fwrite(wdi_dimred_iso4_3,"../results/corrTable/04_CorrTable_iso4_quantiles_all.csv")
+```
+
+```{r}
+iso4_corrtable<-fread("../results/corrTable/04_CorrTable_iso4_quantiles_all.csv")
+
+UPPER25<-quantile(iso4_corrtable$iso4_all_all,na.rm = T)[4]
+
+iso4_corrtable %>% 
+            pivot_longer(names_to = "isos",
+               c("iso4_all_all","iso4_0to25","iso4_25to50","iso4_50to75","iso4_75to100"),
+               values_drop_na = TRUE) %>% 
+  ggplot(aes(x=value,fill=isos))+geom_histogram()+geom_vline(xintercept = UPPER25)+ facet_wrap(~isos)
+```
+
+
+#### Textile produciton
+```{r}
+seriescode<-"TM.VAL.MRCH.R3.ZS"
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(
+                                                 scale(iso4)<  -0.6~"ISO_4_high",
+                                                  TRUE~"Iso4_normal"
+                                                  ))%>% 
+  filter(!is.na(get(seriescode)),!is.na(categorie)) -> yo
+yo$categorie<-factor(as.factor(yo$categorie),levels=c("ISO_4_high","Iso4_normal"))
+
+yo2<-yo[,colnames(yo)[colnames(yo)%in% c(paste(seriescode),"categorie")],with=F]
+colnames(yo2)[1]<-"value"
+series_label<-wdi_explained[wdi_explained$`Series Code` %in% seriescode,"Indicator Name"]
+
+
+
+ggstatsplot::ggbetweenstats(
+      data = yo2,
+      x = categorie,
+      y = value ) + 
+      # Add labels and title
+      labs(x="",
+           y = seriescode,
+           title = series_label
+      )+theme(
+        # This is the new default font in the plot
+        text = element_text(family = "Roboto", size = 10, color = "black"),
+        plot.title = element_text(
+          family = "Lobster Two", 
+          size = 14,
+          face = "bold",
+          color = "#2a475e"
+        ),
+        # # Statistical annotations below the main title
+        plot.subtitle = element_text(
+          family = "Roboto",
+          face = "bold",
+          color="#1b2838"
+        ),
+        plot.title.position = "plot", # slightly different from default
+        axis.text = element_text(size = 10, color = "black"),
+        axis.title = element_text(size = 12)
+      )
+
+
+ggsave("../figures/04_iso4_sig_merchandise_boxpplot.png",device = "png",height = 7,width = 9)
+```
+
+### population work 
+
+
+```{r}
+seriescode<-"SL.TLF.BASC.MA.ZS"
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(
+                                                 scale(iso4)<  -0.6~"ISO_4_high",
+                                                  TRUE~"Iso4_normal"
+                                                  ))%>% 
+  filter(!is.na(get(seriescode)),!is.na(categorie)) -> yo
+yo$categorie<-factor(as.factor(yo$categorie),levels=c("ISO_4_high","Iso4_normal"))
+
+yo2<-yo[,colnames(yo)[colnames(yo)%in% c(paste(seriescode),"categorie")],with=F]
+colnames(yo2)[1]<-"value"
+series_label<-wdi_explained[wdi_explained$`Series Code` %in% seriescode,"Indicator Name"]
+
+
+
+ggstatsplot::ggbetweenstats(
+      data = yo2,
+      x = categorie,
+      y = value ) + 
+      # Add labels and title
+      labs(x="",
+           y = seriescode,
+           title = series_label
+      )+theme(
+        # This is the new default font in the plot
+        text = element_text(family = "Roboto", size = 10, color = "black"),
+        plot.title = element_text(
+          family = "Lobster Two", 
+          size = 14,
+          face = "bold",
+          color = "#2a475e"
+        ),
+        # # Statistical annotations below the main title
+        plot.subtitle = element_text(
+          family = "Roboto",
+          face = "bold",
+          color="#1b2838"
+        ),
+        plot.title.position = "plot", # slightly different from default
+        axis.text = element_text(size = 10, color = "black"),
+        axis.title = element_text(size = 12)
+      )
+
+
+ggsave("../figures/04_iso4_sig_youngworker_boxpplot.png",device = "png",width = 9,height = 7)
+```
+#### Airpolution
+```{r}
+
+seriescode<-"EN.CO2.ETOT.ZS"
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(
+                                                 scale(iso4)<  -0.6~"ISO_4_high",
+                                                  TRUE~"Iso4_normal"
+                                                  ))%>% 
+  filter(!is.na(get(seriescode)),!is.na(categorie)) -> yo
+yo$categorie<-factor(as.factor(yo$categorie),levels=c("ISO_4_high","Iso4_normal"))
+
+yo2<-yo[,colnames(yo)[colnames(yo)%in% c(paste(seriescode),"categorie")],with=F]
+colnames(yo2)[1]<-"value"
+series_label<-wdi_explained[wdi_explained$`Series Code` %in% seriescode,"Indicator Name"]
+
+
+
+ggstatsplot::ggbetweenstats(
+      data = yo2,
+      x = categorie,
+      y = value ) + 
+      # Add labels and title
+      labs(x="",
+           y = seriescode,
+           title = series_label
+      )+theme(
+        # This is the new default font in the plot
+        text = element_text(family = "Roboto", size = 10, color = "black"),
+        plot.title = element_text(
+          family = "Lobster Two", 
+          size = 14,
+          face = "bold",
+          color = "#2a475e"
+        ),
+        # # Statistical annotations below the main title
+        plot.subtitle = element_text(
+          family = "Roboto",
+          face = "bold",
+          color="#1b2838"
+        ),
+        plot.title.position = "plot", # slightly different from default
+        axis.text = element_text(size = 10, color = "black"),
+        axis.title = element_text(size = 12)
+      )
+
+
+#ggsave("../figures/04_iso4_sig_youngworker_boxpplot.png",device = "png")
+```
+
+## iso 5
+
+```{r,eval=FALSE}
+group_values<-wdi_data_cons_df$iso5 %>%  quantile()
+thisiso<-paste0("iso5")
+var_comb <- expand.grid(var_name = used_var_names,
+                          iso_name = thisiso,
+                          stringsAsFactors = FALSE)
+
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(
+  iso5<group_values[2]~"0to25",
+  iso5<group_values[3]~"25to50",
+  iso5<group_values[4]~"50to75",
+  iso5<group_values[5]~"75to100",
+))-> wdi_data_cons_df
+
+idx_0_25<-wdi_data_cons_df$categorie%in%"0to25"
+idx_25_50<-wdi_data_cons_df$categorie%in%"25to50"
+idx_50_75<-wdi_data_cons_df$categorie%in%"50to75"
+idx_75_100<-wdi_data_cons_df$categorie%in%"75to100"
+
+parallel::clusterEvalQ(cl, suppressWarnings(library(energy)))
+parallel::clusterExport(cl, "wdi_data_cons_df", envir = environment())
+parallel::clusterExport(cl, "var_comb", envir = environment())
+parallel::clusterExport(cl, "idx_0_25", envir = environment())
+parallel::clusterExport(cl, "idx_25_50", envir = environment())
+parallel::clusterExport(cl, "idx_50_75", envir = environment())
+parallel::clusterExport(cl, "idx_75_100", envir = environment())
+```
+
+
+```{r,eval=F}
+for(groupA in c("idx_0_25","idx_25_50","idx_50_75","idx_75_100")){
+  
+
+variable<-groupA
+
+parallel::clusterExport(cl, "variable", envir = environment())
+res <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+  idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  energy::dcor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx])
+  
+})
+
+res_Tsamples <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  sum(idx)
+})
+res_spear <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  cor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx],method = "pearson")
+})
+
+wdi_data_cons_dcor <- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor[var_comb$var_name[i],
+                     thisiso] <- res[[i]]
+}
+
+wdi_data_cons_dcor2<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor2[var_comb$var_name[i],
+                       thisiso] <- res_spear[[i]]
+}
+wdi_data_cons_dcor3<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor3[var_comb$var_name[i],
+                       thisiso] <- res_Tsamples[[i]]
+}
+colnames(wdi_data_cons_dcor2)<-paste("Pearson",colnames(wdi_data_cons_dcor2),sep="_")
+colnames(wdi_data_cons_dcor3)<-paste("N",colnames(wdi_data_cons_dcor3),sep="_")
+
+cbind(data.frame(wdi_data_cons_dcor),data.frame(N=wdi_data_cons_dcor3[,1]),wdi_data_cons_dcor2) %>% rownames_to_column(var = "indicators")-> outi
+categoriestr<-str_replace(str_remove(groupA,"idx_"),"_","to")
+
+
+
+
+
+outi$range<- paste0(round(min(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3)," to ",
+       round(max(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3),sep="")
+colnames(outi)<-paste(colnames(outi),categoriestr,sep = "_")
+
+eval(parse(text=paste("outi-> WDI_dimred_iso5_",groupA,sep="")))
+
+}
+
+```
+### save
+```{r,eval=FALSE}
+wdi_dimred_iso5<-cbind(WDI_dimred_iso5_idx_0_25,WDI_dimred_iso5_idx_25_50,WDI_dimred_iso5_idx_50_75,WDI_dimred_iso5_idx_75_100)
+wdi_dimred_iso5_1<-data.frame("Indicators"=wdi_dimred_iso5$indicators_0to25,wdi_dimred_iso5[,!grepl("indicators",colnames(wdi_dimred_iso5))])
+
+
+
+wdi_dimred_iso5_2<-merge(allcorr,wdi_dimred_iso5_1,by="Indicators",all.y=T)
+wdi_dimred_iso5_3<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso5_2,by.x="Series Code",by.y="Indicators")
+fwrite(wdi_dimred_iso5_3,"../results/corrTable/04_CorrTable_iso5_quantiles_all.csv")
+```
+
+
+## iso 10
+
+```{r,eval=FALSE}
+group_values<-wdi_data_cons_df$iso10 %>%  quantile()
+thisiso<-paste0("iso10")
+var_comb <- expand.grid(var_name = used_var_names,
+                          iso_name = thisiso,
+                          stringsAsFactors = FALSE)
+
+
+wdi_data_cons_df %>%  mutate(categorie=case_when(
+  iso5<group_values[2]~"0to25",
+  iso5<group_values[3]~"25to50",
+  iso5<group_values[4]~"50to75",
+  iso5<group_values[5]~"75to100",
+))-> wdi_data_cons_df
+
+idx_0_25<-wdi_data_cons_df$categorie%in%"0to25"
+idx_25_50<-wdi_data_cons_df$categorie%in%"25to50"
+idx_50_75<-wdi_data_cons_df$categorie%in%"50to75"
+idx_75_100<-wdi_data_cons_df$categorie%in%"75to100"
+
+parallel::clusterEvalQ(cl, suppressWarnings(library(energy)))
+parallel::clusterExport(cl, "wdi_data_cons_df", envir = environment())
+parallel::clusterExport(cl, "var_comb", envir = environment())
+parallel::clusterExport(cl, "idx_0_25", envir = environment())
+parallel::clusterExport(cl, "idx_25_50", envir = environment())
+parallel::clusterExport(cl, "idx_50_75", envir = environment())
+parallel::clusterExport(cl, "idx_75_100", envir = environment())
+```
+
+
+```{r,eval=F}
+for(groupA in c("idx_0_25","idx_25_50","idx_50_75","idx_75_100")){
+  
+
+variable<-groupA
+
+parallel::clusterExport(cl, "variable", envir = environment())
+res <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+  idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  energy::dcor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx])
+  
+})
+
+res_Tsamples <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  sum(idx)
+})
+res_spear <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  cor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx],method = "pearson")
+})
+
+wdi_data_cons_dcor <- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor[var_comb$var_name[i],
+                     thisiso] <- res[[i]]
+}
+
+wdi_data_cons_dcor2<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor2[var_comb$var_name[i],
+                       thisiso] <- res_spear[[i]]
+}
+wdi_data_cons_dcor3<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor3[var_comb$var_name[i],
+                       thisiso] <- res_Tsamples[[i]]
+}
+colnames(wdi_data_cons_dcor2)<-paste("Pearson",colnames(wdi_data_cons_dcor2),sep="_")
+colnames(wdi_data_cons_dcor3)<-paste("N",colnames(wdi_data_cons_dcor3),sep="_")
+
+cbind(data.frame(wdi_data_cons_dcor),data.frame(N=wdi_data_cons_dcor3[,1]),wdi_data_cons_dcor2) %>% rownames_to_column(var = "indicators")-> outi
+categoriestr<-str_replace(str_remove(groupA,"idx_"),"_","to")
+
+
+
+
+
+outi$range<- paste0(round(min(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3)," to ",
+       round(max(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3),sep="")
+colnames(outi)<-paste(colnames(outi),categoriestr,sep = "_")
+
+eval(parse(text=paste("outi-> WDI_dimred_iso5_",groupA,sep="")))
+
+}
+
+```
+### save
+```{r,eval=FALSE}
+wdi_dimred_iso5<-cbind(WDI_dimred_iso5_idx_0_25,WDI_dimred_iso5_idx_25_50,WDI_dimred_iso5_idx_50_75,WDI_dimred_iso5_idx_75_100)
+wdi_dimred_iso5_1<-data.frame("Indicators"=wdi_dimred_iso5$indicators_0to25,wdi_dimred_iso5[,!grepl("indicators",colnames(wdi_dimred_iso5))])
+
+
+
+wdi_dimred_iso5_2<-merge(allcorr,wdi_dimred_iso5_1,by="Indicators",all.y=T)
+wdi_dimred_iso5_3<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso5_2,by.x="Series Code",by.y="Indicators")
+fwrite(wdi_dimred_iso5_3,"../results/corrTable/04_CorrTable_iso5_quantiles_all.csv")
+```
