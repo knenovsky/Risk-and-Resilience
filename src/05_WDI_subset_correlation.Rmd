@@ -1100,7 +1100,7 @@ iso1_notinDimred %>%  filter(iso1>(summary_notindimred_iso1[5]+summary_notindimr
 
 ## iso 2
 ```{r}
-iso2allcors<-fread("../results/corrTable/05_CorrTable_iso2_quantiles_shapleys_all.csv")
+iso2allcors<-fread("../results/corrTable/05_CorrTable_iso2_quantiles_shapleys_2019to2021_all.csv")
 iso2allcors %>% filter(!is.na(iso2_all)) ->iso2_onlyDimred
 iso2_onlyDimred  %>%  ggplot(aes(iso2_all))+geom_histogram(bins = 100)
 iso2_onlyDimred  %>% ggplot(aes(iso2_shapley))+geom_histogram(bins = 100)
@@ -1115,7 +1115,7 @@ iso2_notinDimred %>%  filter(iso2_shapley>(summary_notindimred_iso2[5]+summary_n
 
 ## iso 3
 ```{r}
-iso3allcors<-fread("../results/corrTable/04_CorrTable_iso3_quantiles_shapleys_all.csv")
+iso3allcors<-fread("../results/corrTable/04_CorrTable_iso3_quantiles_shapleys_2019to2021_all.csv")
 
 iso3allcors %>% filter(!is.na(iso1_all)) ->iso3_onlyDimred
 
@@ -1132,7 +1132,7 @@ iso3_notinDimred %>%  filter(iso3_shapley>(summary_notindimred_iso3[5]+summary_n
 
 ## iso 4
 ```{r}
-iso4allcors<-fread("../results/corrTable/04_CorrTable_iso4_quantiles_shapley_all.csv")
+iso4allcors<-fread("../results/corrTable/04_CorrTable_iso4_quantiles_shapley_2019to2021_all.csv")
 iso4allcors %>% filter(!is.na(iso4_all)) ->iso4_onlyDimred
 iso4_onlyDimred  %>%  ggplot(aes(iso4_all))+geom_histogram(bins = 100)
 iso4_onlyDimred  %>% ggplot(aes(iso4_shapley))+geom_histogram(bins = 100)
@@ -1147,7 +1147,7 @@ iso4_notinDimred %>%  filter(iso4_shapley>(summary_notindimred_iso4[5]+summary_n
 
 ## iso 5
 ```{r}
-iso5allcors<-fread("../results/corrTable/04_CorrTable_iso5_quantiles_shapley_all.csv")
+iso5allcors<-fread("../results/corrTable/04_CorrTable_iso5_quantiles_shapley_2019to2021_all.csv")
 iso5allcors %>% filter(!is.na(iso5_all)) ->iso5_onlyDimred
 iso5_onlyDimred  %>%  ggplot(aes(iso5_all))+geom_histogram(bins = 100)
 iso5_onlyDimred  %>% ggplot(aes(iso5_shapley))+geom_histogram(bins = 100)
@@ -1162,7 +1162,7 @@ iso5_notinDimred %>%  filter(iso5>(summary_notindimred_iso5[5]+summary_notindimr
 
 ## iso 6
 ```{r}
-iso6allcors<-fread("../results/corrTable/04_CorrTable_iso6_quantiles_shapley_all.csv")
+iso6allcors<-fread("../results/corrTable/04_CorrTable_iso6_quantiles_shapley_2019to2021_all.csv")
 iso6allcors %>% filter(!is.na(iso6_all)) ->iso6_onlyDimred
 iso6_onlyDimred  %>%  ggplot(aes(iso6_all))+geom_histogram(bins = 100)
 iso6_onlyDimred  %>% ggplot(aes(iso6_shapley))+geom_histogram(bins = 100)
@@ -1177,7 +1177,7 @@ iso6_notinDimred %>%  filter(iso6_shapley>(summary_notindimred_iso6[5]+summary_n
 
 ## iso 7
 ```{r}
-iso7allcors<-fread("../results/corrTable/04_CorrTable_iso7_quantiles_shapley_all.csv")
+iso7allcors<-fread("../results/corrTable/04_CorrTable_iso7_quantiles_shapley_2019to2021_all.csv")
 iso7allcors %>% filter(!is.na(iso7_all)) ->iso7_onlyDimred
 iso7_onlyDimred  %>%  ggplot(aes(iso7_shapley))+geom_histogram(bins = 100)
 iso7_onlyDimred  %>% ggplot(aes(iso7_shapley))+geom_histogram(bins = 100)
@@ -1194,14 +1194,19 @@ iso7_notinDimred %>%  filter(iso7_shapley>(summary_notindimred_iso7[5]+summary_n
 ## merge
 ### onlydimred
 ```{r}
+
 iso1_onlyDimred %>%  
   mutate(EnergyCorr=iso1,
          PearsonCorr=Pearson_iso1,
          N=N,
          Range=range,
          Iso="iso1") %>% 
-  select("Series Code","Topic","Indicator Name","EnergyCorr","PearsonCorr","N","Range","Iso") %>% arrange(desc(EnergyCorr)) %>% filter(EnergyCorr>summary_iso1[5])-> iso1_onlyDimred_SET
+  select("Series Code","Topic","Indicator Name","EnergyCorr","PearsonCorr","N","Range","Iso") %>% arrange(desc(EnergyCorr)) %>% filter(N>20) %>% filter(EnergyCorr>summary_iso1[5])-> iso1_onlyDimred_SET
 
+```
+
+
+```{r}
 iso2_onlyDimred %>%  
   mutate(EnergyCorr=iso2_shapley,
          PearsonCorr=Pearson_iso2_shapley,
@@ -1308,10 +1313,8 @@ iso7_notinDimred %>%
 
 highestCorrelations_notinDimred_Set<-rbind(iso1_notinDimred_SET,iso2_notinDimred_SET,iso3_notinDimred_SET,iso4_notinDimred_SET,iso6_notinDimred_SET,iso7_notinDimred_SET)
 ```
-
-
-# Country profiles
+# 
 ```{r}
-wdi_data_cons_df
+
 ```
 
