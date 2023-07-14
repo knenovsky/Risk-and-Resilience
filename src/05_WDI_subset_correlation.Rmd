@@ -86,6 +86,10 @@ used_var_names = wdi_explained$`Series Code`[wdi_explained$`Series Code` %in% co
 cutoff_for_isos<-fread("../output/07_cutoff_for_latenspace.csv")
 ```
 # Make Correlation WDI ~ Shapley
+## subset 2019-2021
+```{r}
+wdi_data_cons_df %>%  filter(year.x%in% c(2019:2021))-> wdi_data_cons_df
+```
 
 
 ## iso 1 
@@ -93,7 +97,9 @@ cutoff_for_isos<-fread("../output/07_cutoff_for_latenspace.csv")
 categorie 1 is based on quartiles
 categorie 2 is based on the shapley subset in script 04
 ```{r,eval=FALSE}
+
 group_values<-wdi_data_cons_df$iso1 %>%  quantile()
+
 thisiso<-paste0("iso1")
 var_comb <- expand.grid(var_name = used_var_names,
                           iso_name = thisiso,
@@ -224,7 +230,7 @@ wdi_dimred_iso1_1<-data.frame("Indicators"=wdi_dimred_iso1$indicators_0to25,wdi_
 
 wdi_dimred_iso1_2<-merge(allcorr,wdi_dimred_iso1_1,by="Indicators",all.y=T)
 wdi_dimred_iso1_3<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso1_2,by.x="Series Code",by.y="Indicators")
-#iso7(wdi_dimred_iso1_3,"../results/corrTable/05_CorrTable_iso1_quantiles_shapleys_all.csv")
+#fwrite(wdi_dimred_iso1_3,"../results/corrTable/05_CorrTable_iso1_quantiles_shapleys_2019to2021_all.csv")
 ```
 
 
@@ -371,10 +377,9 @@ eval(parse(text=paste("outi-> WDI_dimred_iso2_",groupA,sep="")))
 wdi_dimred_iso2<-cbind(WDI_dimred_iso2_idx_0_25,WDI_dimred_iso2_idx_25_50,WDI_dimred_iso2_idx_50_75,WDI_dimred_iso2_idx_75_100,WDI_dimred_iso2_idx_shapley)
 wdi_dimred_iso2_1<-data.frame("Indicators"=wdi_dimred_iso2$indicators_0to25,wdi_dimred_iso2[,!grepl("indicators",colnames(wdi_dimred_iso2))])
 
-
 wdi_dimred_iso2_2<-merge(allcorr,wdi_dimred_iso2_1,by="Indicators",all.y=T)
 wdi_dimred_iso2_3<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso2_2,by.x="Series Code",by.y="Indicators")
-#fwrite(wdi_dimred_iso2_3,"../results/corrTable/05_CorrTable_iso2_quantiles_shapleys_all.csv")
+#fwrite(wdi_dimred_iso2_3,"../results/corrTable/05_CorrTable_iso2_quantiles_shapleys_2019to2021_all.csv")
 ```
 
 
@@ -513,7 +518,7 @@ wdi_dimred_iso3_1<-data.frame("Indicators"=wdi_dimred_iso3$indicators_0to25,wdi_
 
 wdi_dimred_iso3_2<-merge(allcorr,wdi_dimred_iso3_1,by="Indicators",all.y=T)
 wdi_dimred_iso3_3<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso3_2,by.x="Series Code",by.y="Indicators")
-#fwrite(wdi_dimred_iso3_3,"../results/corrTable/04_CorrTable_iso3_quantiles_shapleys_all.csv")
+#fwrite(wdi_dimred_iso3_3,"../results/corrTable/04_CorrTable_iso3_quantiles_shapleys_2019to2021_all.csv")
 ```
 
 ```{r}
@@ -655,7 +660,7 @@ wdi_dimred_iso4_1<-data.frame("Indicators"=wdi_dimred_iso4$indicators_0to25,wdi_
 
 wdi_dimred_iso4_2<-merge(allcorr,wdi_dimred_iso4_1,by="Indicators",all.y=T)
 wdi_dimred_iso4_3<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso4_2,by.x="Series Code",by.y="Indicators")
-#fwrite(wdi_dimred_iso4_3,"../results/corrTable/04_CorrTable_iso4_quantiles_shapley_all.csv")
+#fwrite(wdi_dimred_iso4_3,"../results/corrTable/04_CorrTable_iso4_quantiles_shapley_2019to2021_all.csv")
 ```
 
 ```{r}
@@ -796,7 +801,7 @@ wdi_dimred_iso5_1<-data.frame("Indicators"=wdi_dimred_iso5$indicators_0to25,wdi_
 
 wdi_dimred_iso5_2<-merge(allcorr,wdi_dimred_iso5_1,by="Indicators",all.y=T)
 wdi_dimred_iso5_3<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso5_2,by.x="Series Code",by.y="Indicators")
-#fwrite(wdi_dimred_iso5_3,"../results/corrTable/04_CorrTable_iso5_quantiles_shapley_all.csv")
+#fwrite(wdi_dimred_iso5_3,"../results/corrTable/04_CorrTable_iso5_quantiles_shapley_2019to2021_all.csv")
 ```
 
 ## iso 6
@@ -933,7 +938,7 @@ wdi_dimred_iso6_1<-data.frame("Indicators"=wdi_dimred_iso6$indicators_0to25,wdi_
 
 wdi_dimred_iso6_2<-merge(allcorr,wdi_dimred_iso6_1,by="Indicators",all.y=T)
 wdi_dimred_iso6_3<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso6_2,by.x="Series Code",by.y="Indicators")
-#fwrite(wdi_dimred_iso6_3,"../results/corrTable/04_CorrTable_iso6_quantiles_shapley_all.csv")
+#fwrite(wdi_dimred_iso6_3,"../results/corrTable/04_CorrTable_iso6_quantiles_shapley_2019to2021_all.csv")
 ```
 
 
@@ -1072,7 +1077,7 @@ wdi_dimred_iso7_1<-data.frame("Indicators"=wdi_dimred_iso7$indicators_0to25,wdi_
 
 wdi_dimred_iso7_2<-merge(allcorr,wdi_dimred_iso7_1,by="Indicators",all.y=T)
 wdi_dimred_iso7_3<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso7_2,by.x="Series Code",by.y="Indicators")
-#fwrite(wdi_dimred_iso7_3,"../results/corrTable/04_CorrTable_iso7_quantiles_shapley_all.csv")
+#fwrite(wdi_dimred_iso7_3,"../results/corrTable/04_CorrTable_iso7_quantiles_shapley_2019to2021_all.csv")
 ```
 
 
@@ -1080,7 +1085,7 @@ wdi_dimred_iso7_3<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name"
 
 ## iso 1
 ```{r}
-iso1allcors<-fread("../results/corrTable/05_CorrTable_iso1_quantiles_shapleys_all.csv")
+iso1allcors<-fread("../results/corrTable/05_CorrTable_iso1_quantiles_shapleys_2019to2021_all.csv")
 iso1allcors %>% filter(!is.na(iso1_all)) ->iso1_onlyDimred
 iso1_onlyDimred  %>%  ggplot(aes(iso1_all))+geom_histogram(bins = 100)
 iso1_onlyDimred  %>% ggplot(aes(iso1))+geom_histogram(bins = 100)
@@ -1304,4 +1309,9 @@ iso7_notinDimred %>%
 highestCorrelations_notinDimred_Set<-rbind(iso1_notinDimred_SET,iso2_notinDimred_SET,iso3_notinDimred_SET,iso4_notinDimred_SET,iso6_notinDimred_SET,iso7_notinDimred_SET)
 ```
 
+
+# Country profiles
+```{r}
+wdi_data_cons_df
+```
 
