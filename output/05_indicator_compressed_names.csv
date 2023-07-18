@@ -1,0 +1,273 @@
+Indicator Code,Indicator Name,Compressed Name
+DT.ODA.ODAT.PC.ZS,Net ODA received per capita (current US$),Net ODA per capita (USD)
+EG.GDP.PUSE.KO.PP,GDP per unit of energy use (PPP $ per kg of oil equivalent),GDP per energy (PPP $/kg oil)
+EG.IMP.CONS.ZS,"Energy imports, net (% of energy use)",Net energy imports (% energy use)
+EG.USE.ELEC.KH.PC,Electric power consumption (kWh per capita),Electric power (kWh/capita)
+EG.USE.PCAP.KG.OE,Energy use (kg of oil equivalent per capita),Energy use (kg oil equiv/capita)
+EN.ATM.CO2E.KD.GD,CO2 emissions (kg per 2015 US$ of GDP),CO2 (kg/2015 USD of GDP)
+IC.REG.PROC,Start-up procedures to register a business (number),Start-up procedures (number)
+IC.REG.PROC.FE,"Start-up procedures to register a business, female (number)","Start-up proc (female, number)"
+IQ.SCI.MTHD,Methodology assessment of statistical capacity (scale 0 - 100),Statistical capacity meth (0-100)
+IQ.SCI.OVRL,Statistical Capacity Score (Overall Average) (scale 0 - 100),Stat capacity score (0-100)
+IQ.SCI.SRCE,Source data assessment of statistical capacity (scale 0 - 100),Stat capacity data source (0-100)
+IS.SHP.GCNW.XQ,Liner shipping connectivity index (maximum value in 2004 = 100),Liner ship index (2004 max=100)
+NE.CON.PRVT.PC.KD,Households and NPISHs final consumption expenditure per capita (constant 2015 US$),"Final cons exp per capita (USD, 2015 const)"
+NV.IND.EMPL.KD,"Industry (including construction), value added per worker (constant 2015 US$)","Industry value added per worker (USD, 2015 const)"
+NV.SRV.EMPL.KD,"Services, value added per worker (constant 2015 US$)","Services value added per worker (USD, 2015 const)"
+NY.ADJ.DCO2.GN.ZS,Adjusted savings: carbon dioxide damage (% of GNI),Adjusted savings CO2 damage (% GNI)
+NY.GDP.PCAP.CD,GDP per capita (current US$),"GDP per capita (USD, current)"
+NY.GDP.PCAP.KD,GDP per capita (constant 2015 US$),"GDP per capita (USD, 2015 const)"
+NY.GNP.PCAP.CD,"GNI per capita, Atlas method (current US$)","GNI per capita (Atlas method, USD, current)"
+NY.GNP.PCAP.KD,GNI per capita (constant 2015 US$),"GNI per capita (USD, 2015 const)"
+NY.GNP.PCAP.PP.KD,"GNI per capita, PPP (constant 2017 international $)","GNI per capita (PPP, 2017 int. $)"
+SE.PRM.DURS,"Primary education, duration (years)",Primary educ dur (years)
+SH.H2O.SMDW.ZS,People using safely managed drinking water services (% of population),Safely managed water (% pop)
+SH.MED.BEDS.ZS,"Hospital beds (per 1,000 people)","Hospital beds (per 1,000)"
+SH.MLR.INCD.P3,"Incidence of malaria (per 1,000 population at risk)","Malaria incidence (per 1,000 at risk)"
+SH.STA.POIS.P5,"Mortality rate attributed to unintentional poisoning (per 100,000 population)","Mortality rate (unintentional poison, per 100,000)"
+SH.STA.POIS.P5.MA,"Mortality rate attributed to unintentional poisoning, male (per 100,000 male population)","Mortality rate (unintentional poison, male, per 100,000)"
+SH.XPD.CHEX.PC.CD,Current health expenditure per capita (current US$),"Current health exp per capita (USD, current)"
+SH.XPD.CHEX.PP.CD,"Current health expenditure per capita, PPP (current international $)","Current health exp per capita (PPP, current int. $)"
+SH.XPD.GHED.PC.CD,Domestic general government health expenditure per capita (current US$),"Dom gen gov exp per capita (USD, current)"
+SH.XPD.GHED.PP.CD,"Domestic general government health expenditure per capita, PPP (current international $)","Dom gen gov exp per capita (PPP, current int. $)"
+SL.EMP.1524.SP.FE.ZS,"Employment to population ratio, ages 15-24, female (%) (modeled ILO estimate)",Emp/pop 15-24 f (%) (ILO est)
+SL.EMP.1524.SP.NE.ZS,"Employment to population ratio, ages 15-24, total (%) (national estimate)",Emp/pop 15-24 (%) (nat est)
+SL.EMP.1524.SP.ZS,"Employment to population ratio, ages 15-24, total (%) (modeled ILO estimate)",Emp/pop 15-24 (%) (ILO est)
+SL.EMP.SELF.FE.ZS,"Self-employed, female (% of female employment) (modeled ILO estimate)",Self-employed f (% of f emp) (ILO est)
+SL.EMP.TOTL.SP.NE.ZS,"Employment to population ratio, 15+, total (%) (national estimate)",Emp/pop 15+ (%) (nat est)
+SL.EMP.TOTL.SP.ZS,"Employment to population ratio, 15+, total (%) (modeled ILO estimate)",Emp/pop 15+ (%) (ILO est)
+SL.EMP.VULN.FE.ZS,"Vulnerable employment, female (% of female employment) (modeled ILO estimate)",Vulnerable emp f (% of f emp) (ILO est)
+SL.EMP.WORK.FE.ZS,"Wage and salaried workers, female (% of female employment) (modeled ILO estimate)",Wage workers f (% of f emp) (ILO est)
+SL.GDP.PCAP.EM.KD,GDP per person employed (constant 2017 PPP $),"GDP per emp (USD, 2017 PPP)"
+SL.TLF.ACTI.1524.FE.NE.ZS,"Labor force participation rate for ages 15-24, female (%) (national estimate)",Labor force part 15-24 f (%) (nat est)
+SL.TLF.ACTI.1524.FE.ZS,"Labor force participation rate for ages 15-24, female (%) (modeled ILO estimate)",Labor force part 15-24 f (%) (ILO est)
+SL.TLF.ACTI.1524.NE.ZS,"Labor force participation rate for ages 15-24, total (%) (national estimate)",Labor force part 15-24 (%) (nat est)
+SL.TLF.ACTI.1524.ZS,"Labor force participation rate for ages 15-24, total (%) (modeled ILO estimate)",Labor force part 15-24 (%) (ILO est)
+SL.TLF.ACTI.ZS,"Labor force participation rate, total (% of total population ages 15-64) (modeled ILO estimate)",Labor force part (%) (pop 15-64) (ILO est)
+SL.TLF.BASC.ZS,Labor force with basic education (% of total working-age population with basic education),Labor force basic (% with basic educ)
+SL.TLF.CACT.NE.ZS,"Labor force participation rate, total (% of total population ages 15+) (national estimate)",Labor force part (%) (pop 15+) (nat est)
+SL.TLF.CACT.ZS,"Labor force participation rate, total (% of total population ages 15+) (modeled ILO estimate)",Labor force part (%) (pop 15+) (ILO est)
+SL.TLF.TOTL.FE.ZS,"Labor force, female (% of total labor force)",Labor force f (% of total)
+SL.UEM.1524.FE.NE.ZS,"Unemployment, youth female (% of female labor force ages 15-24) (national estimate)",Unemployment youth f (%) (f labor force 15-24) (nat est)
+SL.UEM.1524.NE.ZS,"Unemployment, youth total (% of total labor force ages 15-24) (national estimate)",Unemployment youth (%) (total labor force 15-24) (nat est)
+SL.UEM.INTM.FE.ZS,"Unemployment with intermediate education, female (% of female labor force with intermediate education)",Unemployment intm educ f (% of f labor force intm educ)
+SL.UEM.NEET.ZS,"Share of youth not in education, employment or training, total (% of youth population)",Youth not in edu/emp/trng (%) (total youth pop)
+SP.DYN.CBRT.IN,"Birth rate, crude (per 1,000 people)","Birth rate (crude) (/1,000)"
+SP.DYN.CDRT.IN,"Death rate, crude (per 1,000 people)","Death rate (crude) (/1,000)"
+SP.POP.0004.FE.5Y,"Population ages 00-04, female (% of female population)",Pop 00-04 f (% of f pop)
+SP.POP.0004.MA.5Y,"Population ages 00-04, male (% of male population)",Pop 00-04 m (% of m pop)
+SP.POP.0014.FE.ZS,"Population ages 0-14, female (% of female population)",Pop 0-14 f (% of f pop)
+SP.POP.0014.MA.ZS,"Population ages 0-14, male (% of male population)",Pop 0-14 m (% of m pop)
+SP.POP.0509.FE.5Y,"Population ages 05-09, female (% of female population)",Pop 05-09 f (% of f pop)
+SP.POP.0509.MA.5Y,"Population ages 05-09, male (% of male population)",Pop 05-09 m (% of m pop)
+SP.POP.1014.FE.5Y,"Population ages 10-14, female (% of female population)",Pop 10-14 f (% of f pop)
+SP.POP.DPND.YG,"Age dependency ratio, young (% of working-age population)","Age dep ratio, young (% of working-age pop)"
+SP.POP.TOTL.FE.ZS,"Population, female (% of total population)",Pop f (% of total)
+SP.POP.TOTL.MA.ZS,"Population, male (% of total population)",Pop m (% of total)
+TM.VAL.MRCH.R2.ZS,Merchandise imports from low- and middle-income economies in Europe & Central Asia (% of total merchandise imports),Merch imports LMI Europe & CA (% of total)
+TM.VAL.MRCH.R3.ZS,Merchandise imports from low- and middle-income economies in Latin America & the Caribbean (% of total merchandise imports),Merch imports LMI Latin Amer & Carib (% of total)
+TX.VAL.MRCH.R2.ZS,Merchandise exports to low- and middle-income economies in Europe & Central Asia (% of total merchandise exports),Merch exports LMI Europe & CA (% of total)
+TX.VAL.MRCH.R3.ZS,Merchandise exports to low- and middle-income economies in Latin America & the Caribbean (% of total merchandise exports),Merch exports LMI Latin Amer & Carib (% of total)
+VC.IHR.PSRC.FE.P5,"Intentional homicides, female (per 100,000 female)","Intentional homicides f (per 100,000 f)"
+VC.IHR.PSRC.MA.P5,"Intentional homicides, male (per 100,000 male)","Intentional homicides m (per 100,000 m)"
+VC.IHR.PSRC.P5,"Intentional homicides (per 100,000 people)","Intentional homicides (per 100,000)"
+DT.TDS.DSTI.ZS,"IS, private creditors (DST, excluding IMF) (% of total external debt)","IS, priv creditors (DST, excl IMF) (% of tot ext debt)"
+DT.TDS.MIDA.CD,"PPG, multilateral (current US$)","PPG, multilateral (current US$)"
+DT.TDS.MIDA.GD.ZS,"PPG, multilateral (% of GDP)","PPG, multilateral (% of GDP)"
+DT.TDS.MIDA.ZS,"PPG, multilateral (% of total external debt)","PPG, multilateral (% of tot ext debt)"
+DT.TDS.MLAT.CD,"MLT, bilateral (current US$)","MLT, bilateral (current US$)"
+DT.TDS.MLAT.GD.ZS,"MLT, bilateral (% of GDP)","MLT, bilateral (% of GDP)"
+DT.TDS.MLAT.ZS,"MLT, bilateral (% of total external debt)","MLT, bilateral (% of tot ext debt)"
+DT.TDS.MPNG.CD,"MLT, private nonguaranteed (PNG) (current US$)","MLT, priv nonguaranteed (PNG) (current US$)"
+DT.TDS.MPNG.GD.ZS,"MLT, private nonguaranteed (PNG) (% of GDP)","MLT, priv nonguaranteed (PNG) (% of GDP)"
+DT.TDS.MPNG.ZS,"MLT, private nonguaranteed (PNG) (% of total external debt)","MLT, priv nonguaranteed (PNG) (% of tot ext debt)"
+DT.TDS.MPPG.CD,"MLT, official creditors (PPG) (current US$)","MLT, official creditors (PPG) (current US$)"
+DT.TDS.MPPG.GD.ZS,"MLT, official creditors (PPG) (% of GDP)","MLT, official creditors (PPG) (% of GDP)"
+DT.TDS.MPPG.ZS,"MLT, official creditors (PPG) (% of total external debt)","MLT, official creditors (PPG) (% of tot ext debt)"
+DT.TDS.MPPS.CD,"MLT, private creditors (PPS) (current US$)","MLT, priv creditors (PPS) (current US$)"
+DT.TDS.MPPS.GD.ZS,"MLT, private creditors (PPS) (% of GDP)","MLT, priv creditors (PPS) (% of GDP)"
+DT.TDS.MPPS.ZS,"MLT, private creditors (PPS) (% of total external debt)","MLT, priv creditors (PPS) (% of tot ext debt)"
+DT.TDS.MSTC.CD,"MLT, private creditors (DST) (current US$)","MLT, priv creditors (DST) (current US$)"
+DT.TDS.MSTC.GD.ZS,"MLT, private creditors (DST) (% of GDP)","MLT, priv creditors (DST) (% of GDP)"
+DT.TDS.MSTC.ZS,"MLT, private creditors (DST) (% of total external debt)","MLT, priv creditors (DST) (% of tot ext debt)"
+DT.TDS.MSTG.CD,"MLT, private creditors (DST, including IMF) (current US$)","MLT, priv creditors (DST, incl IMF) (current US$)"
+DT.TDS.MSTG.GD.ZS,"MLT, private creditors (DST, including IMF) (% of GDP)","MLT, priv creditors (DST, incl IMF) (% of GDP)"
+DT.TDS.MSTG.ZS,"MLT, private creditors (DST, including IMF) (% of total external debt)","MLT, priv creditors (DST, incl IMF) (% of tot ext debt)"
+DT.TDS.MSTI.CD,"MLT, private creditors (DST, excluding IMF) (current US$)","MLT, priv creditors (DST, excl IMF) (current US$)"
+DT.TDS.MSTI.GD.ZS,"MLT, private creditors (DST, excluding IMF) (% of GDP)","MLT, priv creditors (DST, excl IMF) (% of GDP)"
+DT.TDS.MSTI.ZS,"MLT, private creditors (DST, excluding IMF) (% of total external debt)","MLT, priv creditors (DST, excl IMF) (% of tot ext debt)"
+DT.TDS.OFFT.CD,"Other official flows, total (current US$)","Other off flows, total (current US$)"
+DT.TDS.OFFT.GD.ZS,Other official flows (% of GDP),Other off flows (% of GDP)
+DT.TDS.OFFT.ZS,Other official flows (% of total external debt),Other off flows (% of tot ext debt)
+DT.TDS.PBND.CD,"PPG, bonds (current US$)","PPG, bonds (current US$)"
+DT.TDS.PBND.GD.ZS,"PPG, bonds (% of GDP)","PPG, bonds (% of GDP)"
+DT.TDS.PBND.ZS,"PPG, bonds (% of total external debt)","PPG, bonds (% of tot ext debt)"
+DT.TDS.PBUB.CD,"PPG, IBRD (current US$)","PPG, IBRD (current US$)"
+DT.TDS.PBUB.GD.ZS,"PPG, IBRD (% of GDP)","PPG, IBRD (% of GDP)"
+DT.TDS.PBUB.ZS,"PPG, IBRD (% of total external debt)","PPG, IBRD (% of tot ext debt)"
+DT.TDS.PCBK.CD,"PPG, commercial banks (current US$)","PPG, commercial banks (current US$)"
+DT.TDS.PCBK.GD.ZS,"PPG, commercial banks (% of GDP)","PPG, commercial banks (% of GDP)"
+DT.TDS.PCBK.ZS,"PPG, commercial banks (% of total external debt)","PPG, commercial banks (% of tot ext debt)"
+DT.TDS.PNGB.CD,"PPG, PNG (current US$)","PPG, PNG (current US$)"
+DT.TDS.PNGB.GD.ZS,"PPG, PNG (% of GDP)","PPG, PNG (% of GDP)"
+DT.TDS.PNGB.ZS,"PPG, PNG (% of total external debt)","PPG, PNG (% of tot ext debt)"
+DT.TDS.PNGC.CD,"PPG, IDA (current US$)","PPG, IDA (current US$)"
+DT.TDS.PNGC.GD.ZS,"PPG, IDA (% of GDP)","PPG, IDA (% of GDP)"
+DT.TDS.PNGC.ZS,"PPG, IDA (% of total external debt)","PPG, IDA (% of tot ext debt)"
+DT.TDS.PRVT.CD,"PPG, private creditors (DST, excluding IMF) (current US$)","PPG, priv creditors (DST, excl IMF) (current US$)"
+DT.TDS.PRVT.GD.ZS,"PPG, private creditors (DST, excluding IMF) (% of GDP)","PPG, priv creditors (DST"
+DT.TDS.PRVT.ZS,"PPG, private creditors (DST, excluding IMF) (% of total external debt)","PPG, priv creditors (DST, excl IMF) (% of tot ext debt)"
+DT.TDS.PROP.CD,"PPG, other public (current US$)","PPG, other public (current US$)"
+DT.TDS.PROP.GD.ZS,"PPG, other public (% of GDP)","PPG, other public (% of GDP)"
+DT.TDS.PROP.ZS,"PPG, other public (% of total external debt)","PPG, other public (% of tot ext debt)"
+DT.TDS.PUBC.CD,"PPG, public and publicly guaranteed (PPG) (current US$)","PPG, pub and pub guar (PPG) (current US$)"
+DT.TDS.PUBC.GD.ZS,"PPG, public and publicly guaranteed (PPG) (% of GDP)","PPG, pub and pub guar (PPG) (% of GDP)"
+DT.TDS.PUBC.ZS,"PPG, public and publicly guaranteed (PPG) (% of total external debt)","PPG, pub and pub guar (PPG) (% of tot ext debt)"
+DT.TDS.PUBP.CD,"PPG, public sector bonds (current US$)","PPG, pub sector bonds (current US$)"
+DT.TDS.PUBP.GD.ZS,"PPG, public sector bonds (% of GDP)","PPG, pub sector bonds (% of GDP)"
+DT.TDS.PUBP.ZS,"PPG, public sector bonds (% of total external debt)","PPG, pub sector bonds (% of tot ext debt)"
+DT.TDS.SDRV.CD,Special drawing rights allocation (SDR) (current US$),SDR allocation (current US$)
+DT.TDS.SDRV.GD.ZS,Special drawing rights allocation (SDR) (% of GDP),SDR allocation (% of GDP)
+DT.TDS.SDRV.ZS,Special drawing rights allocation (SDR) (% of total external debt),SDR allocation (% of tot ext debt)
+DT.TDS.SHCB.CD,"PPG, short-term (current US$)","PPG, short-term (current US$)"
+DT.TDS.SHCB.GD.ZS,"PPG, short-term (% of GDP)","PPG, short-term (% of GDP)"
+DT.TDS.SHCB.ZS,"PPG, short-term (% of total external debt)","PPG, short-term (% of tot ext debt)"
+DT.TDS.SRVX.CD,"Service exports (BoP, current US$)",Service exports (current US$)
+DT.TDS.SRVX.CR.ZS,"Exports of goods, services and primary income (BoP, current US$)","Exports of goods, services and primary income (current US$)"
+DT.TDS.SRVX.GD.ZS,Service exports (% of GDP),Service exports (% of GDP)
+DT.TDS.SRVX.ZS,Service exports (% of merchandise exports),Service exports (% of merch exports)
+DT.TDS.SRVX.CD.WB,"Service exports (BoP, current US$)",Service exports (current US$)
+DT.TDS.SRVX.CR.ZS.WB,"Exports of goods, services and primary income (BoP, current US$)","Exports of goods, services and primary income (current US$)"
+DT.TDS.SRVX.GD.ZS.WB,Service exports (% of GDP),Service exports (% of GDP)
+DT.TDS.SRVX.ZS.WB,Service exports (% of merchandise exports),Service exports (% of merch exports)
+DT.TDS.SRVX.IR.ZS,"Service exports (BoP, current US$)",Service exports (current US$)
+DT.TDS.SRVX.CR.IR.ZS,"Exports of goods, services and primary income (BoP, current US$)","Exports of goods, services and primary income (current US$)"
+DT.TDS.SRVX.GD.IR.ZS,Service exports (% of GDP),Service exports (% of GDP)
+DT.TDS.SRVX.ZS.IR.ZS,Service exports (% of merchandise exports),Service exports (% of merch exports)
+DT.TDS.STKB.CD,"PPG, stocks (current US$)","PPG, stocks (current US$)"
+DT.TDS.STKB.GD.ZS,"PPG, stocks (% of GDP)","PPG, stocks (% of GDP)"
+DT.TDS.STKB.ZS,"PPG, stocks (% of total external debt)","PPG, stocks (% of tot ext debt)"
+DT.TDS.STLS.CD,"PPG, total (current US$)","PPG, total (current US$)"
+DT.TDS.STLS.GD.ZS,"PPG, total (% of GDP)","PPG, total (% of GDP)"
+DT.TDS.STLS.ZS,"PPG, total (% of total external debt)","PPG, total (% of tot ext debt)"
+DT.TDS.TIME.CD,Time required to get credit (hours),Time required to get credit (hours)
+DT.TDS.TIME.DAYS,Time required to enforce a contract (days),Time required to enforce a contract (days)
+DT.TDS.TIME.GNFS.CD,"Time to import, border compliance (US$)","Time to import, border compliance (US$)"
+DT.TDS.TIME.IR.ZS,Time to resolve insolvency (years),Time to resolve insolvency (years)
+DT.TDS.TIME.MRCH.CD,"Time to import, documentary compliance (US$)","Time to import, documentary compliance (US$)"
+DT.TDS.TIME.TMGD.CD,"Time to import, trade and maritime transport document preparation (US$)","Time to import, trade and maritime transport document preparation (US$)"
+DT.TDS.TIME.XB.CD,"Time to export, border compliance (US$)","Time to export, border compliance (US$)"
+DT.TDS.TIME.XD.CD,"Time to export, documentary compliance (US$)","Time to export, documentary compliance (US$)"
+DT.TDS.TIME.XG.CD,"Time to export, trade and transport document preparation (US$)","Time to export, trade and transport document preparation (US$)"
+AG.LND.PRCP.MM,Average precipitation in depth (mm per year),Avg precip (mm/year)
+DT.ODA.ODAT.GI.ZS,Net ODA received (% of gross capital formation),Net ODA rec (% of GCF)
+DT.ODA.ODAT.MP.ZS,"Net ODA received (% of imports of goods, services and primary income)",Net ODA rec (% of imports)
+EG.FEC.RNEW.ZS,Renewable energy consumption (% of total final energy consumption),Renewable energy (% of TFEC)
+EN.ATM.CO2E.PC,CO2 emissions (metric tons per capita),CO2 emissions (t/capita)
+EN.ATM.CO2E.PP.GD,CO2 emissions (kg per PPP $ of GDP),CO2 emissions (kg/PPP$ of GDP)
+EN.ATM.CO2E.PP.GD.KD,CO2 emissions (kg per 2017 PPP $ of GDP),CO2 emissions (kg/2017 PPP$ GDP)
+GC.XPN.COMP.ZS,Compensation of employees (% of expense),Comp of employees (% of expense)
+GC.XPN.TOTL.GD.ZS,Expense (% of GDP),Expense (% of GDP)
+IC.BUS.DISC.XQ,Business extent of disclosure index (0=less disclosure to 10=more disclosure),Business disclosure index
+IC.BUS.NDNS.ZS,"New business density (new registrations per 1,000 people ages 15-64)",New business density
+IC.CRD.PRVT.ZS,Private credit bureau coverage (% of adults),Private credit coverage (% adults)
+IC.CRD.PUBL.ZS,Public credit registry coverage (% of adults),Public credit coverage (% adults)
+IC.IMP.TMBC,"Time to import, border compliance (hours)",Time to import (border compl.)
+IC.ISV.DURS,Time to resolve insolvency (years),Time to resolve insolvency
+IC.LGL.CRED.XQ,Strength of legal rights index (0=weak to 12=strong),Legal rights index
+IC.PRP.PROC,Procedures to register property (number),Property registration proc.
+IC.REG.PROC.MA,"Start-up procedures to register a business, male (number)",Start-up proc (male)
+IQ.SPI.OVRL,Statistical performance indicators (SPI): Overall score (scale 0-100),SPI overall score
+IQ.SPI.PIL3,Statistical performance indicators (SPI): Pillar 3 data products score (scale 0-100),SPI Pillar 3 score
+IT.NET.BBND.P2,Fixed broadband subscriptions (per 100 people),Fixed broadband subs (per 100)
+NV.AGR.EMPL.KD,"Agriculture, forestry, and fishing, value added per worker (constant 2015 US$)","Agri, forestry, fishing val added/worker"
+NV.MNF.FBTO.ZS.UN,"Food, beverages and tobacco (% of value added in manufacturing)","Food, bev, tobacco (% of manuf. value added)"
+NV.MNF.MTRN.ZS.UN,Machinery and transport equipment (% of value added in manufacturing),"Machinery, transport (% of manuf. value added)"
+NV.MNF.OTHR.ZS.UN,Other manufacturing (% of value added in manufacturing),Other manuf. (% of manuf. value added)
+NV.MNF.TXTL.ZS.UN,Textiles and clothing (% of value added in manufacturing),"Textiles, clothing (% of manuf. value added)"
+SE.PRE.ENRL.TC.ZS,"Pupil-teacher ratio, preprimary",Pupil-teacher ratio (preprimary)
+SE.PRM.CMPT.FE.ZS,"Primary completion rate, female (% of relevant age group)",Primary completion rate (female)
+SE.PRM.CMPT.ZS,"Primary completion rate, total (% of relevant age group)",Primary completion rate (total)
+SE.PRM.ENRL.FE.ZS,"Primary education, pupils (% female)","Primary education, pupils (% female)"
+SE.PRM.GINT.FE.ZS,"Gross intake ratio in first grade of primary education, female (% of relevant age group)",Gross intake ratio 1st grade (female)
+SE.PRM.GINT.MA.ZS,"Gross intake ratio in first grade of primary education, male (% of relevant age group)",Gross intake ratio 1st grade (male)
+SE.PRM.GINT.ZS,"Gross intake ratio in first grade of primary education, total (% of relevant age group)",Gross intake ratio 1st grade (total)
+SE.PRM.NENR,"School enrollment, primary (% net)","School enrollment, primary (% net)"
+SE.PRM.OENR.FE.ZS,"Over-age students, primary, female (% of female enrollment)","Over-age students, primary, female"
+SE.PRM.OENR.MA.ZS,"Over-age students, primary, male (% of male enrollment)","Over-age students, primary, male"
+SE.PRM.OENR.ZS,"Over-age students, primary (% of enrollment)","Over-age students, primary (%)"
+SE.PRM.PRSL.FE.ZS,"Persistence to last grade of primary, female (% of cohort)","Persistence to last grade, female"
+SE.PRM.REPT.FE.ZS,"Repeaters, primary, female (% of female enrollment)","Repeaters, primary, female"
+SE.PRM.REPT.MA.ZS,"Repeaters, primary, male (% of male enrollment)","Repeaters, primary, male"
+SE.PRM.REPT.ZS,"Repeaters, primary, total (% of total enrollment)","Repeaters, primary, total"
+SE.PRM.TENR,"Adjusted net enrollment rate, primary (% of primary school age children)","Adjusted net enrollment rate, primary"
+SE.PRM.UNER.ZS,Children out of school (% of primary school age),Children out of school (%)
+SE.SEC.ENRL.FE.ZS,"Secondary education, pupils (% female)","Secondary education, pupils (% female)"
+SE.SEC.ENRL.GC.FE.ZS,"Secondary education, general pupils (% female)","Secondary education, general pupils"
+SE.SEC.ENRL.TC.ZS,"Pupil-teacher ratio, secondary","Pupil-teacher ratio, secondary"
+SE.SEC.ENRL.VO.FE.ZS,"Secondary education, vocational pupils (% female)","Secondary education, vocational pupils"
+SE.SEC.ENRR,"School enrollment, secondary (% gross)","School enrollment, secondary (% gross)"
+SE.SEC.ENRR.MA,"School enrollment, secondary, male (% gross)","School enrollment, secondary, male"
+SE.SEC.NENR.FE,"School enrollment, secondary, female (% net)","School enrollment, secondary, female (% net)"
+SE.SEC.UNER.LO.ZS,Adolescents out of school (% of lower secondary school age),Adolescents out of school (% lower sec. age)
+SE.TER.ENRL.TC.ZS,"Pupil-teacher ratio, tertiary","Pupil-teacher ratio, tertiary"
+SE.TER.ENRR,"School enrollment, tertiary (% gross)","School enrollment, tertiary (% gross)"
+SE.TER.ENRR.FE,"School enrollment, tertiary, female (% gross)","School enrollment, tertiary, female"
+SE.TER.ENRR.MA,"School enrollment, tertiary, male (% gross)","School enrollment, tertiary, male"
+SH.ANM.ALLW.ZS,Prevalence of anemia among women of reproductive age (% of women ages 15-49),Prevalence of anemia among women
+SH.ANM.CHLD.ZS,Prevalence of anemia among children (% of children ages 6-59 months),Prevalence of anemia in children
+SH.ANM.NPRG.ZS,Prevalence of anemia among non-pregnant women (% of women ages 15-49),Prevalence of anemia (non-pregnant)
+SH.DYN.AIDS.ZS,"Prevalence of HIV, total (% of population ages 15-49)","Prevalence of HIV (total, ages 15-49)"
+SH.H2O.BASW.UR.ZS,"People using at least basic drinking water services, urban (% of urban population)",People using basic water svcs (urban)
+SH.HIV.1524.FE.ZS,"Prevalence of HIV, female (% ages 15-24)","Prevalence of HIV (female, ages 15-24)"
+SH.HIV.1524.MA.ZS,"Prevalence of HIV, male (% ages 15-24)","Prevalence of HIV (male, ages 15-24)"
+SH.HIV.INCD.TL.P3,"Incidence of HIV, all (per 1,000 uninfected population)","HIV incidence (all, per 1,000 uninfected)"
+SH.HIV.INCD.YG.P3,"Incidence of HIV, ages 15-24 (per 1,000 uninfected population ages 15-24)","HIV incidence (ages 15-24, per 1,000 uninfected)"
+SH.HIV.INCD.ZS,"Incidence of HIV, ages 15-49 (per 1,000 uninfected population ages 15-49)","HIV incidence (ages 15-49, per 1,000 uninfected)"
+SH.MED.NUMW.P3,"Nurses and midwives (per 1,000 people)","Nurses and midwives (per 1,000)"
+SH.STA.SMSS.UR.ZS,"People using safely managed sanitation services, urban (% of urban population)",People using safe sanitation (urban)
+SH.STA.SUIC.FE.P5,"Suicide mortality rate, female (per 100,000 female population)",Suicide mortality rate (female)
+SL.EMP.1524.SP.FE.NE.ZS,"Employment to population ratio, ages 15-24, female (%) (national estimate)",Emp/pop ratio 15-24 f (nat est)
+SL.EMP.1524.SP.MA.NE.ZS,"Employment to population ratio, ages 15-24, male (%) (national estimate)",Emp/pop ratio 15-24 m (nat est)
+SL.EMP.1524.SP.MA.ZS,"Employment to population ratio, ages 15-24, male (%) (modeled ILO estimate)",Emp/pop ratio 15-24 m (ILO est)
+SL.EMP.TOTL.SP.FE.NE.ZS,"Employment to population ratio, 15+, female (%) (national estimate)",Emp/pop ratio 15+ f (nat est)
+SL.EMP.TOTL.SP.FE.ZS,"Employment to population ratio, 15+, female (%) (modeled ILO estimate)",Emp/pop ratio 15+ f (ILO est)
+SL.EMP.TOTL.SP.MA.NE.ZS,"Employment to population ratio, 15+, male (%) (national estimate)",Emp/pop ratio 15+ m (nat est)
+SL.TLF.ACTI.1524.MA.NE.ZS,"Labor force participation rate for ages 15-24, male (%) (national estimate)",LF participation rate 15-24 m (nat est)
+SL.TLF.ACTI.1524.MA.ZS,"Labor force participation rate for ages 15-24, male (%) (modeled ILO estimate)",LF participation rate 15-24 m (ILO est)
+SL.TLF.ACTI.FE.ZS,"Labor force participation rate, female (% of female population ages 15-64) (modeled ILO estimate)",LF participation rate f (15-64) (ILO est)
+SL.TLF.BASC.FE.ZS,"Labor force with basic education, female (% of female working-age population with basic education)",LF with basic educ f (% of f working-age pop)
+SL.TLF.BASC.MA.ZS,"Labor force with basic education, male (% of male working-age population with basic education)",LF with basic educ m (% of m working-age pop)
+SL.TLF.CACT.FE.NE.ZS,"Labor force participation rate, female (% of female population ages 15+) (national estimate)",LF participation rate f (15+) (nat est)
+SL.TLF.CACT.FE.ZS,"Labor force participation rate, female (% of female population ages 15+) (modeled ILO estimate)",LF participation rate f (15+) (ILO est)
+SL.TLF.CACT.FM.NE.ZS,Ratio of female to male labor force participation rate (%) (national estimate),F/M LF participation ratio (nat est)
+SL.TLF.CACT.FM.ZS,Ratio of female to male labor force participation rate (%) (modeled ILO estimate),F/M LF participation ratio
+SL.TLF.CACT.MA.NE.ZS,"Labor force participation rate, male (% of male population ages 15+) (national estimate)",LF participation rate m (15+) (nat est)
+SL.TLF.INTM.FE.ZS,"Labor force with intermediate education, female (% of female working-age population with intermediate education)",LF with intm educ f (% of f working-age pop)
+SL.TLF.INTM.ZS,Labor force with intermediate education (% of total working-age population with intermediate education),LF with intm educ (% of total working-age pop)
+SL.UEM.ADVN.FE.ZS,"Unemployment with advanced education, female (% of female labor force with advanced education)",Unemployment with advn educ f
+SL.UEM.ADVN.MA.ZS,"Unemployment with advanced education, male (% of male labor force with advanced education)",Unemployment with advn educ m
+SL.UEM.ADVN.ZS,Unemployment with advanced education (% of total labor force with advanced education),Unemployment with advn educ (% of total LF)
+SL.UEM.BASC.MA.ZS,"Unemployment with basic education, male (% of male labor force with basic education)",Unemployment with basc educ m
+SL.UEM.BASC.ZS,Unemployment with basic education (% of total labor force with basic education),Unemployment with basc educ (% of total LF)
+SL.UEM.INTM.MA.ZS,"Unemployment with intermediate education, male (% of male labor force with intermediate education)",Unemployment with intm educ m
+SL.UEM.INTM.ZS,Unemployment with intermediate education (% of total labor force with intermediate education),Unemployment with intm educ (% of total LF)
+SL.UEM.NEET.FE.ZS,"Share of youth not in education, employment or training, female (% of female youth population)",Youth not in edu/emp/trng f (% of f youth pop)
+SL.UEM.NEET.MA.ZS,"Share of youth not in education, employment or training, male (% of male youth population)",Youth not in edu/emp/trng m (% of m youth pop)
+SL.UEM.TOTL.FE.NE.ZS,"Unemployment, female (% of female labor force) (national estimate)",Unemployment f (%) (f LF) (nat est)
+SL.UEM.TOTL.MA.NE.ZS,"Unemployment, male (% of male labor force) (national estimate)",Unemployment m (%) (m LF) (nat est)
+SL.UEM.TOTL.MA.ZS,"Unemployment, male (% of male labor force) (modeled ILO estimate)",Unemployment m (%) (m LF) (ILO est)
+SL.UEM.TOTL.NE.ZS,"Unemployment, total (% of total labor force) (national estimate)",Unemployment (%) (total LF) (nat est)
+SL.UEM.TOTL.ZS,"Unemployment, total (% of total labor force) (modeled ILO estimate)",Unemployment (%) (total LF) (ILO est)
+SP.POP.0014.TO.ZS,Population ages 0-14 (% of total population),Population ages 0-14 (% of total)
+SP.POP.6569.MA.5Y,"Population ages 65-69, male (% of male population)","Population ages 65-69, male"
+SP.POP.65UP.FE.ZS,"Population ages 65 and above, female (% of female population)",Population ages 65+ (female)
+SP.POP.65UP.MA.ZS,"Population ages 65 and above, male (% of male population)",Population ages 65+ (male)
+SP.POP.65UP.TO.ZS,Population ages 65 and above (% of total population),Population ages 65+ (% of total)
+SP.POP.7074.FE.5Y,"Population ages 70-74, female (% of female population)",Population ages 70-74 (female)
+SP.POP.7074.MA.5Y,"Population ages 70-74, male (% of male population)",Population ages 70-74 (male)
+SP.POP.7579.FE.5Y,"Population ages 75-79, female (% of female population)",Population ages 75-79 (female)
+SP.POP.7579.MA.5Y,"Population ages 75-79, male (% of male population)",Population ages 75-79 (male)
+SP.POP.80UP.FE.5Y,"Population ages 80 and above, female (% of female population)",Population ages 80+ (female)
+SP.POP.80UP.MA.5Y,"Population ages 80 and above, male (% of male population)",Population ages 80+ (male)
+SP.POP.DPND.OL,"Age dependency ratio, old (% of working-age population)","Age dependency ratio, old (% of working-age pop)"
