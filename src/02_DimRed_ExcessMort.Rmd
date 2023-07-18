@@ -78,10 +78,16 @@ incomegroups<-read_excel("../../23_01_COCAP/01_data_prep/data/230224_WORLDBANK_I
 incomegroups2<-read_excel("../../23_01_COCAP/01_data_prep/data/230224_WORLDBANK_INCOME_GROUPS/OGHIST.xlsx",sheet = 2) 
 availability<-read.xlsx("../../23_01_COCAP/01_data_prep/data/230320_WHO_Mortality_availability/41586_2022_5522_availability.xlsx")
 wdi_explained<-fread("../data/WDI_data_230609/WDI_CSV/WDISeries.csv")
-
+f
 
 ```
 
+```{r}
+# thesenames<-fread("../../23_01_COCAP/01_low_dim_paper/data2018/indicator_compressed_names.csv")
+# wdi_explained[wdi_explained$`Series Code`%in% colnames(wdi_data_cons),] %>% 
+#    select(`Series Code`,`Indicator Name`) %>% merge( .  ,thesenames,,by.x="Series Code",by.y="Indicator Code",all.x=T) %>% fwrite("../output/02_all_features_wdi.csv",sep=";")
+
+```
 
 
 

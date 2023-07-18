@@ -6,7 +6,8 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+
 ```
 
 
@@ -72,24 +73,31 @@ axis(side = 2, at = seq(0, 1, length.out = 6),
 # 2 Figure Linear estimation of the exmort
 ```{r}
 require(broom)
+require(GGally)
+require(ggpubr)
 dimred2021_knn250_2<-fread("../output/02_230612_Dimred_ExcessMort_annual.csv")
-subset2020<-dimred2021_knn250_2 %>% filter(year%in% 2020) %>% select(year,iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,iso9,iso10,year,P_mort_2020) %>% 
+subset2020<-dimred2021_knn250_2 %>% filter(year%in% 2019) %>% select(year,iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,iso9,iso10,year,P_mort_2020) %>% 
   rename(ExcessMort=P_mort_2020) %>% mutate(P_mort_2020=NULL)
-subset2021<-dimred2021_knn250_2 %>% filter(year%in% 2021) %>% select(year,iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,iso9,iso10,year,P_mort_2021) %>% 
+subset2021<-dimred2021_knn250_2 %>% filter(year%in% 2020) %>% select(year,iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,iso9,iso10,year,P_mort_2021) %>% 
   rename(ExcessMort=P_mort_2021) %>% mutate(P_mort_2020=NULL)
-
 bothyears<-rbind(subset2020,subset2021)
-e<-lm(ExcessMort~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10+year,bothyears[]) 
-e1<-lm(ExcessMort~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,bothyears[] %>% filter(year%in% 2020)) 
-e2<-lm(ExcessMort~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,bothyears[] %>% filter(year%in% 2021)) 
+e<-lm(scale(ExcessMort)~iso1+iso2+iso3+iso4+iso5+iso6+iso7,bothyears[]) 
+e %>%  summary
+ggcoef_model(e)+ ggtitle(paste0("Isomap 2020; R\u00b2: ",e1_rsquared," %"))%>% suppressWarnings()
+
+
+# for each year
+e1<-lm(ExcessMort~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,bothyears[] %>% filter(year%in% 2019))
+e2<-lm(ExcessMort~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,bothyears[] %>% filter(year%in% 2020))
 e1_rsquared<-round(summary(e1)$r.squared,digits = 3)*100
 e2_rsquared<-round(summary(e2)$r.squared,digits = 3)*100
+# 
 
-e_plot2020<-ggcoef_model(e1)+ ggtitle(paste0("Isomap 2020; R\u00b2: ",e1_rsquared," %"))%>% suppressWarnings()
-e_plot2021<-ggcoef_model(e2)+ ggtitle(paste0("Isomap 2021; R\u00b2: ",e2_rsquared," %")) %>%  suppressWarnings()
+ e_plot2020<-ggcoef_model(e1)+ ggtitle(paste0("Isomap 2020; R\u00b2: ",e1_rsquared," %"))%>% suppressWarnings()
+ e_plot2021<-ggcoef_model(e2)+ ggtitle(paste0("Isomap 2021; R\u00b2: ",e2_rsquared," %")) %>%  suppressWarnings()
 plotBoth<-ggarrange(e_plot2020,e_plot2021,common.legend = T,legend = "bottom") %>% suppressWarnings() 
-
-ggsave("../figures/06_figures_Beta_plot.png",device = "png")
+plotBoth
+#ggsave("../figures/06_figures_Beta_plot.png",device = "png")
 # annotate_figure(plotBoth, top = text_grob("Estimated betas for Isomap 2020 and 2021", 
 #                color = "Slategray3", face = "bold", size = 12),bottom = text_grob("asd"))
 
