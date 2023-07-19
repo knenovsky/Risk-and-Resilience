@@ -1311,3 +1311,159 @@ iso7_notinDimred %>%
 
 highestCorrelations_notinDimred_Set<-rbind(iso1_notinDimred_SET,iso2_notinDimred_SET,iso3_notinDimred_SET,iso4_notinDimred_SET,iso6_notinDimred_SET,iso7_notinDimred_SET)
 ```
+
+
+# 3 Boxplots
+
+## Criterion for subset
+
+### Iso1
+```{r}
+# load data
+iso1allcors<-fread("../results/corrTable/05_CorrTable_iso1_quantiles_shapleys_2019to2021_all.csv")
+# Summarize the entire dimension
+theSummaryofIso1<-iso1allcors$iso1_all %>%  summary
+# highest correlation for the entire dimension
+highest25_iso1<-theSummaryofIso1[5]
+# Subset all correlation with iso 1 based on that criterion
+iso1_all_hc<-iso1allcors %>% filter(iso1_all>highest25_iso1)
+# Subset shapley correlation with iso 1 based on that criterion
+## Iso 1 is iso1_shapley sorry
+iso1_shapley_hc<-iso1allcors %>% filter(iso1>highest25_iso1)
+
+```
+### Iso2
+```{r}
+# load data
+iso2allcors<-fread("../results/corrTable/05_CorrTable_iso2_quantiles_shapleys_2019to2021_all.csv")
+# Summarize the entire dimension
+theSummaryofIso2<-iso1allcors$iso2_all %>%  summary
+# highest correlation for the entire dimension
+highest25_iso2<-theSummaryofIso2[5]
+# Subset all correlation with iso 2 based on that criterion
+iso2_all_hc<-iso2allcors %>% filter(iso2_all>highest25_iso2)
+# Subset shapley correlation with iso2 based on that criterion
+## Iso2
+iso2_shapley_hc<-iso2allcors %>% filter(iso2_shapley>highest25_iso2)
+
+```
+### Iso3
+```{r}
+# load data
+iso3allcors<-fread("../results/corrTable/05_CorrTable_iso3_quantiles_shapleys_all.csv")
+# Summarize the entire dimension
+theSummaryofIso3<-iso1allcors$iso3_all %>%  summary
+# highest correlation for the entire dimension
+highest25_iso3<-theSummaryofIso3[5]
+# Subset all correlation with iso 3 based on that criterion
+iso2_all_hc<-iso3allcors %>% filter(iso3_all>highest25_iso3)
+# Subset shapley correlation with iso 3 based on that criterion
+## Iso3
+iso3_shapley_hc<-iso3allcors %>% filter(iso3_shapley>highest25_iso3)
+```
+### Iso4
+```{r}
+
+```
+### Iso7
+```{r}
+
+
+```
+
+
+
+# 4 feature selection tequnices
+
+```{r}
+# install necessary packages
+
+library(mlr)
+library(randomForest)
+library(ggplot2)
+
+# Assuming 'isomap_df' is your DataFrame containing isomap dimensions
+# And 'original_df' is your DataFrame with original features
+
+# Choose an original feature you're interested in
+# replace 'FeatureName' with the feature you're interested in
+yo<-wdi_data_cons_df[,c(10:100)]
+# Combine target feature and isomap features into one data frame
+df <- data.frame(target = wdi_data_cons_df$iso4, yo)
+# Handle missing values by imputing them with column mean
+for(feature in names(df)) {
+  df[is.na(df[[feature]]), feature] <- mean(df[[feature]], na.rm = TRUE)
+  if(any(df[[feature]] %>% is.nan())){
+    df[] %>% select(-any_of(feature))-> df
+  }
+    
+  }
+
+# Define task for mlr
+task <- makeRegrTask(id = "my_task", data = df, target = "target")
+
+# Define a random forest learner
+learner <- makeLearner("regr.randomForest", predict.type = "response")
+
+# Train the model
+model <- train(learner, task)
+
+# Generate partial dependence plots for each Isomap dimension
+for (feature in names(df %>% select(-target))) {
+  feature
+  pdp <- generatePartialDependenceData( model,task,   feature)
+  plot <- ggplot(pdp$data, aes_string(x = feature, y = "target")) +
+    geom_line() +
+    labs(title = paste("Partial Dependence of", feature),
+         x = feature,
+         y = "Prediction")
+  print(plot)
+}
+
+```
+
+```{r}
+
+# install necessary packages
+
+library(mlr)
+library(xgboost)
+library(ggplot2)
+
+# Assuming 'isomap_df' is your DataFrame containing isomap dimensions
+# And 'original_df' is your DataFrame with original features
+
+# Choose an original feature you're interested in
+target_feature <- wdi_data_cons_df$SL.EMP.1524.SP.MA.ZS
+  # replace 'FeatureName' with the feature you're interested in
+isomap_df<-wdi_data_cons_df[,grepl("iso[1-7]",colnames(wdi_data_cons_df)),with=F]
+# Combine target feature and isomap features into one data frame
+data <- data.frame(target = target_feature, isomap_df)
+
+# Handle missing values by imputing them with column mean
+for(feature in names(data)) {
+  data[is.na(data[[feature]]), feature] <- mean(data[[feature]], na.rm = TRUE)
+}
+
+# Define task for mlr
+task <- makeRegrTask(id = "my_task", data = data, target = "target")
+
+# Define a XGBoost learner
+learner <- makeLearner("regr.xgboost", predict.type = "response")
+
+# Train the model
+model <- train(learner, task)
+
+# Generate partial dependence plots for each Isomap dimension
+for (feature in names(isomap_df)) {
+  pdp <- generatePartialDependenceData(model, task,features =  feature)
+
+  plot <- ggplot(pdp$data, aes_string(x = feature, y = "target")) +
+    geom_line() +
+    labs(title = paste("Partial Dependence of", feature),
+         x = feature,
+         y = "Prediction")
+  print(plot)
+}
+
+```
