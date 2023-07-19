@@ -1133,6 +1133,7 @@ iso3_notinDimred %>%  filter(iso3_shapley>(summary_notindimred_iso3[5]+summary_n
 ## iso 4
 ```{r}
 iso4allcors<-fread("../results/corrTable/04_CorrTable_iso4_quantiles_shapley_2019to2021_all.csv")
+iso4allcors$iso4_shapley %>%  summary
 iso4allcors %>% filter(!is.na(iso4_all)) ->iso4_onlyDimred
 iso4_onlyDimred  %>%  ggplot(aes(iso4_all))+geom_histogram(bins = 100)
 iso4_onlyDimred  %>% ggplot(aes(iso4_shapley))+geom_histogram(bins = 100)
