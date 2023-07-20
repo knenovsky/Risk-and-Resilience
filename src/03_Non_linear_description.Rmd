@@ -32,7 +32,7 @@ require(tidyverse)
 ```
 
 ```{r}
-ExcessDimred<-fread("../output/02_230612_Dimred_ExcessMort_annual.csval.csv")
+ExcessDimred<-fread("../output/02_230612_Dimred_ExcessMort_annual.csv")
 wdi_explained<-fread("../data/WDI_data_230609/WDI_CSV/WDISeries.csv")
 # For sanity check purpose you can run everythung with 2020 data
 # ExcessDimred<-load("../../23_01_COCAP/02_global_excess_death/data/230606_dimred_excessmort_annual")

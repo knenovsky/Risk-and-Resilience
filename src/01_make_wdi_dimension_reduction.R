@@ -22,7 +22,6 @@ library(RSpectra)
 library(pcaMethods)
 
 ## set working directory
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 ## set up path
 DATA_DIR <- "../data/"
@@ -97,7 +96,6 @@ qual_comp_res <- compute_if_no_file(
   data = wdi_data,
   data_sensitivity = data_sensitivity_res
 )
-qual_comp_res %>%  length()
 
 
 #qual_comp_res<-readRDS("../data2023_01/qual_comp_res.RDS")
