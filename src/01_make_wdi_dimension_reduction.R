@@ -41,7 +41,6 @@ descriptiveWDI <- data.table::fread("../data/WDI_data_230609/WDI_CSV/WDISeries.c
 RELATIVE_INDICATORS_FILE_NAME <- "01_data/relative_indicators_2023_06.R" # nolint
 
 
-
 ## Load additional functions
 source("../libraries/01a_lib_social_indicators.R")
 # source("../src/01a_social_indicators_dimred.Rconsolidated_isomap.R")
@@ -70,7 +69,7 @@ indicator_sdg$SDG <- indicator_sdg$`SDG Target` %>%
 
 
 hdi_data    <- get_hdi_data()
-
+hdi_data%>% fwrite("../data/01_data/01_hdi_data.csv")
 ## Derived constants
 COUNTRY_CODES       <- get_country_codes(wdi_country)
 INDICATOR_CODES     <- get_indicator_codes(wdi_series)
