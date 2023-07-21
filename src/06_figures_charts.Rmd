@@ -42,7 +42,7 @@ FIGURE_DIR <- "../figures/01_figures/"
 WDI_DIR <- paste0(DATA_DIR, "WDI_data_230609/WDI_CSV")
 RELATIVE_INDICATORS_FILE_NAME <- "01_data/relative_indicators_2023_06.R" # nolint
 source("../libraries/01a_lib_social_indicators.R")
-
+col_pal <- c("#1F968B",  "#7570b3", "#e7298a", "#3CBB75","yellow3", "orange","slategrey")
 ```
 # data
 ```{r,Excess Mortility WHO Set}
@@ -67,9 +67,7 @@ excessCounrty_monthly_pvalue<-excessCounrty_year  %>%
 #  Methods 
 ## a Compare ISO and PCA
 ```{r}
-
 residual_sample_variances <- readRDS("../data/residual_sample_variances.RDS")
- 
 cons_iso_pca<-readRDS("../data/cons_iso_pca.RDS")
 occurrence_table       <- cons_iso_pca$occurrence_table
 wdi_data_cons          <- cons_iso_pca$wdi_data_cons
@@ -78,53 +76,92 @@ wdi_data_cons_iso      <- cons_iso_pca$wdi_data_cons_iso
 wdi_data_qual_cons_pca <- cons_iso_pca$wdi_data_qual_cons_pca
 wdi_data_qual_cons_iso <- cons_iso_pca$wdi_data_qual_cons_iso
 knns                   <- cons_iso_pca$knns
+knns
+cons_iso_pca$wdi_data_cons_iso %>%  head
+wdi_data_qual_cons_iso
+```
 
+
+```{r}
+pca_res <- residual_sample_variances$pca
+iso_res <- residual_sample_variances$iso
+median_res_var_pca <- residual_sample_variances$median_pca
+median_res_var_iso <- residual_sample_variances$median_iso
+hdi_res_var <- residual_sample_variances$hdi
+
+plot_if_no_file(
+  get_plot_file("01_230708_pca_iso_res_var.pdf"),
+  plot_residual_variances,
+  residual_sample_variances = residual_sample_variances,
+  wdi_data_qual_cons_iso = wdi_data_qual_cons_iso,
+  wdi_data_qual_cons_pca = wdi_data_qual_cons_pca,
+  .overwrite = TRUE
+)
+```
+```{r}
+residual_sample_variances = residual_sample_variances
+wdi_data_qual_cons_pca = wdi_data_qual_cons_pca
+wdi_data_qual_cons_iso = wdi_data_qual_cons_iso
+  
+old_par <- par()
+par(mar = c(3.5, 3.75, 0, 0) + 0.1, las = 1, mgp = c(2.5, 0.25, 0))
+on.exit(par(old_par))
+
+max_x <- 14
 
 pca_res <- residual_sample_variances$pca
 iso_res <- residual_sample_variances$iso
 median_res_var_pca <- residual_sample_variances$median_pca
 median_res_var_iso <- residual_sample_variances$median_iso
 hdi_res_var <- residual_sample_variances$hdi
-```
-```{r}
-data.frame(Dimensions = seq(1:length(pca_res[[1]])),pca=pca_res[[1]],iso=iso_res[[1]])
-iso_res
+
+max_res_var_1 <- 1
+png("../figures/06_plots/myplot.png",width = 720,height = 720,units = "px")
+plot(pca_res[[1]],
+     ylim = c(0, max_res_var_1),
+     ## xlim = c(1, max_dim),
+     xlim = c(1, max_x),
+     ylab = "residual variance",
+     xlab = "number of dimensions",
+     cex.lab = 2,
+     las = 1,
+     xaxt = "n",
+     yaxt = "n",
+     bty = "n",
+     type = "n")
+points(wdi_data_qual_cons_pca,      type = "b",
+       lwd = 4, col = lighten(col_pal[7], 0.8))
+points(wdi_data_qual_cons_iso[[2]], type = "b",
+       lwd = 4, col = lighten(col_pal[6], 0.8))
+text(1, wdi_data_qual_cons_pca[1],      "PCA",
+     pos = 4, offset = 0.5, xpd = TRUE, cex = 2)
+text(1, wdi_data_qual_cons_iso[[3]][1], "Ensemble Isomap",
+     pos = 4, offset = 0.5, xpd = TRUE, cex = 2)
+text(max_x + 0.75,         0.1, "10% Residual Variance", cex = 1.8,
+     adj = c(1.1, -0.5), xpd = TRUE)
+abline(h = 0.1, col = "gray50", lwd = 2)
+
+par(las = 1, mgp = c(1.5, 0.75, 0))#, xpd = TRUE)
+axis(side = 1, at = 1:max_x, labels = ifelse(1:14 %% 2 == 1, 1:14, ""),
+     col = "gray50", col.axis = "gray50",
+     cex.axis = 1.5, lwd = 1, tcl = -0.25, lwd.ticks = 2)
+axis(side = 2, at = seq(0, 1, length.out = 6),
+     col = "gray50", col.axis = "gray50",
+     cex.axis = 1.5, lwd = 1, tcl = -0.25, lwd.ticks = 2)
+dev.off
 ```
 ## b Visualisation of  Nonlinearity
+```{r}
+dimred2021_knn250_2<-fread("../output/02_230612_Dimred_ExcessMort_annual.csv")
+a<-ggplot(dimred2021_knn250_2) +geom_point(aes(x=iso1,y=SH.STA.MMRT),color=col_pal[1])+ theme_bw() +ylab("Maternal mortality ratio \n(per 100 k live births)")+ xlab("Dimension 1")
+b<-ggplot(dimred2021_knn250_2) +geom_point(aes(x=iso1,y=NY.GDP.PCAP.CD),color=col_pal[2])+ theme_bw() +ylab(wdi_explained[wdi_explained$`Series Code`%in% "NY.GDP.PCAP.CD","Indicator Name"])+ xlab("Dimension 1")
+library(gridExtra)
+grid.arrange(a,b) %>%  ggsave(file="../figures/06_plots/b_methods_nonlinear_pattern.png",device = "png")
+```
 
 # Results
-##  a Linear Estimation of Exmort
-```{r}
 
-dimred2021_knn250_2<-fread("../output/02_230612_Dimred_ExcessMort_annual.csv")
-subset2020<-dimred2021_knn250_2 %>% filter(year%in% 2019) %>% select(year,iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,iso9,iso10,year,P_mort_2020) %>% 
-  rename(ExcessMort=P_mort_2020) %>% mutate(P_mort_2020=NULL)
-subset2021<-dimred2021_knn250_2 %>% filter(year%in% 2020) %>% select(year,iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,iso9,iso10,year,P_mort_2021) %>% 
-  rename(ExcessMort=P_mort_2021) %>% mutate(P_mort_2020=NULL)
-bothyears<-rbind(subset2020,subset2021)
-e<-lm(scale(ExcessMort)~iso1+iso2+iso3+iso4+iso5+iso6+iso7,bothyears[]) 
-e %>%  summary
-
-# for each year
-e1<-lm(ExcessMort~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,bothyears[] %>% filter(year%in% 2019))
-e2<-lm(ExcessMort~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,bothyears[] %>% filter(year%in% 2020))
-e1_rsquared<-round(summary(e1)$r.squared,digits = 3)*100
-e2_rsquared<-round(summary(e2)$r.squared,digits = 3)*100
-# 
- e_plot2020<-ggcoef_model(e1)+ ggtitle(paste0("Isomap 2020; R\u00b2: ",e1_rsquared," %"))%>% suppressWarnings()
- e_plot2021<-ggcoef_model(e2)+ ggtitle(paste0("Isomap 2021; R\u00b2: ",e2_rsquared," %")) %>%  suppressWarnings()
-plotBoth<-ggarrange(e_plot2020,e_plot2021,common.legend = T,legend = "bottom") %>% suppressWarnings() 
-#ggsave("../figures/06_figures_Beta_plot.png",device = "png")
-# annotate_figure(plotBoth, top = text_grob("Estimated betas for Isomap 2020 and 2021", 
-#                color = "Slategray3", face = "bold", size = 12),bottom = text_grob("asd"))
-
-f<-lm(pscore_mean~iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,dimred2021_knn250_2[] %>% filter(year%in% 2019))
-f_rsquared<-round(summary(f)$r.squared,digits = 3)*100
-f_plot_pscoremean<-ggcoef_model(f)+ ggtitle(paste0("P Score ~ ; R\u00b2: ",f_rsquared," %"))%>% suppressWarnings()
-f %>%  summary
-#%>% ggsave(file= "../figures/06_beta_plot_2019_pscore.png",device = "png",width = 5,height = 7)
-```
-##  a 2  Non Linear Estimation of Exmort
+##  a   Non Linear Estimation of Exmort
 
 ```{r}
 thisData<-dimred2021_knn250_2[] %>% filter(year%in% 2019)
@@ -150,10 +187,7 @@ param_grid <- expand.grid(
   gamma = c(0),
   min_child_weight = c(0)
 )
-```
 
-
-```{r message = F, warning = F}
 thisData[thisData$year%in%IsoYear,] %>% select(Label,candidates) %>% drop_na() -> thisData_2
 thisData_2 -> thisData_2_input
   ## create and test models
@@ -166,13 +200,7 @@ xgb_caret <- caret::train(x = thisData_2_input %>% dplyr::select(candidates),
 
                    trControl=custom_control,tuneGrid = param_grid,
                    tuneLength = 2
-                    # tuneGrid = expand.grid(nrounds = c(50, 100, 200),
-                    #                       eta = c(0.01, 0.05, 0.1),
-                    #                       max_depth = c(2, 4),
-                    #                       colsample_bytree = c(0.6, 0.8, 1),
-                    #                       subsample = c(0.6, 0.8, 1),
-                    #                       gamma = c(0, 10, 50),
-                    #                       min_child_weight = c(0, 10, 30))
+   
                     )
 
 finalmodel <- caret::train(x = thisData_2_input %>% dplyr::select(-Label, ),
@@ -184,25 +212,141 @@ finalmodel <- caret::train(x = thisData_2_input %>% dplyr::select(-Label, ),
                                           number = 30),
                    # early_stopping_rounds = 10,
                    tuneGrid = xgb_caret$bestTune)
-
 ```
-```{r}
 
-finalmodel
-xgboost::xgb.ggplot.shap.summary(data = as.matrix(thisData_2_input %>% 
+
+```{r}
+plota<-xgboost::xgb.ggplot.shap.summary(data = as.matrix(thisData_2_input %>% 
   dplyr::select( -Label)),
-  model = finalmodel$finalModel) +scale_color_viridis("Feature Value")+ theme_bw() + xlab("Features")+ylab("Shapley value")+theme(legend.position = "bottom") +
-  scale_y_continuous(limits = c(-7, 10), expand = c(0, 0))
+  model = finalmodel$finalModel) +scale_color_viridis("Feature Value")+ theme_bw() + xlab("Features")+ylab("Shapley value")+theme(legend.position = "left")
 
-final
+subsetimportance<-varImp(finalmodel)$importance %>%
+         mutate(var = rownames(varImp(xgb_caret)$importance))%>%
+         dplyr::rename(importance = Overall) 
+
+
+plotb<-ggplot(subsetimportance,aes(x = importance,
+    y = reorder(var, importance)),)+
+  geom_col(fill="slategrey")+
+  ylab("")+theme_classic()+theme(axis.text.y=element_blank(),)
+
+plot_grid(plota, plotb, labels = "A",rel_widths =   c(4/5, 1/5))
+ggsave("../figures/06_plots/ResultsA_nonlinearexmort.png",device = "png")
 ```
+
+## b compare WDI vs Dimred
+
+
+### impute dimred
 ```{r}
 
+shrinkWDI<-dimred2021_knn250_2[,colnames(dimred2021_knn250_2)%in% c("Country Code","year",wdi_explained$`Series Code`),with=F] %>% filter(year<2020)
+
+aTable<-shrinkWDI[,"Country Code"] %>%  unique
+for(i in 3:ncol(shrinkWDI)){
+  look<-shrinkWDI[,colnames(shrinkWDI)[c(1,2,i)],with=F] 
+  colnames(look)[3]<-"value"
+  best<-look[,.(value=last(value),year=last(year)),by=`Country Code`] %>%  filter(!is.na(value))
+  okaisch<-look[!(look$`Country Code`%in% best$`Country Code`)&year%in% c(2000:2020),.(value=mean(value,na.rm=T),sd=var(value,na.rm=T)),by=`Country Code`]
+  
+  thisone<-rbind(best[,c("Country Code","value")],okaisch[,c("Country Code","value")])
+  colnames(thisone)[2]<-colnames(shrinkWDI)[c(i)]
+  aTable<-left_join(aTable,thisone, by = "Country Code")
+}
+
+bTable<-aTable[,-1] %>% sapply( . ,function(x)(as.numeric(x))) %>% data.frame() 
+
+cTable<-sapply(bTable, function(x)x<-if_else(is.nan(x),999,x)) %>% data.frame()
+
+cTable[cTable==999]<-NA
+
+df_filled <- pca(object =  cTable, method = "ppca")
+table2019_wdiImputed<-left_join(cbind(aTable[,1],data.frame(df_filled@completeObs)),dimred2021_knn250_2[dimred2021_knn250_2$year%in%2020,c("Country Code","pscore_mean")],by = "Country Code")
+
+```
+
+
+```{r}
+param_grid <- expand.grid(
+  nrounds = c(50),
+  eta = c(0.05),
+  colsample_bytree = c( 1),
+  subsample = c(1),
+  gamma = c(0),
+  min_child_weight = c(0)
+)
+custom_control <- trainControl(
+  method = "cv",
+  number = 30,  # Increase the number of folds
+  search = "random",
+  allowParallel = TRUE)
+  
+```
+
+```{r}
+
+data_wdi<-table2019_wdiImputed %>% filter(!is.na(pscore_mean))
+
+trials <- 10
+cl <- makeCluster(1)
+registerDoParallel(cl)
+# Evaluate the performance of the model using RMSE
+system.time(
+
+result_bootstrap <- foreach(icount(trials),
+                  .combine = bind_rows) %dopar% {
+                    require(xgboost)
+                    require(tidyverse)
+    train_index <- sample(1:nrow(data_wdi), 0.8 * nrow(data_wdi))
+    features<-colnames(data_wdi)[!grepl("Country|pscore_mean|[1-9]{2}",colnames(data_wdi))]
+
+    label <- "pscore_mean"
+    trainDAT <- data_wdi[train_index, ]
+    testDAT <- data_wdi[-train_index, ]
+    
+    xgb_caret <- caret::train(x = trainDAT %>% dplyr::select(all_of(features)),
+                   y = trainDAT %>% pull(label),
+                   method = "xgbTree",
+                   verbosity = 0,
+                   trControl=custom_control
+                   #,tuneLength = 2
+   
+                    )
+    
+    finalmodel <- caret::train(x = trainDAT %>% dplyr::select(all_of(features)),
+                   y = trainDAT %>% pull(label),
+                   method = "xgbTree",
+                   verbosity = 0,
+                   ## CAST CV LLO (Hanna Meyer)
+                   trControl=trainControl(method="cv",
+                                          number = 30),
+                   # early_stopping_rounds = 10,
+                   tuneGrid = xgb_caret$bestTune)
+    importance_matrix<-varImp(finalmodel)$importance %>%
+         mutate(var = rownames(varImp(xgb_caret)$importance))%>%
+         dplyr::rename(importance = Overall) 
+   finalmodel$results
+    o
+}
+)
+
+result_bootstrap_wdi_2021<-result_bootstrap
+
+
+#save(result_bootstrap_wdi_2021,file = "../data/06_wdi_21_bootstrap_1000")
+# load("../data/06_wdi_20_bootstrap_1000")
+result_bootstrap_wdi_2021 %>% sapply( . , function(x)as.numeric(x)) %>%data.frame() %>%
+  pivot_longer(names_to = "cooli",
+               "RMSE":"explained_variance") %>%
+  ggplot(aes(x=value))+ geom_density() +facet_wrap(~cooli,scales = "free")+ theme_tufte()
+
+
 ```
 
 
 
-## b every month
+
+## c every month
 ```{r}
 excessCounrty_monthly_pvalue 
 merge(excessCounrty_monthly_pvalue,ExcessDimred[ExcessDimred$year%in% 2019,],by.x = "iso3",by.y="Country Code")-> thisdate 
@@ -218,8 +362,6 @@ a<-eval(parse(text = paste0("lm(pscore_mean~",paste(colnames(dimred2021_knn250_2
 a %>%  summary
 ```
 
-```{r}
 
-```
 
 
