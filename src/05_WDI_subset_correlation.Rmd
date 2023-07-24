@@ -92,6 +92,7 @@ wdi_data_cons_df %>%  filter(year.x%in% c(2019:2021))-> wdi_data_cons_df
 ```
 
 
+
 ## iso 1 
 
 categorie 1 is based on quartiles
