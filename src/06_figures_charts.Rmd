@@ -161,7 +161,7 @@ dev.off
 a<-ggplot(dimred2021_knn250_2) +geom_point(aes(x=iso1,y=SH.STA.MMRT),color=col_pal[1])+ theme_bw() +ylab("Maternal mortality ratio \n(per 100 k live births)")+ xlab("Dimension 1")
 b<-ggplot(dimred2021_knn250_2) +geom_point(aes(x=iso1,y=NY.GDP.PCAP.CD),color=col_pal[2])+ theme_bw() +ylab(wdi_explained[wdi_explained$`Series Code`%in% "NY.GDP.PCAP.CD","Indicator Name"])+ xlab("Dimension 1")
 library(gridExtra)
-grid.arrange(a,b) #%>%  ggsave(file="../figures/06_plots/b_methods_nonlinear_pattern.png",device = "png")
+grid.arrange(a,b) %>%  ggsave(file="../figures/06_plots/b_methods_nonlinear_pattern.png",device = "png")
 ```
 
 # Results
@@ -424,15 +424,21 @@ system.time(result_bootstrap_dimred <- foreach(icount(trials),
 
 #fwrite(result_bootstrap_dimred,file = "../results/06_dimred_19_to_pscoreMean_bootstrap_1000.csv")
 ```
-#### plot both
+### plot both
 ```{r}
 a<-fread("../results/06_wdi_19_to_pscoreMean_bootstrap_1000.csv")
 b<-fread("../results/06_dimred_19_to_pscoreMean_bootstrap_1000.csv")
 a$Dataset<-"WDI imputed"
 b$Dataset<-"Latent Space"
-plotR<-rbind(a,b) %>% ggplot(aes(x=Rsquared,fill=Dataset))+geom_histogram(bins = 100)+theme_classic()+xlim(0,1)+scale_fill_manual(values = col_pal)
-plotRMS<-rbind(a,b) %>% ggplot(aes(x=RMSE,fill=Dataset))+geom_histogram(bins = 100)+theme_classic()+xlim(5,15)+scale_fill_manual(values = col_pal)
-g
+plotR<-rbind(a,b) %>% ggplot(aes(x=Rsquared,fill=Dataset))+geom_histogram(bins = 100)+theme_classic()+xlim(0,1)+scale_fill_manual(values = col_pal)+theme(legend.position = "sad")+ylab("N")+xlab(expression(paste("R"^2)))
+plotRMS<-rbind(a,b) %>% ggplot(aes(x=RMSE,fill=Dataset))+geom_histogram(bins = 100)+theme_classic()+xlim(5,15)+scale_fill_manual(values = col_pal)+theme(legend.position = "sad")+ylab("")
+
+plot_bootstrap<-ggarrange(plotR,plotRMS)
+plot_bootstrap_legend<- rbind(a,b) %>% ggplot(aes(x=RMSE,fill=Dataset))+geom_histogram(bins = 100)+scale_fill_manual(values = col_pal)
+
+plot_bootstrap%>%  ggsave(file="../figures/06_plots/c_compare_prediction_bootstrap.png",device = "png",width = 9,height = 4)
+plot_bootstrap_legend%>%  ggsave(file="../figures/06_plots/c_compare_prediction_bootstrap_legend.png",device = "png")
+
 ```
 
 
