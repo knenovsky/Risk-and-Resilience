@@ -37,16 +37,22 @@ require(tidyverse)
 require(cowplot)
 require(readxl)
 ```
+
 ```{r}
 wdi_explained<-fread("../data/WDI_data_230609/WDI_CSV/WDISeries.csv")
+dimred2021_knn250_2<-fread("../output/02_230612_Dimred_ExcessMort_annual.csv") 
 
 
-dimred2021_knn250_2<-fread("../output/02_230612_Dimred_ExcessMort_annual.csv")
+## Download the covid data from Our world in data if this file is not available in your data folder and run a script to make it monthly
+load("../data/07_230504_OWID_dataset")
+
 col_pal <- c("#1F968B",  "#7570b3", "#e7298a", "#3CBB75","yellow3", "orange","slategrey")
 ```
+
 # data
 ```{r,Excess Mortility WHO Set}
 excessCounrty_year<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx",sheet = 2)
+excessCounrty_month<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx",sheet = 2)
 excessCounrty_covariates<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx",sheet = 3)
 excessRegion_year<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByRegion.xlsx",sheet = 2)
 excessRegion_income<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByIncome.xlsx",sheet = 2)
@@ -60,112 +66,43 @@ excessCounrty_year %>% filter(year==2021)-> excessCounrty_year_2020
 p_value_global_2021=sum(excessCounrty_year_2020$excess.mean,na.rm = T)/sum(excessCounrty_year_2020$expected.mean,na.rm = T)*100
 excessCounrty_monthly_pvalue<-excessCounrty_year  %>% 
   mutate(p_value_mort=(excess.mean)/(expected.mean)*100)
+
+excessCounrty_monthly_pvalue2<-excessCounrty_monthly_pvalue %>% arrange(country,year,month) %>% rename(`Country Code`=iso3) %>% 
+  mutate(date = as.Date(paste(year, month, "01", sep = "-"), format = "%Y-%m-%d"),identifier=paste0(`Country Code`,"_",year(date),"_",month(date)),identifier_CountryYear=paste0(`Country Code`,"_",year(date)))%>% filter(date>"2020-02-01")
 ```
-
-
-# Method 1 Compare ISO and PCA
+## Temperature
 ```{r}
-## set up path
-DATA_DIR <- "../data/"
-FIGURE_DIR <- "../figures/01_figures/"
-WDI_DIR <- paste0(DATA_DIR, "WDI_data_230609/WDI_CSV")
-RELATIVE_INDICATORS_FILE_NAME <- "01_data/relative_indicators_2023_06.R" # nolint
-source("../libraries/01a_lib_social_indicators.R")
+tempyear<-read.csv("../../23_01_COCAP/01_data_prep/output/01_countries_mean_temp.csv")
+tempyear$X<-NULL
+tempyear %>%  filter(year%in%c(2020,2021))->tempyear2
 
+tempyear2 %>% pivot_longer(names_to = "month",
+               "Jan":"Dec",
+               values_drop_na = TRUE) %>% mutate(month=case_when(month%in%"Jan"~1,
+                                                                 month%in%"Feb"~2,
+                                                                 month%in%"Mar"~3,
+                                                                 month%in%"Apr"~4,
+                                                                 month%in%"May"~5,
+                                                                 month%in%"Jun"~6,
+                                                                 month%in%"Jul"~7,
+                                                                 month%in%"Aug"~8,
+                                                                 month%in%"Sep"~9,
+                                                                 month%in%"Oct"~10,
+                                                                 month%in%"Nov"~11,
+                                                                 month%in%"Dec"~12))-> tempyear3
+tempyear3
 
-residual_sample_variances <- readRDS("../data/residual_sample_variances.RDS")
-cons_iso_pca<-readRDS("../data/cons_iso_pca.RDS")
-occurrence_table       <- cons_iso_pca$occurrence_table
-wdi_data_cons          <- cons_iso_pca$wdi_data_cons
-wdi_data_cons_pca      <- cons_iso_pca$wdi_data_cons_pca
-wdi_data_cons_iso      <- cons_iso_pca$wdi_data_cons_iso
-wdi_data_qual_cons_pca <- cons_iso_pca$wdi_data_qual_cons_pca
-wdi_data_qual_cons_iso <- cons_iso_pca$wdi_data_qual_cons_iso
-knns                   <- cons_iso_pca$knns
-knns
-cons_iso_pca$wdi_data_cons_iso %>%  head
-wdi_data_qual_cons_iso
+out_month2$meanTemp<-out_month2$value
+out_month2$value<-NULL
+
+out_month2$month <- as.yearmon(out_month2$monthyear, format = "%Y_%m")
 ```
 
 
+# functions
 ```{r}
-pca_res <- residual_sample_variances$pca
-iso_res <- residual_sample_variances$iso
-median_res_var_pca <- residual_sample_variances$median_pca
-median_res_var_iso <- residual_sample_variances$median_iso
-hdi_res_var <- residual_sample_variances$hdi
-
-plot_if_no_file(
-  get_plot_file("01_230708_pca_iso_res_var.pdf"),
-  plot_residual_variances,
-  residual_sample_variances = residual_sample_variances,
-  wdi_data_qual_cons_iso = wdi_data_qual_cons_iso,
-  wdi_data_qual_cons_pca = wdi_data_qual_cons_pca,
-  .overwrite = TRUE
-)
+load("00_toolbox.R")
 ```
-```{r}
-residual_sample_variances = residual_sample_variances
-wdi_data_qual_cons_pca = wdi_data_qual_cons_pca
-wdi_data_qual_cons_iso = wdi_data_qual_cons_iso
-  
-old_par <- par()
-par(mar = c(3.5, 3.75, 0, 0) + 0.1, las = 1, mgp = c(2.5, 0.25, 0))
-on.exit(par(old_par))
-
-max_x <- 14
-
-pca_res <- residual_sample_variances$pca
-iso_res <- residual_sample_variances$iso
-median_res_var_pca <- residual_sample_variances$median_pca
-median_res_var_iso <- residual_sample_variances$median_iso
-hdi_res_var <- residual_sample_variances$hdi
-
-max_res_var_1 <- 1
-png("../figures/06_plots/myplot.png",width = 720,height = 720,units = "px")
-plot(pca_res[[1]],
-     ylim = c(0, max_res_var_1),
-     ## xlim = c(1, max_dim),
-     xlim = c(1, max_x),
-     ylab = "residual variance",
-     xlab = "number of dimensions",
-     cex.lab = 2,
-     las = 1,
-     xaxt = "n",
-     yaxt = "n",
-     bty = "n",
-     type = "n")
-points(wdi_data_qual_cons_pca,      type = "b",
-       lwd = 4, col = lighten(col_pal[7], 0.8))
-points(wdi_data_qual_cons_iso[[2]], type = "b",
-       lwd = 4, col = lighten(col_pal[6], 0.8))
-text(1, wdi_data_qual_cons_pca[1],      "PCA",
-     pos = 4, offset = 0.5, xpd = TRUE, cex = 2)
-text(1, wdi_data_qual_cons_iso[[3]][1], "Ensemble Isomap",
-     pos = 4, offset = 0.5, xpd = TRUE, cex = 2)
-text(max_x + 0.75,         0.1, "10% Residual Variance", cex = 1.8,
-     adj = c(1.1, -0.5), xpd = TRUE)
-abline(h = 0.1, col = "gray50", lwd = 2)
-
-par(las = 1, mgp = c(1.5, 0.75, 0))#, xpd = TRUE)
-axis(side = 1, at = 1:max_x, labels = ifelse(1:14 %% 2 == 1, 1:14, ""),
-     col = "gray50", col.axis = "gray50",
-     cex.axis = 1.5, lwd = 1, tcl = -0.25, lwd.ticks = 2)
-axis(side = 2, at = seq(0, 1, length.out = 6),
-     col = "gray50", col.axis = "gray50",
-     cex.axis = 1.5, lwd = 1, tcl = -0.25, lwd.ticks = 2)
-dev.off
-```
-# Method 2 Visualisation of  Nonlinearity
-```{r}
-
-a<-ggplot(dimred2021_knn250_2) +geom_point(aes(x=iso1,y=SH.STA.MMRT),color=col_pal[1])+ theme_bw() +ylab("Maternal mortality ratio \n(per 100 k live births)")+ xlab("Dimension 1")
-b<-ggplot(dimred2021_knn250_2) +geom_point(aes(x=iso1,y=NY.GDP.PCAP.CD),color=col_pal[2])+ theme_bw() +ylab(wdi_explained[wdi_explained$`Series Code`%in% "NY.GDP.PCAP.CD","Indicator Name"])+ xlab("Dimension 1")
-library(gridExtra)
-grid.arrange(a,b) %>%  ggsave(file="../figures/06_plots/b_methods_nonlinear_pattern.png",device = "png")
-```
-
-# Results 1 Shapley values and importance of nonlinear prediction of Xgboost 
 
 
 
@@ -173,6 +110,99 @@ grid.arrange(a,b) %>%  ggsave(file="../figures/06_plots/b_methods_nonlinear_patt
 thisData<-dimred2021_knn250_2[] %>% filter(year%in% 2019)
 IsoYear<-"2019"
 Label<-"pscore_mean"
+candidates<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
+dimredCountries<-thisData$`Country Code` %>%  unique
+ExmortCountries<-excessCounrty_monthly_pvalue$iso3 %>%  unique 
+thisisOWID %>% group_by(location) %>% summarise(numberofmonth=monthyear %>% length())
+owidCountries<-thisisOWID$iso_code %>%  unique
+inter_countries<-intersect(dimredCountries,ExmortCountries)
+our_countries<-intersect(owidCountries,inter_countries)
+
+```
+# Excess Death waves
+
+```{r}
+
+excessmonthy <- excessCounrty_monthly_pvalue %>% arrange(country,year,month) %>% rename(`Country Code`=iso3) %>% 
+  mutate(date = as.Date(paste(year, month, "01", sep = "-"), format = "%Y-%m-%d"),identifier=paste0(`Country Code`,"_",year(date),"_",month(date)))%>% filter(date>"2020-02-01") %>% merge( . , thisisOWID,by.x="identifier",by.y="monthyear")
+
+
+
+```
+
+
+
+## wavefinder
+
+
+
+```{r}
+excessmonthy %>%  arrange(date)%>% filter(new_cases_per_million>1) %>% select(`Country Code` ,date,p_value_mort,new_cases_per_million)
+# Assuming you have your dataset 'thiscountry' with the 'p_value_mort' column
+FirstWave<-data.frame(Countries=our_countries,"Endfirstwave"="")
+
+for(i in our_countries){
+
+data_Country<-excessmonthy %>%  filter(`Country Code` %in% i) %>%  arrange(date)%>% select(`Country Code` ,date,p_value_mort,new_cases_per_million)
+data_Country$p_value_mort_smoothed <- rollmean(data_Country$p_value_mort, k = 3, fill = NA, align = "center")
+
+results <- calculate_waves(data_Country)
+waves <- results$waves
+first_global_minima <- results$first_global_minima
+if(i=="CHN"){
+  FirstWave[FirstWave$Countries%in%i,"Endfirstwave"]<-"2021-02-01"
+}
+else if(i=="SYC"){
+  FirstWave[FirstWave$Countries%in%i,"Endfirstwave"]<-"2020-10-01"
+}
+
+
+else{
+FirstWave[FirstWave$Countries%in%i,"Endfirstwave"]<-as.character(first_global_minima)
+}
+}
+
+FirstWave2<-FirstWave %>% drop_na()
+
+
+
+```
+
+
+## Split the data into first wave and after first wave
+```{r}
+
+
+ExcessMort_Moratality<-data.frame()
+
+for (i in 1:nrow(FirstWave2)){
+  thisdata<-candidates %>%  filter(`Country Code`%in%  FirstWave2[i,"Countries"]) 
+  if(nrow(thisdata)==22)
+    {
+    firstwave<-thisdata %>% filter(date<=FirstWave2[i,"Endfirstwave"]) %>% group_by(`Country Code`) %>% 
+  summarise(p_value_mort_Firstwave=sum(excess.mean)/sum(expected.mean)*100,excess_comul=sum(excess.mean))
+    Afterwave<-thisdata %>% filter(date>FirstWave2[i,"Endfirstwave"]) %>% group_by(`Country Code`) %>% 
+  summarise(p_value_mort_Firstwave=sum(excess.mean)/sum(expected.mean)*100,excess_comul=sum(excess.mean))
+    adder<-data.frame("Country"=FirstWave2[i,"Countries"],"Exmort_FirstWave"=firstwave$p_value_mort_Firstwave,"Exmort_AfterWave"=Afterwave$p_value_mort_Firstwave)
+   ExcessMort_Moratality<-rbind(ExcessMort_Moratality,adder)
+    }
+  
+  
+}
+
+
+```
+
+
+### First wave
+
+```{r}
+thisData<-dimred2021_knn250_2[]%>% filter(year%in%2019) %>% select(features,"Country Code") 
+thisdata2<-merge(thisData,candidates,by.x="Country Code",by.y="Country Code")
+
+
+IsoYear<-"2019"
+Label<-"Exmort_AfterWave"
 candidates<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
 
 
@@ -194,629 +224,151 @@ param_grid <- expand.grid(
   min_child_weight = c(0)
 )
 
-thisData[thisData$year%in%IsoYear,] %>% select(Label,candidates) %>% drop_na() -> thisData_2
-thisData_2 -> thisData_2_input
-  ## create and test models
+# Set the proportion for the test set (e.g., 0.2 for 20% test data)
 
-## test different parameters
-xgb_caret <- caret::train(x = thisData_2_input %>% dplyr::select(candidates),
-                   y = thisData_2_input %>% pull(Label),
-                   method = "xgbTree",
-                   verbosity = 0,
-
-                   trControl=custom_control,tuneGrid = param_grid,
-                   tuneLength = 2
-   
-                    )
-
-finalmodel <- caret::train(x = thisData_2_input %>% dplyr::select(-Label, ),
-                   y = thisData_2_input %>% pull(Label),
-                   method = "xgbTree",
-                   verbosity = 0,
-                   ## CAST CV LLO (Hanna Meyer)
-                   trControl=trainControl(method="cv",
-                                          number = 30),
-                   # early_stopping_rounds = 10,
-                   tuneGrid = xgb_caret$bestTune)
-finalmodel
 ```
 
 
 ```{r}
+test_proportion <- 0.6
+thisdata3<-thisdata2[thisdata2$year%in% 2019,] %>%  select(candidates,Label) %>% drop_na()
+index <- caret::createDataPartition(thisdata3$iso1, p = test_proportion, list = FALSE)
+# Split the data into training and test sets
+train_data <- thisdata3[index, ]
+test_data <- thisdata3[-index, ]
 
-plota<-xgboost::xgb.ggplot.shap.summary(data = as.matrix(thisData_2_input %>% 
+
+# Train the XGBoost model using the function
+final_model <- train_xgboost_model(train_data, Label, candidates, custom_control, param_grid)
+# Assuming you have the 'finalmodel' and 'test_data' from the previous steps
+predictedValue<-postResample(
+      predict(final_model, 
+          test_df %>% dplyr::select(-label)),  
+        test_df %>% pull(label)
+      )
+predictedValue
+
+
+```
+
+
+### Agnostic
+```{r}
+shap_values <- shap.values(xgb_model = final_model$finalModel, X_train = as.matrix(train_df %>% dplyr::select(all_of(features))))
+xgboost::xgb.ggplot.shap.summary(data = as.matrix(train_data %>% 
   dplyr::select( -Label)),
-  model = finalmodel$finalModel) +scale_color_viridis("Feature Value")+ theme_bw() + xlab("Features")+ylab("Shapley value")+theme(legend.position = "left")
-
-subsetimportance<-varImp(finalmodel)$importance %>%
-         mutate(var = rownames(varImp(xgb_caret)$importance))%>%
-         dplyr::rename(importance = Overall) 
+  model = final_model$finalModel) +scale_color_viridis("Feature Value")+ theme_bw() + xlab("Features")+ylab("Shapley value")+theme(legend.position = "left")
 
 
-plotb<-ggplot(subsetimportance,aes(x = importance,
-    y = reorder(var, importance)),)+
-  geom_col(fill="slategrey")+
-  ylab("")+theme_classic()+theme(axis.text.y=element_blank(),)
-
-plot_grid(plota, plotb, labels = "A",rel_widths =   c(4/5, 1/5))
-#ggsave("../figures/06_plots/ResultsA_nonlinearexmort.png",device = "png")
-```
-```{r}
-importance <- xgb.importance(model = finalmodel$finalModel, data = dtrain)
-
-importance_dt <- data.table::as.data.table(importance)
-
-# Plot the feature importances in a heatmap
-xgb.plot.importance(importance_matrix = importance_dt, top_n = 10)
+pdp_all <- lapply(candidates, function(x){#
+    pdp <- pdp::partial(final_model, pred.var = c(x), chull = TRUE)
+    df <- pdp %>%
+    gather(-yhat, key = key, value = value)
+  })
+pdp_all2<-do.call(rbind,pdp_all)
+pdp_all2 %>%   mutate(key = factor(key, levels=candidates)) %>%  ggplot(pdp_all2,
+       mapping = aes_string(x = "value",
+                           y = "yhat"))+
+  geom_point()+
+  geom_smooth(method = "loess", se=T)+
+  theme_minimal()+
+  facet_wrap(~(key), scales = "free", ncol = 3) 
 ```
 
-# Results 2 WDI or Dimred How predicts better bootstrap
+
+# what about a model that indicates if there is wave present and we take 2019 for 2020 and 2020 for 2021
+
+# Final Monthly analysis
 
 ```{r}
-result_bootstrap
-```
+features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
+# Everytime we are looking at iso of the year before for matching them we are taking the year after that
+dimred2019<-dimred2021_knn250_2[]%>% filter(year%in%2019) %>%  
+    mutate(identifier_CountryYear=paste0(`Country Code`,"_","2020")) %>%    
+    select(features,"identifier_CountryYear") 
+dimred2020<-dimred2021_knn250_2[]%>% filter(year%in%2020) %>% 
+    mutate(identifier_CountryYear=paste0(`Country Code`,"_","2021")) %>%   
+    select(features,"identifier_CountryYear") 
 
-### impute WDI
-```{r}
+Dimred_input<-rbind(dimred2019,dimred2020)
 
-shrinkWDI<-dimred2021_knn250_2[,colnames(dimred2021_knn250_2)%in% c("Country Code","year",wdi_explained$`Series Code`),with=F] %>% filter(year<2020)
+Xgboostinput_first<-merge(Dimred_input,excessCounrty_monthly_pvalue2,by="identifier_CountryYear")
+Xgboostinput_second<-merge(Xgboostinput_first,thisisOWID,by.y="monthyear",by.x = "identifier")
 
-aTable<-shrinkWDI[,"Country Code"] %>%  unique
-for(i in 3:ncol(shrinkWDI)){
-  look<-shrinkWDI[,colnames(shrinkWDI)[c(1,2,i)],with=F] 
-  colnames(look)[3]<-"value"
-  best<-look[,.(value=last(value),year=last(year)),by=`Country Code`] %>%  filter(!is.na(value))
-  okaisch<-look[!(look$`Country Code`%in% best$`Country Code`)&year%in% c(2000:2020),.(value=mean(value,na.rm=T),sd=var(value,na.rm=T)),by=`Country Code`]
-  
-  thisone<-rbind(best[,c("Country Code","value")],okaisch[,c("Country Code","value")])
-  colnames(thisone)[2]<-colnames(shrinkWDI)[c(i)]
-  aTable<-left_join(aTable,thisone, by = "Country Code")
-}
-
-bTable<-aTable[,-1] %>% sapply( . ,function(x)(as.numeric(x))) %>% data.frame() 
-
-cTable<-sapply(bTable, function(x)x<-if_else(is.nan(x),999,x)) %>% data.frame()
-
-cTable[cTable==999]<-NA
-df_filled <- pca(object =  cTable, method = "ppca")
-table2019_wdiImputed<-left_join(cbind(aTable[,1],data.frame(df_filled@completeObs)),dimred2021_knn250_2[dimred2021_knn250_2$year%in%2020,c("Country Code","pscore_mean")],by = "Country Code")
-
+Xgboostinput<-tempyear3  %>% mutate(isoyearmonth=paste0(ISO_code,"_",year,"_",month)) %>% rename(meanTemp=value) %>%  select(isoyearmonth,meanTemp)%>% merge(Xgboostinput_second, . , by.x = "identifier",by.y = "isoyearmonth")
+#Xgboostinput%>% fwrite("../results/06_Dimred_Exmort_monthly.csv")
 ```
 
 
 ```{r}
+Xgboostinput<- fread("../results/06_Dimred_Exmort_monthly.csv")
+Label<-"p_value_mort"
+features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7","new_cases_smoothed_per_million","meanTemp")
 
-param_grid <- expand.grid(
-  nrounds = c(50),
-  max_depth = c(1,2,3),           # Maximum depth of a tree
-  eta = c(0.05),
-  gamma = c(0, 1, 5),               # Minimum loss reduction required to make a further partition on a leaf node (regularization term)
-  colsample_bytree = c(1),
-  min_child_weight = c(0),
-  subsample = c(0.95)
-)
 
 custom_control <- trainControl(
   method = "cv",
-  number = 60,  # Increase the number of folds
+  number = 30,  # Increase the number of folds
   search = "random",
-  allowParallel = TRUE)
+  allowParallel = TRUE
   
-param_list <- list(objective = "reg:squarederror",  # For regression
-                   eta = 0.05,
-                   max_depth = c(1,2,3),
-                   gamma = c(0, 1, 5),    
-                   subsample = 0.95
-                   )
-```
-
-```{r}
-require(doParallel)
-data_wdi<-table2019_wdiImputed %>% filter(!is.na(pscore_mean))
-trials <- 1000
-cl <- makeCluster(30)
-registerDoParallel(cl)
-# Evaluate the performance of the model using RMSE
-
-
-system.time(result_bootstrap <- foreach(icount(trials),
-                  .combine = bind_rows) %dopar% {
-                    require(xgboost)
-                    require(tidyverse)
-                    require(data.table)
-    train_index <- sample(1:nrow(data_wdi), 0.8 * nrow(data_wdi))
-    features<-colnames(data_wdi)[!grepl("Country|pscore_mean|[1-9]{2}",colnames(data_wdi))]
-
-    label <- "pscore_mean"
-    trainDAT <- data_wdi[train_index, ]
-    testDAT <- data_wdi[-train_index, ]
-    
-    xgb_caret <- caret::train(x = trainDAT %>% dplyr::select(all_of(features)),
-                   y = trainDAT %>% pull(label),
-                   method = "xgbTree",
-                   verbosity = 0,
-                   trControl=custom_control,
-      tuneGrid = param_grid
-                   #,tuneLength = 2
-   
-                    )
-    
-    finalmodel <- caret::train(x = trainDAT %>% dplyr::select(all_of(features)),
-                   y = trainDAT %>% pull(label),
-                   method = "xgbTree",
-                   verbosity = 0,
-                   ## CAST CV LLO (Hanna Meyer)
-                   trControl=trainControl(method="cv",
-                                          number = 30),
-
-                   tuneGrid = xgb_caret$bestTune)
-    
-    importance_matrix<-varImp(finalmodel)$importance %>%
-         mutate(var = rownames(varImp(xgb_caret)$importance))%>%
-         dplyr::rename(importance = Overall) 
-   
-    
-    thisone<-length(list.files("../test/wdi_bootstrap_rerun/"))+1
-    importance_matrix %>% fwrite(paste0("../test/wdi_bootstrap_rerun/run2019toPscoreMean_",thisone,".csv",sep=""))
-    
-}
 )
 
-
-result_bootstrap_dimred_2019toPScoreMean<-result_bootstrap
-
-
-#fwrite(result_bootstrap_dimred_2019toPScoreMean,file = "../results/06_wdi_19_to_pscoreMean_bootstrap_1000.csv")
-# load("../data/06_wdi_20_bootstrap_1000")
-
-
-```
-### Dimred
-
-
-
-```{r}
-
-trials <- 1000
-cl <- makeCluster(30)
-registerDoParallel(cl)
-IsoYear<-"2019"
-label<-"pscore_mean"
-features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
-
-dimredData<-dimred2021_knn250_2[] %>% filter(year%in% 2019) %>% select(c(label,features)) %>%  filter(!is.na(iso1),!is.na(pscore_mean))
-features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
-
-label<-"pscore_mean"
-
-system.time(result_bootstrap_dimred <- foreach(icount(trials),
-                  .combine = bind_rows) %dopar% {
-                    require(xgboost)
-                    require(tidyverse)
-                    require(data.table)
-                    library(shapper)
-    
-                    
-    train_index <- sample(1:nrow(dimredData), 0.8 * nrow(dimredData))
-    features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
-
-    label<-"pscore_mean"
-    
-    trainDAT <- dimredData[train_index, ]
-    testDAT <- dimredData[-train_index, ]
-    
-    xgb_caret_dimred <- caret::train(x = trainDAT %>% dplyr::select(all_of(features)),
-                   y = trainDAT %>% pull(label),
-                   method = "xgbTree",
-                   verbosity = 0,
-                   trControl=custom_control,tuneGrid = param_grid
-                   ,tuneLength = 1
-   
-                    )
-    
-    
-    finalmodel_dimred <- caret::train(x = trainDAT %>% dplyr::select(all_of(features)),
-                   y = trainDAT %>% pull(label),
-                   method = "xgbTree",
-                   verbosity = 0,
-                   ## CAST CV LLO (Hanna Meyer)
-                   trControl=trainControl(method="cv",
-                                          number = 30),
-                   # early_stopping_rounds = 10,
-                   tuneGrid = xgb_caret_dimred$bestTune)
-    
-    importance_matrix<-varImp(finalmodel_dimred)$importance %>%
-         mutate(var = rownames(varImp(xgb_caret_dimred)$importance))%>%
-         dplyr::rename(importance = Overall) 
-   
-
-    thisone<-length(list.files("../test/dimred_bootstrap_rerun/"))+1
-    importance_matrix %>% fwrite(paste0("../test/dimred_bootstrap_rerun/Dimred_run2019toPscoreMean_",thisone,".csv",sep=""))
-    finalmodel_dimred$results
-}
+param_grid <- expand.grid(
+  nrounds = c(50,100),
+  eta = c(0.05),
+  max_depth = c(2, 4),
+  colsample_bytree = c( 1),
+  subsample = c(1),
+  gamma = c(0),
+  min_child_weight = c(0)
 )
 
+# Set the proportion for the test set (e.g., 0.2 for 20% test data)
 
-#fwrite(result_bootstrap_dimred,file = "../results/06_dimred_19_to_pscoreMean_bootstrap_1000.csv")
-```
-### plot both
-```{r}
-a<-fread("../results/06_wdi_19_to_pscoreMean_bootstrap_1000.csv")
-b<-fread("../results/06_dimred_19_to_pscoreMean_bootstrap_1000.csv")
-a$Dataset<-"WDI imputed"
-b$Dataset<-"Latent Space"
-plotR<-rbind(a,b) %>% ggplot(aes(x=Rsquared,fill=Dataset))+geom_histogram(bins = 100)+theme_classic()+xlim(0,1)+scale_fill_manual(values = col_pal)+theme(legend.position = "sad")+ylab("N")+xlab(expression(paste("R"^2)))
-plotRMS<-rbind(a,b) %>% ggplot(aes(x=RMSE,fill=Dataset))+geom_histogram(bins = 100)+theme_classic()+xlim(5,15)+scale_fill_manual(values = col_pal)+theme(legend.position = "sad")+ylab("")
-
-plot_bootstrap<-ggarrange(plotR,plotRMS)
-plot_bootstrap_legend<- rbind(a,b) %>% ggplot(aes(x=RMSE,fill=Dataset))+geom_histogram(bins = 100)+scale_fill_manual(values = col_pal)
-
-plot_bootstrap%>%  ggsave(file="../figures/06_plots/c_compare_prediction_bootstrap.png",device = "png",width = 9,height = 4)
-plot_bootstrap_legend%>%  ggsave(file="../figures/06_plots/c_compare_prediction_bootstrap_legend.png",device = "png")
-
-```
+test_proportion <- 0.8
+Xgboostinput_filtered<-Xgboostinput %>%  select(features,Label) %>% drop_na()
+index <- caret::createDataPartition(Xgboostinput_filtered$iso1, p = test_proportion, list = FALSE)
+# Split the data into training and test sets
+train_data <- Xgboostinput_filtered[index, ]
+test_data <- Xgboostinput_filtered[-index, ]
 
 
+# Train the XGBoost model using the function
+trainedModel<- train_xgboost_model(train_data, Label, features, custom_control, param_grid)
+# Assuming you have the 'finalmodel' and 'test_data' from the previous steps
+predictedValue<-postResample(
+      predict(trainedModel, 
+          test_data %>% dplyr::select(features)),  
+        test_data %>% pull(Label)
+      )
+predictedValue
 
-
-# Result 3 Monthly excess mort
-
-```{r}
- 
-excessmonthy <- excessCounrty_monthly_pvalue %>% arrange(country,year,month) %>% rename(`Country Code`=iso3) %>% 
-  mutate(date = as.Date(paste(year, month, "01", sep = "-"), format = "%Y-%m-%d"))
-# Plot the values
-exmortelement<-excessmonthy %>% filter(!is.na(p_value_mort)) %>%  mutate(`P-Score Excess Mortality`=case_when(p_value_mort>50~50,p_value_mort<(-15)~16,TRUE~p_value_mort)) %>% 
- ggplot( . , aes(x = interaction(year, month, lex.order = TRUE), y = (`P-Score Excess Mortality`))) +
-  geom_boxplot(aes(fill=as.factor(month))) +theme_classic()+scale_fill_viridis(discrete = T) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  labs(x = "", y = "Excess Mortality")+theme(legend.position = "asd")
-exmortelement
-```
-
-## first round 2019 dimred
-```{r}
-features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
-dimredData<-dimred2021_knn250_2[] %>% filter(year%in% 2019) %>% select(c(`Country Code`,features)) %>%  filter(!is.na(iso1))
-excessmonthy2<-merge(excessmonthy %>% select(date,`Country Code`,p_value_mort),dimredData,by="Country Code")
-listofmonth<-excessmonthy$date %>%  unique 
-listofmonth<-listofmonth[!is.na(listofmonth)] 
-require(xgboost)
-require(tidyverse)
-require(data.table)
-library(shapper)
-require("SHAPforxgboost")
-cooloutput<-data.frame()
-
-system.time(result_bootstrap_dimred <- for(i in 1:length(listofmonth)){
-  
-
-
-
-    
-    features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
-    thismonth<-listofmonth[i]
-    excessmonthy2 %>%  filter(date%in% thismonth) -> runthismonthlysubset
-    label<-"pscore_mean"
-    
-    a<-runthismonthlysubset %>% dplyr::select(all_of(features)) %>% as.matrix()
-    xgb_caret_dimred <- caret::train(x = runthismonthlysubset %>% dplyr::select(all_of(features)),
-                   y = runthismonthlysubset %>% pull("p_value_mort"),
-                   method = "xgbTree",
-                   verbosity = 0,trControl=custom_control,tuneGrid = param_grid
-                   ,tuneLength = 10
-    
-                    )
-    
-    # xgb_caret_dimred
-    # mod <- xgboost::xgboost(data = a, 
-    #                     label = runthismonthlysubset$p_value_mort, 
-    #                     params = param_list, nrounds = 10,
-    #                     verbose = FALSE,
-    #                     early_stopping_rounds = 8)
-    
-    finalmodel_dimred <- caret::train(x = runthismonthlysubset %>% dplyr::select(all_of(features)),
-                   y = runthismonthlysubset %>% pull(p_value_mort),
-                   method = "xgbTree",
-                   verbosity = 0,
-                   ## CAST CV LLO (Hanna Meyer)
-                   trControl=trainControl(method="cv",
-                                          number = 60),
-                   # early_stopping_rounds = 10,
-                   tuneGrid = xgb_caret_dimred$bestTune)
-    
-    importance_matrix<-varImp(finalmodel_dimred)$importance %>%
-         mutate(var = rownames(varImp(xgb_caret_dimred)$importance))%>%
-         dplyr::rename(importance = Overall) 
-    importance_matrix$name<- thismonth
-    importance_matrix$rsquared<-finalmodel_dimred$results$Rsquared
-    
-    # shap_values <- shap.values(xgb_model = mod, X_train = a)
-    # # The ranked features by mean |SHAP|
-    # shaploutput<-shap_values$mean_shap_score 
-    # 
-    # orderShap<-match(rownames(importance_matrix), names(shaploutput))
-    # 
-    # importance_matrix$shapmean<-shaploutput[orderShap]
-    cooloutput<-rbind(cooloutput,importance_matrix)
-    
-})
-
-```
-```{r}
-
-rsquared_values_plot<-
-  cooloutput %>% select(name,rsquared) %>%  unique %>% ggplot( . , aes(x=name, y=rsquared)) +
-  geom_segment( aes(x=name, xend=name, y=0, yend=rsquared), color="grey") +
-  geom_point( color=col_pal[5], size=4) +
-  theme_light() + geom_line()+
-  theme(
-    panel.grid.major.x = element_blank(),
-    panel.border = element_blank(),
-    axis.ticks.x = element_blank()
-  ) +
-  xlab("") +
-  ylab("Value of Y") +ylim(0.2,1)
-# heatmap
-```
-
-
-```{r}
-
-
-start_date<- as.Date("2020-1-1")
-end_date<- as.Date("2021-12-1")
-# Heatmap 
-importanceplot<-cooloutput %>% filter(!is.na(var))%>% 
-  mutate(var = factor(var, levels=rev(features))) %>% 
-  ggplot( . , aes(name, var, fill= importance)) + 
-  geom_tile()+scale_fill_viridis()+theme_classic()+xlab("")+xlim(1,1)+
-  scale_x_date(limits = c(start_date, end_date))+
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))+theme(legend.position = "sad")
-
-plot_grid(rsquared_values_plot,exmortelement, importanceplot,ncol = 1,rel_heights =     c(1.5/5, 2/5,3/5))
 
 ```
 
 
-
-## second round 2020 and 2021
-
-### looks horrible dont do it again
+## Agnostic
 ```{r}
-
-features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
-dimredData2020<-dimred2021_knn250_2[] %>% filter(year%in% 2020) %>% 
-  mutate(identifier=paste0(`Country Code`,"_",year)) %>% 
-  select(c(identifier,features)) %>%  filter(!is.na(iso1)) 
-dimredData2021<-dimred2021_knn250_2[] %>% filter(year%in% 2021) %>% 
-  mutate(identifier=paste0(`Country Code`,"_",year)) %>% 
-  select(c(identifier,features)) %>%  filter(!is.na(iso1)) 
-dimredDataboth<-rbind(dimredData2020,dimredData2021)
-excessmonthy<-excessmonthy %>% 
-  mutate(identifier=paste0(`Country Code`,"_",year))
-excessmonthy2<-merge(excessmonthy,dimredDataboth,by="identifier")
-listofmonth<-excessmonthy$date %>%  unique 
-listofmonth<-listofmonth[!is.na(listofmonth)] 
-require(xgboost)
-require(tidyverse)
-require(data.table)
-library(shapper)
-require("SHAPforxgboost")
-cooloutput_2020_2021<-data.frame()
-
-system.time(result_bootstrap_dimred <- for(i in 1:length(listofmonth)){
-  
+shap_values <- shap.values(xgb_model = trainedModel$finalModel, X_train = as.matrix(train_data %>% dplyr::select(all_of(features))))
+xgboost::xgb.ggplot.shap.summary(data = as.matrix(train_data %>% 
+  dplyr::select(features)),
+  model = trainedModel$finalModel) +scale_color_viridis("Feature Value")+ theme_bw() + xlab("Features")+ylab("Shapley value")+theme(legend.position = "left")
 
 
+pdp_all <- lapply(features, function(x){#
+    pdp <- pdp::partial(trainedModel, pred.var = c(x), chull = TRUE)
+    df <- pdp %>%
+    gather(-yhat, key = key, value = value)
+  })
+pdp_all2<-do.call(rbind,pdp_all)
+pdp_all2 %>%   mutate(key = factor(key, levels=features)) %>%  ggplot(pdp_all2,
+       mapping = aes_string(x = "value",
+                           y = "yhat"))+
+  geom_point()+
+  geom_smooth(method = "loess", se=T)+
+  theme_minimal()+
+  facet_wrap(~(key), scales = "free", ncol = 3) 
 
-    
-    features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
-    thismonth<-listofmonth[i]
-    excessmonthy2 %>%  filter(date%in% thismonth) -> runthismonthlysubset
-    label<-"pscore_mean"
-    
-    a<-runthismonthlysubset %>% dplyr::select(all_of(features)) %>% as.matrix()
-    xgb_caret_dimred <- caret::train(x = runthismonthlysubset %>% dplyr::select(all_of(features)),
-                   y = runthismonthlysubset %>% pull("p_value_mort"),
-                   method = "xgbTree",
-                   verbosity = 0,trControl=custom_control,tuneGrid = param_grid
-                   ,tuneLength = 10
-    
-                    )
-    
-    # xgb_caret_dimred
-    # mod <- xgboost::xgboost(data = a, 
-    #                     label = runthismonthlysubset$p_value_mort, 
-    #                     params = param_list, nrounds = 10,
-    #                     verbose = FALSE,
-    #                     early_stopping_rounds = 8)
-    
-    finalmodel_dimred <- caret::train(x = runthismonthlysubset %>% dplyr::select(all_of(features)),
-                   y = runthismonthlysubset %>% pull(p_value_mort),
-                   method = "xgbTree",
-                   verbosity = 0,
-                   ## CAST CV LLO (Hanna Meyer)
-                   trControl=trainControl(method="cv",
-                                          number = 30),
-                   # early_stopping_rounds = 10,
-                   tuneGrid = xgb_caret_dimred$bestTune)
-    
-    importance_matrix<-varImp(finalmodel_dimred)$importance %>%
-         mutate(var = rownames(varImp(xgb_caret_dimred)$importance))%>%
-         dplyr::rename(importance = Overall) 
-    importance_matrix$name<- thismonth
-    importance_matrix$rsquared<-finalmodel_dimred$results$Rsquared
-    
-    # shap_values <- shap.values(xgb_model = mod, X_train = a)
-    # # The ranked features by mean |SHAP|
-    # shaploutput<-shap_values$mean_shap_score 
-    # 
-    # orderShap<-match(rownames(importance_matrix), names(shaploutput))
-    # 
-    # importance_matrix$shapmean<-shaploutput[orderShap]
-    cooloutput_2020_2021<-rbind(cooloutput_2020_2021,importance_matrix)
-    
-})
-```
-```{r}
-
-rsquared_values_plot<-
-  cooloutput_2020_2021 %>% select(name,rsquared) %>%  unique %>% ggplot( . , aes(x=name, y=rsquared)) +
-  geom_segment( aes(x=name, xend=name, y=0, yend=rsquared), color="grey") +
-  geom_point( color=col_pal[5], size=4) +
-  theme_light() + geom_line()+
-  theme(
-    panel.grid.major.x = element_blank(),
-    panel.border = element_blank(),
-    axis.ticks.x = element_blank()
-  ) +
-  xlab("") +
-  ylab("Value of Y") +ylim(0.2,1)
-# heatmap
-```
-
-
-```{r}
-
-
-start_date<- as.Date("2020-1-1")
-end_date<- as.Date("2021-12-1")
-# Heatmap 
-importanceplot<-cooloutput_2020_2021 %>% filter(!is.na(var))%>% 
-  mutate(var = factor(var, levels=rev(features))) %>% 
-  ggplot( . , aes(name, var, fill= importance)) + 
-  geom_tile()+scale_fill_viridis()+theme_classic()+xlab("")+xlim(1,1)+
-  scale_x_date(limits = c(start_date, end_date))+
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))+theme(legend.position = "sad")
-
-plot_grid(rsquared_values_plot,exmortelement, importanceplot,ncol = 1,rel_heights =     c(1.5/5, 2/5,3/5))
-
-```
-## third round 2019 dimred on clustes
-### the clusters
-```{r}
-clusterbyExcessandIsos<-dimred2021_knn250_2 %>% filter(year%in% 2019,`Country Code`!="PER") %>%  select(`Country Code`,pscore_mean,features) %>%  drop_na()
-kmeans_result <- kmeans(clusterbyExcessandIsos[,-1], centers = 5)
-clusterbyExcessandIsos$Cluster<-kmeans_result$cluster
-```
-
-```{r}
-theclusteredFrame<-data.frame()
-for(i in unique(clusterbyExcessandIsos$Cluster))
-  
-  
-  
-
-var_caountry<-clusterbyExcessandIsos[clusterbyExcessandIsos$Cluster %in% i,] %>% select(`Country Code`) %>%  unlist()
-features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
-dimredData<-dimred2021_knn250_2[] %>% filter(year%in% 2019) %>% filter(`Country Code`%in% var_caountry) %>% select(c(`Country Code`,features)) %>%  filter(!is.na(iso1))
-excessmonthy2<-merge(excessmonthy %>% select(date,`Country Code`,p_value_mort),dimredData,by="Country Code")
-
-listofmonth<-excessmonthy$date %>%  unique 
-listofmonth<-listofmonth[!is.na(listofmonth)] 
-require(xgboost)
-require(tidyverse)
-require(data.table)
-library(shapper)
-require("SHAPforxgboost")
-cooloutput<-data.frame()
-
-system.time(result_bootstrap_dimred <- for(i in 1:length(listofmonth)){
-  
-
-    
-    features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
-    thismonth<-listofmonth[i]
-    excessmonthy2 %>%  filter(date%in% thismonth) -> runthismonthlysubset
-    label<-"pscore_mean"
-    
-    a<-runthismonthlysubset %>% dplyr::select(all_of(features)) %>% as.matrix()
-    xgb_caret_dimred <- caret::train(x = runthismonthlysubset %>% dplyr::select(all_of(features)),
-                   y = runthismonthlysubset %>% pull("p_value_mort"),
-                   method = "xgbTree",
-                   verbosity = 0,trControl=custom_control,tuneGrid = param_grid
-                   ,tuneLength = 10
-    
-                    )
-    
-    # xgb_caret_dimred
-    # mod <- xgboost::xgboost(data = a, 
-    #                     label = runthismonthlysubset$p_value_mort, 
-    #                     params = param_list, nrounds = 10,
-    #                     verbose = FALSE,
-    #                     early_stopping_rounds = 8)
-    
-    finalmodel_dimred <- caret::train(x = runthismonthlysubset %>% dplyr::select(all_of(features)),
-                   y = runthismonthlysubset %>% pull(p_value_mort),
-                   method = "xgbTree",
-                   verbosity = 0,
-                   ## CAST CV LLO (Hanna Meyer)
-                   trControl=trainControl(method="cv",
-                                          number = 60),
-                   # early_stopping_rounds = 10,
-                   tuneGrid = xgb_caret_dimred$bestTune)
-    
-    importance_matrix<-varImp(finalmodel_dimred)$importance %>%
-         mutate(var = rownames(varImp(xgb_caret_dimred)$importance))%>%
-         dplyr::rename(importance = Overall) 
-    importance_matrix$name<- thismonth
-    importance_matrix$rsquared<-finalmodel_dimred$results$Rsquared
-    
-    # shap_values <- shap.values(xgb_model = mod, X_train = a)
-    # # The ranked features by mean |SHAP|
-    # shaploutput<-shap_values$mean_shap_score 
-    # 
-    # orderShap<-match(rownames(importance_matrix), names(shaploutput))
-    # 
-    # importance_matrix$shapmean<-shaploutput[orderShap]
-    cooloutput<-rbind(cooloutput,importance_matrix)
-    
-})
-cooloutput$cluster<-i
-theclusteredFrame<-bind_rows(theclusteredFrame,cooloutput)
-
-}
-```
-```{r}
-
-rsquared_values_plot<-
-  cooloutput %>% select(name,rsquared) %>%  unique %>% ggplot( . , aes(x=name, y=rsquared)) +
-  geom_segment( aes(x=name, xend=name, y=0, yend=rsquared), color="grey") +
-  geom_point( color=col_pal[5], size=4) +
-  theme_light() + geom_line()+
-  theme(
-    panel.grid.major.x = element_blank(),
-    panel.border = element_blank(),
-    axis.ticks.x = element_blank()
-  ) +
-  xlab("") +
-  ylab("Value of Y") +ylim(0.2,1)
-# heatmap
-```
-
-
-```{r}
-
-
-start_date<- as.Date("2020-1-1")
-end_date<- as.Date("2021-12-1")
-# Heatmap 
-importanceplot<-cooloutput %>% filter(!is.na(var))%>% 
-  mutate(var = factor(var, levels=rev(features))) %>% 
-  ggplot( . , aes(name, var, fill= importance)) + 
-  geom_tile()+scale_fill_viridis()+theme_classic()+xlab("")+xlim(1,1)+
-  scale_x_date(limits = c(start_date, end_date))+
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))+theme(legend.position = "sad")
-
-plot_grid(rsquared_values_plot,exmortelement, importanceplot,ncol = 1,rel_heights =     c(1.5/5, 2/5,3/5))
-
-```
-
-
-```{r}
-excessmonthy %>% filter(date>"2020-02-01")
-excessmonthy %>%  filter(`Country Code`%in% "PER") %>% ggplot(aes(x=date,y=p_value_mort))+ geom_point()+ geom_line()
-excessmonthy2<-merge(excessmonthy %>% select(date,`Country Code`,p_value_mort),dimred2021_knn250_2,by="Country Code")
 ```
 
