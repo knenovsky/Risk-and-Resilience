@@ -244,7 +244,7 @@ plot_grid(plota, plotb, labels = "A",rel_widths =   c(4/5, 1/5))
 ggsave("../figures/06_plots/ResultsA_nonlinearexmort.png",device = "png")
 ```
 ```{r}
-importance <- xgb.importance(model = trainedModel$finalModel, data = dtrain)
+importance <- xgb.importance(model = trainedModel$finalModel, data = train_data)
 
 importance_dt <- data.table::as.data.table(importance)
 
@@ -316,7 +316,7 @@ param_list <- list(objective = "reg:squarederror",  # For regression
 require(doParallel)
 data_wdi<-table2019_wdiImputed %>% filter(!is.na(pscore_mean))
 trials <- 1000
-cl <- makeCluster(30)
+cl <- makeCluster(10)
 registerDoParallel(cl)
 # Evaluate the performance of the model using RMSE
 
