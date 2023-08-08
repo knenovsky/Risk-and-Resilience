@@ -71,7 +71,7 @@ train_xgboost_model <- function(testdata, Label, features, custom_control, param
     method = "xgbTree",
     verbosity = 0,
     trControl = custom_control,tuneGrid=param_grid,
-    tuneLength = 10
+    tuneLength = 1
   )
   
   finalmodel <- caret::train(

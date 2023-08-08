@@ -43,6 +43,7 @@ wdi_explained<-fread("../data/WDI_data_230609/WDI_CSV/WDISeries.csv")
 dimred2021_knn250_2<-fread("../output/02_230612_Dimred_ExcessMort_annual.csv") 
 
 
+
 ## Download the covid data from Our world in data if this file is not available in your data folder and run a script to make it monthly
 load("../data/07_230504_OWID_dataset")
 
@@ -51,12 +52,14 @@ col_pal <- c("#1F968B",  "#7570b3", "#e7298a", "#3CBB75","yellow3", "orange","sl
 
 # data
 ```{r,Excess Mortility WHO Set}
+getwd()
 excessCounrty_year<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx",sheet = 2)
 excessCounrty_month<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx",sheet = 2)
 excessCounrty_covariates<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx",sheet = 3)
 excessRegion_year<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByRegion.xlsx",sheet = 2)
 excessRegion_income<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByIncome.xlsx",sheet = 2)
 excessRegion_income %>% group_by(income) %>% 
+
   summarise(p_value_mort=sum(excess.mean)/sum(expected.mean)*100,excess_comul=sum(excess.mean))
 excessCounrty_year_pvalue<-excessCounrty_year %>% group_by(country,iso3,year) %>% 
   summarise(p_value_mort=sum(excess.mean)/sum(expected.mean)*100,excess_comul=sum(excess.mean))
@@ -72,7 +75,7 @@ excessCounrty_monthly_pvalue2<-excessCounrty_monthly_pvalue %>% arrange(country,
 ```
 ## Temperature
 ```{r}
-tempyear<-read.csv("../../23_01_COCAP/01_data_prep/output/01_countries_mean_temp.csv")
+tempyear<-read.csv("../data/230808_Cocap_01_countries_mean_temp.csv")
 tempyear$X<-NULL
 tempyear %>%  filter(year%in%c(2020,2021))->tempyear2
 
@@ -92,10 +95,6 @@ tempyear2 %>% pivot_longer(names_to = "month",
                                                                  month%in%"Dec"~12))-> tempyear3
 tempyear3
 
-out_month2$meanTemp<-out_month2$value
-out_month2$value<-NULL
-
-out_month2$month <- as.yearmon(out_month2$monthyear, format = "%Y_%m")
 ```
 
 
@@ -343,7 +342,6 @@ predictedValue<-postResample(
         test_data %>% pull(Label)
       )
 predictedValue
-
 
 ```
 
