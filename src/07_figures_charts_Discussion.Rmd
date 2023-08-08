@@ -246,7 +246,7 @@ plot_grid(plota, plotb, labels = "A",rel_widths =   c(4/5, 1/5))
 ggsave("../figures/06_plots/ResultsA_nonlinearexmort.png",device = "png")
 ```
 ```{r}
-importance <- xgb.importance(model = trainedModel$finalModel, data = dtrain)
+importance <- xgb.importance(model = trainedModel$finalModel, data = train_data)
 
 importance_dt <- data.table::as.data.table(importance)
 
@@ -314,6 +314,7 @@ param_list <- list(objective = "reg:squarederror",  # For regression
 ```
 
 ```{r}
+<<<<<<< HEAD
 
 
 
@@ -323,6 +324,12 @@ Xgboostinput_first<-merge(table2019_wdiImputed,excessCounrty_monthly_pvalue %>% 
 data_wdi<-Xgboostinput_first
 trials <- 1
 cl <- makeCluster(20)
+=======
+require(doParallel)
+data_wdi<-table2019_wdiImputed %>% filter(!is.na(pscore_mean))
+trials <- 1000
+cl <- makeCluster(10)
+>>>>>>> 59b837254c47d665afcbf4f4ed9e1f4b315fa540
 registerDoParallel(cl)
 # Evaluate the performance of the model using RMSE
 
@@ -1258,6 +1265,11 @@ expand_limits(x = c(-2.7, 2.7), y = c(-2.7, 2.7))
 ggsave("../figures/07_230808_circle_all.pdf",device = "pdf",height = 12,width = 12)
 
 ```
+#### Description
+```{r}
+subsetwdi$Topic %>%  table %>%  data.frame() %>%  arrange(desc(Freq))
+```
+
 ## PLOT 2 SUBSET Significant shapleys
 
 
@@ -1271,13 +1283,28 @@ RELATIVE_INDICATORS_FILE_NAME <- "../data/01_data/relative_indicators_2023_06.R"
 order_indidactors<-iso1_onlyDimred$`Series Code` 
 dcor_var_iso_cons<-matrix(nrow =length(order_indidactors),ncol=7)
 rownames(dcor_var_iso_cons)<-order_indidactors
+
+iso1_onlyDimred %>% filter(N>=mean(N))->iso1_onlyDimred_2
+iso2_onlyDimred %>% filter(N_shapley>=mean(N_shapley))->iso2_onlyDimred_2
+iso3_onlyDimred %>% filter(N_shapley>=mean(N_shapley))->iso3_onlyDimred_2
+iso4_onlyDimred %>% filter(N_shapley>=mean(N_shapley))->iso4_onlyDimred_2
+iso5_onlyDimred %>% filter(N_shapley>=mean(N_shapley))->iso5_onlyDimred_2
+iso6_onlyDimred %>% filter(N_shapley>=mean(N_shapley))->iso6_onlyDimred_2
+iso7_onlyDimred %>% filter(N_shapley>=mean(N_shapley))->iso7_onlyDimred_2
+
+theseindicators<-unique(c(iso1_onlyDimred_2$`Series Code`,iso2_onlyDimred_2$`Series Code`,iso3_onlyDimred_2$`Series Code`,
+                          iso4_onlyDimred_2$`Series Code`,iso5_onlyDimred_2$`Series Code`,iso6_onlyDimred_2$`Series Code`,
+                          iso7_onlyDimred_2$`Series Code`))
+
 dcor_var_iso_cons[,1]<-iso1_onlyDimred[iso1_onlyDimred$`Series Code`%in% order_indidactors,"iso1"] %>%  unlist
 dcor_var_iso_cons[,2]<-iso2_onlyDimred[iso2_onlyDimred$`Series Code`%in% order_indidactors,"iso2_75to100_75to100"] %>%  unlist
 dcor_var_iso_cons[,3]<-iso3_onlyDimred[iso3_onlyDimred$`Series Code`%in% order_indidactors,"iso3_shapley"] %>%  unlist
-dcor_var_iso_cons[,4]<-iso4_onlyDimred[iso4_onlyDimred$`Series Code`%in% order_indidactors,"iso4_shapley"] %>%  unlist
+dcor_var_iso_cons[,4]<-iso4_onlyDimred[iso4_onlyDimred$`Series Code`%in% order_indidactors,"iso4_0to25_0to25"] %>%  unlist
 dcor_var_iso_cons[,5]<-iso5_onlyDimred[iso5_onlyDimred$`Series Code`%in% order_indidactors,"iso5_shapley"] %>%  unlist
 dcor_var_iso_cons[,6]<-iso6_onlyDimred[iso6_onlyDimred$`Series Code`%in% order_indidactors,"iso6_shapley"] %>%  unlist
 dcor_var_iso_cons[,7]<-iso7_onlyDimred[iso7_onlyDimred$`Series Code`%in% order_indidactors,"iso7_shapley"] %>%  unlist
+dcor_var_iso_cons<-dcor_var_iso_cons[rownames(dcor_var_iso_cons) %in%theseindicators,]
+
 ```
 
 #### setup
@@ -1285,13 +1312,13 @@ dcor_var_iso_cons[,7]<-iso7_onlyDimred[iso7_onlyDimred$`Series Code`%in% order_i
 
 
 used_var_names_max_dcor <- c(
-  dcor_var_iso_cons[, 1] %>% order(decreasing = TRUE) %>% { .[1:10] } %>% { names(dcor_var_iso_cons[., 1]) },
-  dcor_var_iso_cons[, 2] %>% order(decreasing = TRUE) %>% { .[1:10] } %>% { names(dcor_var_iso_cons[., 2]) },
-  dcor_var_iso_cons[, 3] %>% order(decreasing = TRUE) %>% { .[1:50] } %>% { names(dcor_var_iso_cons[., 3]) },
-  dcor_var_iso_cons[, 4] %>% order(decreasing = TRUE) %>% { .[1:50] } %>% { names(dcor_var_iso_cons[., 4]) },
+  dcor_var_iso_cons[, 1] %>% order(decreasing = TRUE) %>% { .[1:05] } %>% { names(dcor_var_iso_cons[., 1]) },
+  dcor_var_iso_cons[, 2] %>% order(decreasing = TRUE) %>% { .[1:05] } %>% { names(dcor_var_iso_cons[., 2]) },
+  dcor_var_iso_cons[, 3] %>% order(decreasing = TRUE) %>% { .[1:20] } %>% { names(dcor_var_iso_cons[., 3]) },
+  dcor_var_iso_cons[, 4] %>% order(decreasing = TRUE) %>% { .[1:20] } %>% { names(dcor_var_iso_cons[., 4]) },
   dcor_var_iso_cons[, 5] %>% order(decreasing = TRUE) %>% { .[1:05] } %>% { names(dcor_var_iso_cons[., 5]) },
   dcor_var_iso_cons[, 6] %>% order(decreasing = TRUE) %>% { .[1:05] } %>% { names(dcor_var_iso_cons[., 6]) },
-  dcor_var_iso_cons[, 7] %>% order(decreasing = TRUE) %>% { .[1:15]  } %>% {names(dcor_var_iso_cons[., 7]) }
+  dcor_var_iso_cons[, 7] %>% order(decreasing = TRUE) %>% { .[1:05]  } %>% {names(dcor_var_iso_cons[., 7]) }
 ) %>% unique %>% sort
 
 subsetwdi<-wdi_explained[wdi_explained$`Series Code`%in% used_var_names_max_dcor,]
@@ -1587,12 +1614,49 @@ theme(legend.title = element_blank(),
       legend.justification = c(0.9, 0.1)) +
 expand_limits(x = c(-2.7, 2.7), y = c(-2.7, 2.7))
 
-ggsave("../figures/05_230711_circle_test2.pdf",device = "pdf",height = 12,width = 12)
+ggsave("../figures/07_230808_circle_testshaplez.pdf",device = "pdf",height = 12,width = 12)
 
 ```
 
 
 
+# Result 6
+```{r}
+subsetwdi
+as.factdimred2021_knn250_2$pscore_cat 
+dimred2021_knn250_2 %>% mutate(pscore_cat2 = fct_relevel(pscore_cat, 
+            "", "<0", "0 to <5","5 to <10","10 to <20","20 to <30","30 to <40","40 to <50", ">=50" ))->dimred2021_knn250_2
+
+
+dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SL.TLF.ACTI.1524.MA.NE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.TLF.ACTI.1524.MA.NE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+
+
+dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SL.EMP.TOTL.SP.FE.NE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.EMP.TOTL.SP.FE.NE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+
+dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(EN.ATM.CO2E.KD.GD,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "EN.ATM.CO2E.KD.GD","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+
+
+
+dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SP.POP.7074.MA.5Y,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SP.POP.7074.MA.5Y","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+
+
+dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(VC.IHR.PSRC.P5,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "VC.IHR.PSRC.P5","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+
+
+
+dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(TM.VAL.MRCH.R3.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "TM.VAL.MRCH.R3.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(TX.VAL.MRCH.R3.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "TX.VAL.MRCH.R3.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+
+
+
+dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SL.TLF.INTM.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.TLF.INTM.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SL.UEM.TOTL.NE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.UEM.TOTL.NE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SH.XPD.GHED.GE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SH.XPD.GHED.GE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+
+dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(GC.XPN.COMP.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "GC.XPN.COMP.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+dimred2021_knn250_2%>% filter(year%in% 2015:2021,!is.na(GC.XPN.COMP.ZS)) %>% select(`Country Code`,year,`GC.XPN.COMP.ZS`,pscore_cat2)-> investigate
+
+```
 
 # SUPPLEMENT
 

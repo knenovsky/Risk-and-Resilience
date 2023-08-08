@@ -1312,11 +1312,7 @@ iso7_notinDimred %>%
 
 highestCorrelations_notinDimred_Set<-rbind(iso1_notinDimred_SET,iso2_notinDimred_SET,iso3_notinDimred_SET,iso4_notinDimred_SET,iso6_notinDimred_SET,iso7_notinDimred_SET)
 ```
-<<<<<<< HEAD
 
-
-=======
->>>>>>> 1d11734b6a3cea7433efa7ed1659b43136511b1b
 # 3 Boxplots
 
 ## Criterion for subset
@@ -1470,9 +1466,4 @@ for (feature in names(isomap_df)) {
   print(plot)
 }
 
-<<<<<<< HEAD
 ```
-=======
-```
-
->>>>>>> 1d11734b6a3cea7433efa7ed1659b43136511b1b
