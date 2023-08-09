@@ -1621,40 +1621,84 @@ ggsave("../figures/07_230808_circle_testshaplez.pdf",device = "pdf",height = 12,
 
 
 # Result 6
+
+REMOVE THE outliers
 ```{r}
-subsetwdi
-as.factdimred2021_knn250_2$pscore_cat 
-dimred2021_knn250_2 %>% mutate(pscore_cat2 = fct_relevel(pscore_cat, 
-            "", "<0", "0 to <5","5 to <10","10 to <20","20 to <30","30 to <40","40 to <50", ">=50" ))->dimred2021_knn250_2
+#subsetwdi
+num_levels <- 4
+
+# Use cut() to create levels of quantiles
+dimred2021_knn250_2$pscore_level<-as.factor(ntile(dimred2021_knn250_2$pscore_mean, num_levels))
+dimred2021_knn250_2 %>% group_by(pscore_level) %>% summarize(Min=min(pscore_mean),Max=max(pscore_mean)) %>% mutate(p_score_level_label=paste0(Min," to ",Max)) %>% 
+  left_join(dimred2021_knn250_2, . ,by="pscore_level")-> dimred2021_knn250_3
+```
 
 
-dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SL.TLF.ACTI.1524.MA.NE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.TLF.ACTI.1524.MA.NE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+```{r}
+dimred2021_knn250_3 %>% 
+  mutate(pscore_cat2 = fct_relevel(pscore_cat, 
+            "", "<0", "0 to <5","5 to <10","10 to <20","20 to <30","30 to <40","40 to <50", ">=50" )) %>% 
+  mutate(p_score_level_label = fct_relevel(p_score_level_label, 
+            "-6.4 to 5.5" , "5.5 to 8.6" , "8.6 to 18.1" ,"18.1 to 97.1"  )) %>% 
+  filter(!is.na(pscore_level))->dimred2021_knn250_3 
+dimred2021_knn250_3$p_score_level_label %>%  table
+dimred2021_knn250_3 %>% select(pscore_mean,p_score_level_label,pscore_level)
+dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,p_score_level_label) %>% summarise(valueA=mean(SL.TLF.ACTI.1524.MA.NE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=p_score_level_label))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.TLF.ACTI.1524.MA.NE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+```
 
 
-dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SL.EMP.TOTL.SP.FE.NE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.EMP.TOTL.SP.FE.NE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
-
-dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(EN.ATM.CO2E.KD.GD,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "EN.ATM.CO2E.KD.GD","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
-
-
-
-dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SP.POP.7074.MA.5Y,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SP.POP.7074.MA.5Y","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+```{r}
+dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,p_score_level_label) %>% summarise(valueA=mean(SL.TLF.ACTI.1524.MA.NE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=p_score_level_label))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.TLF.ACTI.1524.MA.NE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+```
 
 
-dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(VC.IHR.PSRC.P5,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "VC.IHR.PSRC.P5","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+```{r}
+dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,p_score_level_label) %>% summarise(valueA=mean(SL.EMP.TOTL.SP.FE.NE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=p_score_level_label))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.EMP.TOTL.SP.FE.NE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+
+Indicator<-"EN.ATM.CO2E.KD.GD"
+year_start<-"2015"
+year_end<-"2021"
+
+(get_wdi_trajectory(data=dimred2021_knn250_3,"EN.ATM.CO2E.KD.GD"))
 
 
-
-dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(TM.VAL.MRCH.R3.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "TM.VAL.MRCH.R3.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
-dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(TX.VAL.MRCH.R3.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "TX.VAL.MRCH.R3.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
-
+dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,p_score_level_label,) %>% summarise(valueA=length(unique(`Country Code`)))
+```
 
 
-dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SL.TLF.INTM.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.TLF.INTM.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
-dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SL.UEM.TOTL.NE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.UEM.TOTL.NE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
-dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SH.XPD.GHED.GE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SH.XPD.GHED.GE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+```{r}
+dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SP.POP.7074.MA.5Y,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SP.POP.7074.MA.5Y","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
 
-dimred2021_knn250_2 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(GC.XPN.COMP.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "GC.XPN.COMP.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
-dimred2021_knn250_2%>% filter(year%in% 2015:2021,!is.na(GC.XPN.COMP.ZS)) %>% select(`Country Code`,year,`GC.XPN.COMP.ZS`,pscore_cat2)-> investigate
+
+dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_level) %>% summarise(valueA=mean(VC.IHR.PSRC.P5,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_level))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "VC.IHR.PSRC.P5","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+```
+
+
+```{r}
+dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_level) %>% summarise(valueA=mean(TM.VAL.MRCH.R3.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_level))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "TM.VAL.MRCH.R3.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_level) %>% summarise(valueA=mean(TX.VAL.MRCH.R3.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_level))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "TX.VAL.MRCH.R3.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+```
+```{r}
+devtools::install_github("max-alletsee/rstudio-themes")
+
+library(rstudiothemes) # ... then load the library
+
+    # example 1: bulk-install all light themes
+install_rstudio_themes(theme = "all_light")
+
+```
+
+
+```{r}
+dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_level) %>% summarise(valueA=mean(SL.TLF.INTM.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.TLF.INTM.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SL.UEM.TOTL.NE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.UEM.TOTL.NE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SH.XPD.GHED.GE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SH.XPD.GHED.GE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+
+dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(GC.XPN.COMP.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "GC.XPN.COMP.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+
+dimred2021_knn250_3 %>% filter(year%in% 2010:2021) %>% group_by(year,pscore_level) %>% summarise(valueA=mean(GC.XPN.COMP.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_level))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "GC.XPN.COMP.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+dimred2021_knn250_3 %>%  select(pscore_mean,pscore_level)
+dimred2021_knn250_3%>% filter(year%in% 2015:2021,!is.na(GC.XPN.COMP.ZS)) %>% select(`Country Code`,year,`GC.XPN.COMP.ZS`,pscore_cat2)-> investigate
 
 ```
 

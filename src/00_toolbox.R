@@ -140,3 +140,6 @@ calculate_waves <- function(data) {
   return(list('waves' = wave_list, 'first_global_minima' = first_global_minima))
 }
 
+get_wdi_trajectory<-function(data,Indicator,year_start="2015",year_end="2021"){
+  dimred2021_knn250_3 %>% filter(year%in% year_start:year_end) %>% group_by(year,p_score_level_label)  %>% summarise(valueA=mean(get(Indicator),na.rm=T),Sample=(length(get(Indicator))-sum(is.na(get(Indicator))))) %>% ggplot(aes(y=valueA,x=year,color=p_score_level_label))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% Indicator,"Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_bw() +
+    geom_label(aes(label = paste0("n = ", Sample)))+ xlab("Year")+ylab("")+theme(legend.position = "bottom")}
