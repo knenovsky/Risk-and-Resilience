@@ -140,6 +140,18 @@ calculate_waves <- function(data) {
   return(list('waves' = wave_list, 'first_global_minima' = first_global_minima))
 }
 
-get_wdi_trajectory<-function(data,Indicator,year_start="2015",year_end="2021"){
-  dimred2021_knn250_3 %>% filter(year%in% year_start:year_end) %>% group_by(year,p_score_level_label)  %>% summarise(valueA=mean(get(Indicator),na.rm=T),Sample=(length(get(Indicator))-sum(is.na(get(Indicator))))) %>% ggplot(aes(y=valueA,x=year,color=p_score_level_label))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% Indicator,"Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_bw() +
-    geom_label(aes(label = paste0("n = ", Sample)))+ xlab("Year")+ylab("")+theme(legend.position = "bottom")}
+get_wdi_trajectory<-function(data,Indicator,groupedby,year_start="2015",year_end="2021",CI=F){
+  if(CI==F){
+    data %>% filter(year%in% year_start:year_end) %>% group_by(year,get(groupedby))  %>% 
+      summarise(valueA=mean(get(Indicator),na.rm=T),Sample=(length(get(Indicator))-sum(is.na(get(Indicator))))) %>% ggplot(aes(y=valueA,x=year,color=get(groupedby)))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% Indicator,"Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_bw() +
+      geom_label(aes(label = paste0("n = ", Sample)))+ xlab("Year")+ylab("")+theme(legend.position = "bottom")}
+  
+  if(CI==T){
+    data %>% filter(year%in% year_start:year_end) %>% group_by(year,group=get(groupedby))  %>% 
+      summarise(valueA=mean(get(Indicator),na.rm=T),sd_valueA = sd(get(Indicator), na.rm = TRUE),Sample=(length(get(Indicator))-sum(is.na(get(Indicator))))) %>% 
+      ggplot(aes(y=valueA,x=year,color=group)) +
+      geom_ribbon(aes(ymin = valueA - sd_valueA, ymax = valueA + sd_valueA, fill = group),
+                  alpha = 0.1) +  geom_line() + geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% Indicator,"Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_bw() +
+      geom_label(aes(label = paste0("n = ", Sample)))+ xlab("Year")+ylab("")+theme(legend.position = "bottom")} 
+}
+

@@ -95,13 +95,12 @@ tempyear2 %>% pivot_longer(names_to = "month",
                                                                  month%in%"Dec"~12))-> tempyear3
 tempyear3
 
-<<<<<<< HEAD
-=======
+
 
 out_month2$value<-NULL
 
 out_month2$month <- as.yearmon(out_month2$monthyear, format = "%Y_%m")
->>>>>>> 59b837254c47d665afcbf4f4ed9e1f4b315fa540
+
 ```
 
 
@@ -386,3 +385,5 @@ pdp_all2 %>%   mutate(key = factor(key, levels=features)) %>%  ggplot(pdp_all2,
 
 ```
 
+
+# Correlat

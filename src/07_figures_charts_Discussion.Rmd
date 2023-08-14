@@ -314,7 +314,7 @@ param_list <- list(objective = "reg:squarederror",  # For regression
 ```
 
 ```{r}
-<<<<<<< HEAD
+
 
 
 
@@ -324,12 +324,12 @@ Xgboostinput_first<-merge(table2019_wdiImputed,excessCounrty_monthly_pvalue %>% 
 data_wdi<-Xgboostinput_first
 trials <- 1
 cl <- makeCluster(20)
-=======
+
 require(doParallel)
 data_wdi<-table2019_wdiImputed %>% filter(!is.na(pscore_mean))
 trials <- 1000
 cl <- makeCluster(10)
->>>>>>> 59b837254c47d665afcbf4f4ed9e1f4b315fa540
+
 registerDoParallel(cl)
 # Evaluate the performance of the model using RMSE
 
@@ -1304,7 +1304,7 @@ dcor_var_iso_cons[,5]<-iso5_onlyDimred[iso5_onlyDimred$`Series Code`%in% order_i
 dcor_var_iso_cons[,6]<-iso6_onlyDimred[iso6_onlyDimred$`Series Code`%in% order_indidactors,"iso6_shapley"] %>%  unlist
 dcor_var_iso_cons[,7]<-iso7_onlyDimred[iso7_onlyDimred$`Series Code`%in% order_indidactors,"iso7_shapley"] %>%  unlist
 dcor_var_iso_cons<-dcor_var_iso_cons[rownames(dcor_var_iso_cons) %in%theseindicators,]
-
+dcor_var_iso_cons %>% 
 ```
 
 #### setup
@@ -1312,10 +1312,10 @@ dcor_var_iso_cons<-dcor_var_iso_cons[rownames(dcor_var_iso_cons) %in%theseindica
 
 
 used_var_names_max_dcor <- c(
-  dcor_var_iso_cons[, 1] %>% order(decreasing = TRUE) %>% { .[1:05] } %>% { names(dcor_var_iso_cons[., 1]) },
-  dcor_var_iso_cons[, 2] %>% order(decreasing = TRUE) %>% { .[1:05] } %>% { names(dcor_var_iso_cons[., 2]) },
-  dcor_var_iso_cons[, 3] %>% order(decreasing = TRUE) %>% { .[1:20] } %>% { names(dcor_var_iso_cons[., 3]) },
-  dcor_var_iso_cons[, 4] %>% order(decreasing = TRUE) %>% { .[1:20] } %>% { names(dcor_var_iso_cons[., 4]) },
+  dcor_var_iso_cons[, 1] %>% order(decreasing = TRUE) %>% { .[1:15] } %>% { names(dcor_var_iso_cons[., 1]) },
+  dcor_var_iso_cons[, 2] %>% order(decreasing = TRUE) %>% { .[1:20] } %>% { names(dcor_var_iso_cons[., 2]) },
+  dcor_var_iso_cons[, 3] %>% order(decreasing = TRUE) %>% { .[1:30] } %>% { names(dcor_var_iso_cons[., 3]) },
+  dcor_var_iso_cons[, 4] %>% order(decreasing = TRUE) %>% { .[1:30] } %>% { names(dcor_var_iso_cons[., 4]) },
   dcor_var_iso_cons[, 5] %>% order(decreasing = TRUE) %>% { .[1:05] } %>% { names(dcor_var_iso_cons[., 5]) },
   dcor_var_iso_cons[, 6] %>% order(decreasing = TRUE) %>% { .[1:05] } %>% { names(dcor_var_iso_cons[., 6]) },
   dcor_var_iso_cons[, 7] %>% order(decreasing = TRUE) %>% { .[1:05]  } %>% {names(dcor_var_iso_cons[., 7]) }
@@ -1622,85 +1622,245 @@ ggsave("../figures/07_230808_circle_testshaplez.pdf",device = "pdf",height = 12,
 
 # Result 6
 
-REMOVE THE outliers
+Conrol THE outliers
 ```{r}
 #subsetwdi
 num_levels <- 4
-
 # Use cut() to create levels of quantiles
 dimred2021_knn250_2$pscore_level<-as.factor(ntile(dimred2021_knn250_2$pscore_mean, num_levels))
 dimred2021_knn250_2 %>% group_by(pscore_level) %>% summarize(Min=min(pscore_mean),Max=max(pscore_mean)) %>% mutate(p_score_level_label=paste0(Min," to ",Max)) %>% 
   left_join(dimred2021_knn250_2, . ,by="pscore_level")-> dimred2021_knn250_3
+dimred2021_knn250_3 %>%filter(year%in% 2020) %>%   select(`Country Code`,`Short Name`,TX.VAL.MRCH.R3.ZS,Region.x) %>%  arrange(desc(TX.VAL.MRCH.R3.ZS))
+dimred2021_knn250_3 %>% filter(year%in% 2020) %>%  select(`Country Code`,`Short Name`,SL.TLF.CACT.FE.ZS,Region.x) %>%  arrange(desc(SL.TLF.CACT.FE.ZS))
+
 ```
 
 
 ```{r}
 dimred2021_knn250_3 %>% 
-  mutate(pscore_cat2 = fct_relevel(pscore_cat, 
-            "", "<0", "0 to <5","5 to <10","10 to <20","20 to <30","30 to <40","40 to <50", ">=50" )) %>% 
-  mutate(p_score_level_label = fct_relevel(p_score_level_label, 
-            "-6.4 to 5.5" , "5.5 to 8.6" , "8.6 to 18.1" ,"18.1 to 97.1"  )) %>% 
+  # mutate(pscore_cat2 = fct_relevel(pscore_cat, 
+  #           "", "<0", "0 to <5","5 to <10","10 to <20","20 to <30","30 to <40","40 to <50", ">=50" )) %>% 
+  mutate(p_score_level_label = fct_relevel(p_score_level_label,
+            "-6.4 to 5.5" , "5.5 to 8.6" , "8.6 to 18.1" ,"18.1 to 97.1"  )) %>%
+  mutate(p_score_level_label2=case_when(p_score_level_label%in% "18.1 to 97.1" & RegionSoviet %in% "Post-Soviet"~"High Soviets",
+                                            p_score_level_label%in% "18.1 to 97.1" & RegionSoviet %in% "Latin America & Caribbean"~"High Latin",
+                                               p_score_level_label%in% "18.1 to 97.1" ~"High other",
+                                              TRUE~p_score_level_label ))    %>%                                                                                     
+  # mutate(p_score_level_label = fct_relevel(p_score_level_label, 
+  #           "-6.4 to 4.4","4.4 to 7" ,  "7 to 11.6" ,"11.6 to 20.1" ,"20.1 to 97.1" )) %>% 
+
   filter(!is.na(pscore_level))->dimred2021_knn250_3 
-dimred2021_knn250_3$p_score_level_label %>%  table
-dimred2021_knn250_3 %>% select(pscore_mean,p_score_level_label,pscore_level)
-dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,p_score_level_label) %>% summarise(valueA=mean(SL.TLF.ACTI.1524.MA.NE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=p_score_level_label))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.TLF.ACTI.1524.MA.NE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
-```
+dimred2021_knn250_3$p_score_level_label2 %>%  table
 
-
-```{r}
-dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,p_score_level_label) %>% summarise(valueA=mean(SL.TLF.ACTI.1524.MA.NE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=p_score_level_label))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.TLF.ACTI.1524.MA.NE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
-```
-
-
-```{r}
-dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,p_score_level_label) %>% summarise(valueA=mean(SL.EMP.TOTL.SP.FE.NE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=p_score_level_label))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.EMP.TOTL.SP.FE.NE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
-
+levels(as.factor(dimred2021_knn250_3$p_score_level_label))
 Indicator<-"EN.ATM.CO2E.KD.GD"
 year_start<-"2015"
 year_end<-"2021"
 
-(get_wdi_trajectory(data=dimred2021_knn250_3,"EN.ATM.CO2E.KD.GD"))
-
-
-dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,p_score_level_label,) %>% summarise(valueA=length(unique(`Country Code`)))
+for(i in 1:nrow(subsetwdi)){
+  Indicator<-subsetwdi[i,"Series Code"] %>%  unlist() %>%  as.character()
+  
+  a<-get_wdi_trajectory(data=dimred2021_knn250_3,Indicator,groupedby ="p_score_level_label2" ,CI = T)
+  a %>% ggsave(file = paste0("../test/trajectories/split_regions/",str_replace_all(Indicator,"\\.","_"),".png"),device = "png")
+}
 ```
 
 
 ```{r}
-dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SP.POP.7074.MA.5Y,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SP.POP.7074.MA.5Y","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+a<-get_wdi_trajectory(data=dimred2021_knn250_3,"iso1","p_score_level_label2",CI = T)
+b<-get_wdi_trajectory(data=dimred2021_knn250_3,"iso2","p_score_level_label2",CI = T)
+c<-get_wdi_trajectory(data=dimred2021_knn250_3,"iso3","p_score_level_label2",CI = T)
+d<-get_wdi_trajectory(data=dimred2021_knn250_3,"iso4","p_score_level_label2",CI = T)
+
+ggarrange(a+theme(legend.position = "asd")+xlab("")+ggtitle("iso1"),b+theme(legend.position = "asd")+xlab("")+ggtitle("iso2"),c+theme(legend.position = "asd")+xlab("")+ggtitle("iso3"),d+theme(legend.position = "asd")+xlab("")+ggtitle("iso4")) %>%  ggsave(file="../figures/07_230810_isoExcess.png",device = "png")
+```
+#### High former Soviet statets
+
+add indicators that are not in the dimred
+```{r}
+iso2allcors<-fread("../results/corrTable/05_CorrTable_iso2_quantiles_shapleys_2019to2021_all.csv")
+iso2allcors$iso2_all %>%  summary()
+wdi_data<-fread("../data/05_WDI_data.csv")
 
 
-dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_level) %>% summarise(valueA=mean(VC.IHR.PSRC.P5,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_level))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "VC.IHR.PSRC.P5","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+add_col<-c(colnames(wdi_data)[!(colnames(wdi_data)%in% colnames(dimred2021_knn250_3))])
+
+wdi_data %>% mutate(identifier=paste0(`Country Code`,year)) %>%select(any_of(c("Country Code","year","identifier",add_col)))-> wdi_data2
+dimred2021_knn250_3 %>% mutate(identifier=paste0(`Country Code`,year)) -> dimred2021_knn250_4
+
+left_join(dimred2021_knn250_4,wdi_data2 %>% select(any_of(c("identifier",add_col))),"identifier") %>%  filter() -> dimred2021_knn250_5
+
+iso2allcors %>% filter(N_75to100_75to100>mean(N_75to100_75to100)) %>%  arrange(desc(iso2_75to100_75to100)) %>% slice(1:100)-> newsubset
+newsubset->newsubset
+for(i in 1:nrow(newsubset)){
+  Indicator<-newsubset[i,"Series Code"] %>%  unlist() %>%  as.character()
+  a<-get_wdi_trajectory(data=dimred2021_knn250_5,Indicator,groupedby ="p_score_level_label2" ,CI = T)
+  
+  a %>% ggsave(file = paste0("../test/trajectories/ISO2_forsoviets/",str_replace_all(Indicator,"\\.","_"),".png"),device = "png")
+}
+  a<-get_wdi_trajectory(data=dimred2021_knn250_5,"SP.POP.DPND.OL",groupedby ="p_score_level_label2" ,CI = T)
+a
+dimred2021_knn250_5 %>% filter(year%in% 2020)%>%  arrange(desc(SP.POP.DPND.OL)) %>% select(RegionSoviet,iso1,iso2,iso3,iso4)
+```
+
+
+# Result 7 Tracing back the DImred XGboost for WDI and Dimred
+```{r}
+fortheseIndicators<-colnames(dimred2021_knn250_5)[colnames(dimred2021_knn250_5)%in% wdi_explained$`Series Code`]
+Xgboostinput2<-dimred2021_knn250_5
+
+custom_control <- trainControl(
+  method = "cv",
+  number = 30,  # Increase the number of folds
+  search = "random",
+  allowParallel = TRUE
+  
+)
+
+param_grid <- expand.grid(
+  nrounds = c(50,100),
+  eta = c(0.05),
+  max_depth = c(2, 4),
+  colsample_bytree = c( 1),
+  subsample = c(1),
+  gamma = c(0),
+  min_child_weight = c(0)
+)
+
+
 ```
 
 
 ```{r}
-dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_level) %>% summarise(valueA=mean(TM.VAL.MRCH.R3.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_level))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "TM.VAL.MRCH.R3.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
-dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_level) %>% summarise(valueA=mean(TX.VAL.MRCH.R3.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_level))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "TX.VAL.MRCH.R3.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
+for(i in 1:length(fortheseIndicators)){
+
+Label<-fortheseIndicators[i]
+features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
+
+
+# Set the proportion for the test set (e.g., 0.2 for 20% test data)
+
+test_proportion <- 0.8
+Xgboostinput_filtered<-Xgboostinput2 %>%  select(features,Label) %>% drop_na()
+index <- caret::createDataPartition(Xgboostinput_filtered$iso1, p = test_proportion, list = FALSE)
+# Split the data into training and test sets
+train_data <- Xgboostinput_filtered[index, ]
+test_data <- Xgboostinput_filtered[-index, ]
+
+
+# Train the XGBoost model using the function
+trainedModel<- train_xgboost_model(train_data, Label, features, custom_control, param_grid)
+# Assuming you have the 'finalmodel' and 'test_data' from the previous steps
+predictedValue<-postResample(
+      predict(trainedModel, 
+          test_data %>% dplyr::select(features)),  
+        test_data %>% pull(Label)
+      )
+
+plotA<-get_wdi_trajectory(data=dimred2021_knn250_5,Label,groupedby ="p_score_level_label2" ,CI = T)
+plotB<-xgboost::xgb.ggplot.shap.summary(data = as.matrix(train_data %>% 
+  dplyr::select(features)),
+  model = trainedModel$finalModel) +scale_color_viridis("Feature Value")+ theme_bw() + xlab("Features")+ylab("Shapley value")+theme(legend.position = "bottom")
+importance<-varImp(trainedModel)$importance
+
+importance$RMSE<-predictedValue[1]
+importance$Rsquared<-predictedValue[2]
+importance$MAE<-predictedValue[3]
+pdp_all <- lapply(features, function(x){#
+    pdp <- pdp::partial(trainedModel, pred.var = c(x), chull = TRUE)
+    df <- pdp %>%
+    gather(-yhat, key = key, value = value)
+  })
+pdp_all2<-do.call(rbind,pdp_all)
+
+pdp_all2$indiacator<-Label
+pdp_all2[pdp_all2$key %in% "iso1","Importance"]<-importance[rownames(importance)%in%"iso1","Overall"]
+pdp_all2[pdp_all2$key %in% "iso1","RMSE"]<-importance[rownames(importance)%in%"iso1","RMSE"]
+pdp_all2[pdp_all2$key %in% "iso1","Rsquared"]<-importance[rownames(importance)%in%"iso1","Rsquared"]
+pdp_all2[pdp_all2$key %in% "iso1","MAE"]<-importance[rownames(importance)%in%"iso1","MAE"]
+
+pdp_all2[pdp_all2$key %in% "iso2","Importance"]<-importance[rownames(importance)%in%"iso2","Overall"]
+pdp_all2[pdp_all2$key %in% "iso2","RMSE"]<-importance[rownames(importance)%in%"iso2","RMSE"]
+pdp_all2[pdp_all2$key %in% "iso2","Rsquared"]<-importance[rownames(importance)%in%"iso2","Rsquared"]
+pdp_all2[pdp_all2$key %in% "iso2","MAE"]<-importance[rownames(importance)%in%"iso2","MAE"]
+
+pdp_all2[pdp_all2$key %in% "iso3","Importance"]<-importance[rownames(importance)%in%"iso3","Overall"]
+pdp_all2[pdp_all2$key %in% "iso3","RMSE"]<-importance[rownames(importance)%in%"iso3","RMSE"]
+pdp_all2[pdp_all2$key %in% "iso3","Rsquared"]<-importance[rownames(importance)%in%"iso3","Rsquared"]
+pdp_all2[pdp_all2$key %in% "iso3","MAE"]<-importance[rownames(importance)%in%"iso3","MAE"]
+
+pdp_all2[pdp_all2$key %in% "iso4","Importance"]<-importance[rownames(importance)%in%"iso4","Overall"]
+pdp_all2[pdp_all2$key %in% "iso4","RMSE"]<-importance[rownames(importance)%in%"iso4","RMSE"]
+pdp_all2[pdp_all2$key %in% "iso4","Rsquared"]<-importance[rownames(importance)%in%"iso4","Rsquared"]
+pdp_all2[pdp_all2$key %in% "iso4","MAE"]<-importance[rownames(importance)%in%"iso4","MAE"]
+
+pdp_all2[pdp_all2$key %in% "iso5","Importance"]<-importance[rownames(importance)%in%"iso5","Overall"]
+pdp_all2[pdp_all2$key %in% "iso5","RMSE"]<-importance[rownames(importance)%in%"iso5","RMSE"]
+pdp_all2[pdp_all2$key %in% "iso5","Rsquared"]<-importance[rownames(importance)%in%"iso5","Rsquared"]
+pdp_all2[pdp_all2$key %in% "iso5","MAE"]<-importance[rownames(importance)%in%"iso5","MAE"]
+
+pdp_all2[pdp_all2$key %in% "iso6","Importance"]<-importance[rownames(importance)%in%"iso6","Overall"]
+pdp_all2[pdp_all2$key %in% "iso6","RMSE"]<-importance[rownames(importance)%in%"iso6","RMSE"]
+pdp_all2[pdp_all2$key %in% "iso6","Rsquared"]<-importance[rownames(importance)%in%"iso6","Rsquared"]
+pdp_all2[pdp_all2$key %in% "iso6","MAE"]<-importance[rownames(importance)%in%"iso6","MAE"]
+
+pdp_all2[pdp_all2$key %in% "iso7","Importance"]<-importance[rownames(importance)%in%"iso7","Overall"]
+pdp_all2[pdp_all2$key %in% "iso7","RMSE"]<-importance[rownames(importance)%in%"iso7","RMSE"]
+pdp_all2[pdp_all2$key %in% "iso7","Rsquared"]<-importance[rownames(importance)%in%"iso7","Rsquared"]
+pdp_all2[pdp_all2$key %in% "iso7","MAE"]<-importance[rownames(importance)%in%"iso7","MAE"]
+
+
+
+
+plotC<-pdp_all2 %>%   mutate(key = factor(key, levels=features)) %>%  ggplot(pdp_all2,
+       mapping = aes_string(x = "value",
+                           y = "yhat"))+
+  geom_point()+
+  geom_smooth(method = "loess", se=T)+
+  theme_minimal()+
+  facet_wrap(~(key), scales = "free", ncol = 3) 
+
+shapleyplot<-plot_grid(plotC,plotB,ncol = 2,rel_widths  =     c(1, 5/10))
+indicatorplot<-plotA
+pdp_all2 %>% fwrite(paste0("../output/wdi_dim_corr/summarystat/",Label,"_summary.csv"),)
+shapleyplot %>% ggsave(file=paste0("../output/wdi_dim_corr/plots/",Label,"_shapley_plot.png"),device="png")
+indicatorplot %>% ggsave(file=paste0("../output/wdi_dim_corr/plots/",Label,"_indicator_plot.png"),device="png")
+}
 ```
+
+
+### Agnostic
 ```{r}
-devtools::install_github("max-alletsee/rstudio-themes")
 
-library(rstudiothemes) # ... then load the library
-
-    # example 1: bulk-install all light themes
-install_rstudio_themes(theme = "all_light")
-
-```
+#shap_values <- shap.values(xgb_model = trainedModel$finalModel, X_train = as.matrix(train_data %>% dplyr::select(all_of(features))))
 
 
-```{r}
-dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_level) %>% summarise(valueA=mean(SL.TLF.INTM.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.TLF.INTM.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
-dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SL.UEM.TOTL.NE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SL.UEM.TOTL.NE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
-dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(SH.XPD.GHED.GE.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "SH.XPD.GHED.GE.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
-
-dimred2021_knn250_3 %>% filter(year%in% 2015:2021) %>% group_by(year,pscore_cat2) %>% summarise(valueA=mean(GC.XPN.COMP.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_cat2))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "GC.XPN.COMP.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
-
-dimred2021_knn250_3 %>% filter(year%in% 2010:2021) %>% group_by(year,pscore_level) %>% summarise(valueA=mean(GC.XPN.COMP.ZS,na.rm=T)) %>% ggplot(aes(y=valueA,x=year,color=pscore_level))+ geom_point()+ geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% "GC.XPN.COMP.ZS","Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_blank()
-dimred2021_knn250_3 %>%  select(pscore_mean,pscore_level)
-dimred2021_knn250_3%>% filter(year%in% 2015:2021,!is.na(GC.XPN.COMP.ZS)) %>% select(`Country Code`,year,`GC.XPN.COMP.ZS`,pscore_cat2)-> investigate
+pdp_all <- lapply(features, function(x){#
+    pdp <- pdp::partial(trainedModel, pred.var = c(x), chull = TRUE)
+    df <- pdp %>%
+    gather(-yhat, key = key, value = value)
+  })
+pdp_all2<-do.call(rbind,pdp_all)
+pdp_all2 %>%   mutate(key = factor(key, levels=features)) %>%  ggplot(pdp_all2,
+       mapping = aes_string(x = "value",
+                           y = "yhat"))+
+  geom_point()+
+  geom_smooth(method = "loess", se=T)+
+  theme_minimal()+
+  facet_wrap(~(key), scales = "free", ncol = 3)  + ggtitle("Second Wave")
 
 ```
+
+
+
+
+
+
+
+
+
+
+
 
 # SUPPLEMENT
 

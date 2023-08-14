@@ -51,6 +51,7 @@ colnames(allcorr)[2:11]<-paste(colnames(allcorr)[2:11],"_all",sep="")
 #   pivot_wider(names_from = "Indicator Code")
 # iso7(wdi_data,"../data/05_WDI_data.csv")
 wdi_data<-fread("../data/05_WDI_data.csv")
+
 wdi_explained<-fread("../data/WDI_data_230609/WDI_CSV/WDISeries.csv")
 ```
 
