@@ -1706,6 +1706,7 @@ dimred2021_knn250_5 %>% filter(year%in% 2020)%>%  arrange(desc(SP.POP.DPND.OL)) 
 
 # Result 7 Tracing back the DImred XGboost for WDI and Dimred
 ```{r}
+
 fortheseIndicators<-colnames(dimred2021_knn250_5)[colnames(dimred2021_knn250_5)%in% wdi_explained$`Series Code`]
 Xgboostinput2<-dimred2021_knn250_5
 
@@ -1734,6 +1735,7 @@ param_grid <- expand.grid(
 ```{r}
 for(i in 1:length(fortheseIndicators)){
 
+
 Label<-fortheseIndicators[i]
 features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
 
@@ -1741,7 +1743,8 @@ features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
 # Set the proportion for the test set (e.g., 0.2 for 20% test data)
 
 test_proportion <- 0.8
-Xgboostinput_filtered<-Xgboostinput2 %>%  select(features,Label) %>% drop_na()
+Xgboostinput_filtered<-Xgboostinput2 %>%  select(features,Label)  %>% drop_na()
+Xgboostinput_filtered[, (Label) := scale(.SD[[Label]])]
 index <- caret::createDataPartition(Xgboostinput_filtered$iso1, p = test_proportion, list = FALSE)
 # Split the data into training and test sets
 train_data <- Xgboostinput_filtered[index, ]
@@ -1762,6 +1765,7 @@ plotB<-xgboost::xgb.ggplot.shap.summary(data = as.matrix(train_data %>%
   dplyr::select(features)),
   model = trainedModel$finalModel) +scale_color_viridis("Feature Value")+ theme_bw() + xlab("Features")+ylab("Shapley value")+theme(legend.position = "bottom")
 importance<-varImp(trainedModel)$importance
+predictedValue
 
 importance$RMSE<-predictedValue[1]
 importance$Rsquared<-predictedValue[2]

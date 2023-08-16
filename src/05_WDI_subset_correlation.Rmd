@@ -90,8 +90,9 @@ cutoff_for_isos<-fread("../output/07_cutoff_for_latenspace.csv")
 ## subset 2019-2021
 ```{r}
 wdi_data_cons_df %>%  filter(year.x%in% c(2019:2021))-> wdi_data_cons_df
+w
 ```
-
+wdi_data_cons_df
 
 
 ## iso 1 

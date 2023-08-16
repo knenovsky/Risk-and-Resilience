@@ -1,0 +1,68 @@
+---
+title: "08_Agnostic_WDI"
+author: "Kolja Nenoff"
+date: "2023-08-14"
+output: html_document
+---
+```{r setup, include=FALSE}
+rm(list = ls())
+library(rstudioapi)
+library(magrittr)
+library(tidyverse)
+library(data.table)
+library(parallel)
+library(dimRed)
+library(devtools)
+library(igraph)
+library(energy)
+library(ggrepel)
+library(ggalt)
+library(ggraph)
+library(trend)
+library(riverplot)
+library(RANN)
+library(RJSONIO)
+library(RSpectra)
+library(pcaMethods)
+require(broom)
+require(GGally)
+require(ggpubr)
+require(xgboost)
+require(caret)
+require(pdp)
+require(iml)
+require(data.table)
+require(tidyverse)
+require(cowplot)
+require(readxl)
+```
+```{r}
+wdi_explained<-fread("../data/WDI_data_230609/WDI_CSV/WDISeries.csv")
+#load("../data/07_230504_OWID_dataset")
+dimred2021_knn250_2<-fread("../output/02_230612_Dimred_ExcessMort_annual.csv")
+col_pal <- c("#1F968B",  "#7570b3", "#e7298a", "#3CBB75","yellow3", "orange","slategrey")
+```
+
+# WDI prediction Shapley values
+
+```{r}
+listi<-list.files("../output/wdi_dim_corr/summarystat/")
+
+entireListi<-data.frame()
+for(i in 1:length(listi)){
+  a<-fread(paste0("../output/wdi_dim_corr/summarystat/",listi[i]))
+  
+  entireListi<- rbind(entireListi,a)
+}
+options(scipen = 999)
+entireListi %>%  unique-> asd
+merge(wdi_explained[,c(1:3)],asd,by.x="Series Code",by.y="indiacator")->asda
+
+asda %>%  filter(key%in% "iso3",value< -0.1)%>% arrange(desc(yhat),desc(Rsquared)) %>% group_by(key,`Series Code`,`Indicator Name`,Rsquared) %>% summarize(Shapmean=mean(yhat))%>%  unique-> indicator
+```
+
+```{r}
+energycorr<-fread("../results/corrTable/05_CorrTable_iso2_quantiles_shapleys_2019to2021_all.csv")
+iso2Imp
+```
+
