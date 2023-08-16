@@ -96,7 +96,6 @@ tempyear2 %>% pivot_longer(names_to = "month",
 tempyear3
 
 
-
 out_month2$value<-NULL
 
 out_month2$month <- as.yearmon(out_month2$monthyear, format = "%Y_%m")
@@ -206,7 +205,7 @@ for (i in 1:nrow(FirstWave2)){
 # Final Monthly analysis
 
 ```{r}
-features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
+features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","PC11","PC12","PC13","PC14")
 # Everytime we are looking at iso of the year before for matching them we are taking the year after that
 dimred2019<-dimred2021_knn250_2[]%>% filter(year%in%2019) %>%  
     mutate(identifier_CountryYear=paste0(`Country Code`,"_","2020")) %>%    
@@ -221,18 +220,20 @@ Xgboostinput_first<-merge(Dimred_input,excessCounrty_monthly_pvalue2,by="identif
 Xgboostinput_second<-merge(Xgboostinput_first,thisisOWID,by.y="monthyear",by.x = "identifier")
 
 Xgboostinput<-tempyear3  %>% mutate(isoyearmonth=paste0(ISO_code,"_",year,"_",month)) %>% rename(meanTemp=value) %>%  select(isoyearmonth,meanTemp)%>% merge(Xgboostinput_second, . , by.x = "identifier",by.y = "isoyearmonth")
-#Xgboostinput%>% fwrite("../results/06_Dimred_Exmort_monthly.csv")
+#Xgboostinput%>% fwrite("../results/06_Dimred_Exmort__withpc_monthly.csv")
 ```
 
 
 ```{r}
-Xgboostinput<- fread("../results/06_Dimred_Exmort_monthly.csv")
+Xgboostinput<- fread("../results/06_Dimred_Exmort__withpc_monthly.csv")
 Xgboostinput<-Xgboostinput %>% mutate(yearmon=as.numeric(as.factor(str_remove(pattern = "[a-zA-Z_]+",identifier)))) 
 
 Label<-"p_value_mort"
-features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7","new_cases_smoothed_per_million","meanTemp","yearmon","diabetes_prevalence","median_age")
+features<-c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","PC11","PC12","PC13","PC14")
 
+#features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7","new_cases_smoothed_per_million","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","PC11","PC12","PC13","PC14")
 
+set.seed(123)
 custom_control <- trainControl(
   method = "cv",
   number = 30,  # Increase the number of folds
@@ -255,7 +256,7 @@ param_grid <- expand.grid(
 
 test_proportion <- 0.8
 Xgboostinput_filtered<-Xgboostinput %>%  select(features,Label) %>% drop_na()
-index <- caret::createDataPartition(Xgboostinput_filtered$iso1, p = test_proportion, list = FALSE)
+index <- caret::createDataPartition(Xgboostinput_filtered$p_value_mort, p = test_proportion, list = FALSE)
 # Split the data into training and test sets
 train_data <- Xgboostinput_filtered[index, ]
 test_data <- Xgboostinput_filtered[-index, ]
@@ -274,11 +275,13 @@ predictedValue
 
 
 ```
+26 % pc 1-5 ,33 %  Iso 1 -5 and 31.2 pc 1-14, and iso 3- 7 32
 
+AAAALSO es sieht so aus als 
 
 ## Agnostic
 ```{r}
-shap_values <- shap.values(xgb_model = trainedModel$finalModel, X_train = as.matrix(train_data %>% dplyr::select(all_of(features))))
+#shap_values <- shap.values(xgb_model = trainedModel$finalModel, X_train = as.matrix(train_data %>% dplyr::select(all_of(features))))
 xgboost::xgb.ggplot.shap.summary(data = as.matrix(train_data %>% 
   dplyr::select(features)),
   model = trainedModel$finalModel) +scale_color_viridis("Feature Value")+ theme_bw() + xlab("Features")+ylab("Shapley value")+theme(legend.position = "left")
@@ -290,7 +293,7 @@ pdp_all <- lapply(features, function(x){#
     gather(-yhat, key = key, value = value)
   })
 pdp_all2<-do.call(rbind,pdp_all)
-pdp_all2 %>%   mutate(key = factor(key, levels=features)) %>%  ggplot(pdp_all2,
+pdp_all2 %>%   mutate(key = factor(key, levels=c("PC1","PC2","PC3","PC4","PC5","PC10"))) %>%  ggplot(pdp_all2,
        mapping = aes_string(x = "value",
                            y = "yhat"))+
   geom_point()+
@@ -313,7 +316,7 @@ shap.plot.dependence(data_long = shap_long, x = 'iso4', y = 'new_cases_smoothed_
 
 ## A .Subset First wave
 ```{r}
-gboostinput<- fread("../results/06_Dimred_Exmort_monthly.csv")
+Xgboostinput<- fread("../results/06_Dimred_Exmort_monthly.csv")
 Xgboostinput2<-Xgboostinput %>% mutate(yearmon=as.numeric(as.factor(str_remove(pattern = "[a-zA-Z_]+",identifier)))) %>% filter(yearmon>14)
 
 Label<-"p_value_mort"
@@ -385,5 +388,3 @@ pdp_all2 %>%   mutate(key = factor(key, levels=features)) %>%  ggplot(pdp_all2,
 
 ```
 
-
-# Correlat
