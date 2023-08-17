@@ -154,4 +154,116 @@ get_wdi_trajectory<-function(data,Indicator,groupedby,year_start="2015",year_end
                   alpha = 0.1) +  geom_line() + geom_line()+ ggtitle(wdi_explained[wdi_explained$`Series Code`%in% Indicator,"Indicator Name"])+ scale_color_viridis(discrete = T)+ theme_bw() +
       geom_label(aes(label = paste0("n = ", Sample)))+ xlab("Year")+ylab("")+theme(legend.position = "bottom")} 
 }
+process_indicator<-function(indicator){
+  require(tidyverse)
+  require(data.table)
+  require(xgboost)
+  require(caret)
+  require(viridis)
+  require(cowplot)
+  Label<-indicator
+  features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7")
+  features2<-c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","PC11","PC12","PC13","PC14")
+  
+  # Set the proportion for the test set (e.g., 0.2 for 20% test data)
+  
+  test_proportion <- 0.8
+  Xgboostinput_filtered<-Xgboostinput2 %>%  select(features,Label)  %>% drop_na()
+  Xgboostinput_filtered[, (Label) := scale(.SD[[Label]])]
+  index <- caret::createDataPartition(Xgboostinput_filtered$iso1, p = test_proportion, list = FALSE)
+  # Split the data into training and test sets
+  train_data <- Xgboostinput_filtered[index, ]
+  test_data <- Xgboostinput_filtered[-index, ]
+  
+  # Train the XGBoost model using the function
+  trainedModel<- train_xgboost_model(train_data, Label, features, custom_control, param_grid)
+  # Assuming you have the 'finalmodel' and 'test_data' from the previous steps
+  predictedValue<-postResample(
+    predict(trainedModel, 
+            test_data %>% dplyr::select(features)),  
+    test_data %>% pull(Label)
+  )
+  
+  plotA<-get_wdi_trajectory(data=dimred2021_knn250_5,Label,groupedby ="p_score_level_label2" ,CI = T)
+  plotB<-xgboost::xgb.ggplot.shap.summary(data = as.matrix(train_data %>% 
+                                                             dplyr::select(features)),
+                                          model = trainedModel$finalModel) +scale_color_viridis("Feature Value")+ theme_bw() + xlab("Features")+ylab("Shapley value")+theme(legend.position = "bottom")
+  importance<-varImp(trainedModel)$importance
+  predictedValue
+  
+  importance$RMSE<-predictedValue[1]
+  importance$Rsquared<-predictedValue[2]
+  importance$MAE<-predictedValue[3]
+  pdp_all <- lapply(features, function(x){#
+    pdp <- pdp::partial(trainedModel, pred.var = c(x), chull = TRUE)
+    df <- pdp %>%
+      gather(-yhat, key = key, value = value)
+  })
+  pdp_all2<-do.call(rbind,pdp_all)
+  
+  pdp_all2$indiacator<-Label
+  pdp_all2[pdp_all2$key %in% "iso1","Importance"]<-importance[rownames(importance)%in%"iso1","Overall"]
+  pdp_all2[pdp_all2$key %in% "iso1","RMSE"]<-importance[rownames(importance)%in%"iso1","RMSE"]
+  pdp_all2[pdp_all2$key %in% "iso1","Rsquared"]<-importance[rownames(importance)%in%"iso1","Rsquared"]
+  pdp_all2[pdp_all2$key %in% "iso1","MAE"]<-importance[rownames(importance)%in%"iso1","MAE"]
+  
+  pdp_all2[pdp_all2$key %in% "iso2","Importance"]<-importance[rownames(importance)%in%"iso2","Overall"]
+  pdp_all2[pdp_all2$key %in% "iso2","RMSE"]<-importance[rownames(importance)%in%"iso2","RMSE"]
+  pdp_all2[pdp_all2$key %in% "iso2","Rsquared"]<-importance[rownames(importance)%in%"iso2","Rsquared"]
+  pdp_all2[pdp_all2$key %in% "iso2","MAE"]<-importance[rownames(importance)%in%"iso2","MAE"]
+  
+  pdp_all2[pdp_all2$key %in% "iso3","Importance"]<-importance[rownames(importance)%in%"iso3","Overall"]
+  pdp_all2[pdp_all2$key %in% "iso3","RMSE"]<-importance[rownames(importance)%in%"iso3","RMSE"]
+  pdp_all2[pdp_all2$key %in% "iso3","Rsquared"]<-importance[rownames(importance)%in%"iso3","Rsquared"]
+  pdp_all2[pdp_all2$key %in% "iso3","MAE"]<-importance[rownames(importance)%in%"iso3","MAE"]
+  
+  pdp_all2[pdp_all2$key %in% "iso4","Importance"]<-importance[rownames(importance)%in%"iso4","Overall"]
+  pdp_all2[pdp_all2$key %in% "iso4","RMSE"]<-importance[rownames(importance)%in%"iso4","RMSE"]
+  pdp_all2[pdp_all2$key %in% "iso4","Rsquared"]<-importance[rownames(importance)%in%"iso4","Rsquared"]
+  pdp_all2[pdp_all2$key %in% "iso4","MAE"]<-importance[rownames(importance)%in%"iso4","MAE"]
+  
+  pdp_all2[pdp_all2$key %in% "iso5","Importance"]<-importance[rownames(importance)%in%"iso5","Overall"]
+  pdp_all2[pdp_all2$key %in% "iso5","RMSE"]<-importance[rownames(importance)%in%"iso5","RMSE"]
+  pdp_all2[pdp_all2$key %in% "iso5","Rsquared"]<-importance[rownames(importance)%in%"iso5","Rsquared"]
+  pdp_all2[pdp_all2$key %in% "iso5","MAE"]<-importance[rownames(importance)%in%"iso5","MAE"]
+  
+  pdp_all2[pdp_all2$key %in% "iso6","Importance"]<-importance[rownames(importance)%in%"iso6","Overall"]
+  pdp_all2[pdp_all2$key %in% "iso6","RMSE"]<-importance[rownames(importance)%in%"iso6","RMSE"]
+  pdp_all2[pdp_all2$key %in% "iso6","Rsquared"]<-importance[rownames(importance)%in%"iso6","Rsquared"]
+  pdp_all2[pdp_all2$key %in% "iso6","MAE"]<-importance[rownames(importance)%in%"iso6","MAE"]
+  
+  pdp_all2[pdp_all2$key %in% "iso7","Importance"]<-importance[rownames(importance)%in%"iso7","Overall"]
+  pdp_all2[pdp_all2$key %in% "iso7","RMSE"]<-importance[rownames(importance)%in%"iso7","RMSE"]
+  pdp_all2[pdp_all2$key %in% "iso7","Rsquared"]<-importance[rownames(importance)%in%"iso7","Rsquared"]
+  pdp_all2[pdp_all2$key %in% "iso7","MAE"]<-importance[rownames(importance)%in%"iso7","MAE"]
+  
+  pc_Corr_filtered<-Xgboostinput2 %>%  select(features2,Label)  %>% drop_na()
+  PC_Corrtable<-matrix(nrow = length(fortheseIndicators),ncol=length(features2)+1) %>%  data.frame()
+  colnames(PC_Corrtable)<-c("Indicator",features2)
+  PC_Corrtable$Indicator<-fortheseIndicators
+  
+  for(j in 1:length(features2)){
+    
+    cor_value<-energy::dcor(pc_Corr_filtered%>% select(features2[j]),pc_Corr_filtered %>% select(Label))
+    PC_Corrtable[PC_Corrtable$Indicator%in% Label,colnames(PC_Corrtable)%in% features2[j]]  <-cor_value
+    
+  }
+  
+  
+  plotC<-pdp_all2 %>%   mutate(key = factor(key, levels=features)) %>%  ggplot(pdp_all2,
+                                                                               mapping = aes_string(x = "value",
+                                                                                                    y = "yhat"))+
+    geom_point()+
+    geom_smooth(method = "loess", se=T)+
+    theme_minimal()+
+    facet_wrap(~(key), scales = "free", ncol = 3) 
+  
+  shapleyplot<-plot_grid(plotC,plotB,ncol = 2,rel_widths  =     c(1, 5/10))
+  indicatorplot<-plotA
+  PC_Corrtable%>%  drop_na() %>%  drop_na()%>% fwrite(paste0("../output/wdi_dim_corr/summarystat_pc/PC_corr",indicator,"_summary.csv"),)
+  pdp_all2 %>% fwrite(paste0("../output/wdi_dim_corr/summarystat/",indicator,"_summary.csv"),)
+  shapleyplot %>% ggsave(file=paste0("../output/wdi_dim_corr/plots/",indicator,"_shapley_plot.png"),device="png")
+  indicatorplot %>% ggsave(file=paste0("../output/wdi_dim_corr/plots/",indicator,"_indicator_plot.png"),device="png")
+  return(list(indicator = indicator))
+}
 

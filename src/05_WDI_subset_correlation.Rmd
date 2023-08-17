@@ -58,7 +58,8 @@ wdi_explained<-fread("../data/WDI_data_230609/WDI_CSV/WDISeries.csv")
 ## merge to dataset
 
 ```{r}
-ExcessDimred2<-ExcessDimred%>%  select(`Country Code`,year,iso1,iso2,iso3,iso4,iso5,iso6,iso7,P_mort_2020,P_mort_2021) %>% 
+features<-c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","PC11","PC12","PC13","PC14")
+ExcessDimred2<-ExcessDimred%>%  select(`Country Code`,year,iso1,iso2,iso3,iso4,iso5,iso6,iso7,features) %>% 
   mutate(identifer=paste0(`Country Code`,"_",year))
 
                   
@@ -1469,3 +1470,104 @@ for (feature in names(isomap_df)) {
 }
 
 ```
+
+
+
+# 5 PCA
+
+## PC 1 
+
+categorie 1 is based on quartiles
+categorie 2 is based on the shapley subset in script 04
+```{r,eval=FALSE}
+group_values<-wdi_data_cons_df$PC1 %>%  quantile()
+thisiso<-paste0("PC1")
+var_comb <- expand.grid(var_name = used_var_names,
+                          iso_name = thisiso,
+                          stringsAsFactors = FALSE)
+
+
+
+
+wdi_data_cons_df -> wdi_data_cons_df
+
+
+variable<-groupA
+
+
+
+res_Tsamples <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  sum(idx)
+})
+res_spear <- parLapplyLB(cl, 1:nrow(var_comb), function (i) {
+  message("i: ", i, " / ", nrow(var_comb))
+  idx <- !is.na(wdi_data_cons_df[[var_comb$var_name[i]]])
+   idx<-eval(parse(text=paste0("idx&",variable,sep="")))
+  cor(wdi_data_cons_df[[var_comb$var_name[i]]][idx],
+               wdi_data_cons_df[[var_comb$iso_name[i]]][idx],method = "pearson")
+})
+
+wdi_data_cons_dcor <- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor[var_comb$var_name[i],
+                     thisiso] <- res[[i]]
+}
+
+wdi_data_cons_dcor2<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor2[var_comb$var_name[i],
+                       thisiso] <- res_spear[[i]]
+}
+wdi_data_cons_dcor3<- matrix(
+  NA_real_, length(used_var_names), 1,
+  dimnames = list(used_var_names, thisiso)
+)
+for (i in seq_len(nrow(var_comb))) {
+  wdi_data_cons_dcor3[var_comb$var_name[i],
+                       thisiso] <- res_Tsamples[[i]]
+}
+colnames(wdi_data_cons_dcor2)<-paste("Pearson",colnames(wdi_data_cons_dcor2),sep="_")
+colnames(wdi_data_cons_dcor3)<-paste("N",colnames(wdi_data_cons_dcor3),sep="_")
+
+cbind(data.frame(wdi_data_cons_dcor),data.frame(N=wdi_data_cons_dcor3[,1]),wdi_data_cons_dcor2) %>% rownames_to_column(var = "indicators")-> outi
+categoriestr<-str_replace(str_remove(groupA,"idx_"),"_","to")
+
+
+if((groupA%in%"idx_shapley")){
+  outi$range<- paste0(round(miniso,digits = 3),"_",round(maxiso,digits = 3))
+  
+}
+
+if(!(groupA%in%"idx_shapley")){
+  outi$range<- paste0(round(min(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3)," to ",
+       round(max(wdi_data_cons_df[wdi_data_cons_df$categorie%in%categoriestr,..thisiso]),digits = 3),sep="")
+colnames(outi)<-paste(colnames(outi),categoriestr,sep = "_")
+  
+}
+
+
+eval(parse(text=paste("outi-> WDI_dimred_iso1_",groupA,sep="")))
+
+}
+
+```
+
+```{r,eval=FALSE}
+wdi_dimred_iso1<-cbind(WDI_dimred_iso1_idx_0_25,WDI_dimred_iso1_idx_25_50,WDI_dimred_iso1_idx_50_75,WDI_dimred_iso1_idx_75_100,WDI_dimred_iso1_idx_shapley)
+wdi_dimred_iso1_1<-data.frame("Indicators"=wdi_dimred_iso1$indicators_0to25,wdi_dimred_iso1[,!grepl("indicators",colnames(wdi_dimred_iso1))])
+
+wdi_dimred_iso1_2<-merge(allcorr,wdi_dimred_iso1_1,by="Indicators",all.y=T)
+wdi_dimred_iso1_3<-merge(wdi_explained[,c("Series Code","Topic","Indicator Name")],wdi_dimred_iso1_2,by.x="Series Code",by.y="Indicators")
+#fwrite(wdi_dimred_iso1_3,"../results/corrTable/05_CorrTable_iso1_quantiles_shapleys_2019to2021_all.csv")
+```
+```
+
