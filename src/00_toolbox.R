@@ -267,3 +267,35 @@ process_indicator<-function(indicator){
   return(list(indicator = indicator))
 }
 
+correlation_PCA<-function(indicator){
+  require(tidyverse)
+  require(data.table)
+  require(xgboost)
+  require(caret)
+  require(viridis)
+  require(cowplot)
+  Label<-indicator
+  features2<-c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","PC11","PC12","PC13","PC14")
+
+ 
+  pc_Corr_filtered<-Xgboostinput2 %>%  select(features2,Label)  %>% drop_na() %>%  scale() %>%  data.table()
+  
+  PC_Corrtable<-matrix(nrow = length(fortheseIndicators),ncol=length(features2)+1) %>%  data.frame()
+  colnames(PC_Corrtable)<-c("Indicator",features2)
+  PC_Corrtable$Indicator<-fortheseIndicators
+  
+  
+  
+  for(j in 1:length(features2)){
+    
+    cor_value<-cor(pc_Corr_filtered%>% select(features2[j]),pc_Corr_filtered %>% select(Label))
+    PC_Corrtable[PC_Corrtable$Indicator%in% Label,colnames(PC_Corrtable)%in% features2[j]]  <-cor_value
+    
+  }
+  
+
+  PC_Corrtable %>%  drop_na()%>% fwrite(paste0("../output/wdi_dim_corr/summarystat_pearson/pearson_",indicator,"_summary.csv"),)
+
+  return(list(indicator = indicator))
+}
+

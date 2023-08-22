@@ -1663,6 +1663,8 @@ for(i in 1:nrow(subsetwdi)){
   a<-get_wdi_trajectory(data=dimred2021_knn250_3,Indicator,groupedby ="p_score_level_label2" ,CI = T)
   a %>% ggsave(file = paste0("../test/trajectories/split_regions/",str_replace_all(Indicator,"\\.","_"),".png"),device = "png")
 }
+
+dimred2021_knn250_5 %>%  filter(p_score_level_label2%in% "High other") %>% select(`Country Code`,RegionSoviet,`Country Name`) %>%  unique-> asd
 ```
 
 
