@@ -96,8 +96,6 @@ tempyear2 %>% pivot_longer(names_to = "month",
 tempyear3
 
 
-out_month2$value<-NULL
-
 out_month2$month <- as.yearmon(out_month2$monthyear, format = "%Y_%m")
 
 ```
@@ -205,7 +203,9 @@ for (i in 1:nrow(FirstWave2)){
 # Final Monthly analysis
 
 ```{r}
-features<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7","PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","PC11","PC12","PC13","PC14")
+features1<-c("iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10","iso11","iso12","iso13","iso14","iso15","iso16","iso17","iso18","iso19","iso20")
+features2<-c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","PC11","PC12","PC13","PC14","PC15","PC16","PC17","PC18","PC19","PC20")
+features<-c(features1,features2)
 # Everytime we are looking at iso of the year before for matching them we are taking the year after that
 dimred2019<-dimred2021_knn250_2[]%>% filter(year%in%2019) %>%  
     mutate(identifier_CountryYear=paste0(`Country Code`,"_","2020")) %>%    
@@ -316,6 +316,36 @@ shap.plot.dependence(data_long = shap_long, x = 'iso4', y = 'new_cases_smoothed_
 
 ## A .Subset First wave
 ```{r}
+train_xgboost_model <- function(testdata, Label, features, custom_control, param_grid) {
+  # Filter the data based on IsoYear and select relevant columns
+  thisData_2_input <- testdata %>% select(Label, features) %>% drop_na()
+  
+  
+  # Test different parameters
+  xgb_caret <- caret::train(
+    x = thisData_2_input %>% dplyr::select(features),
+    y = thisData_2_input %>% pull(Label),
+    method = "xgbTree",
+    verbosity = 0,
+    trControl = custom_control,tuneGrid=param_grid,
+    tuneLength = 1
+  )
+  
+  finalmodel <- caret::train(
+    x = thisData_2_input %>% dplyr::select(features),
+    y = thisData_2_input %>% pull(Label),
+    method = "xgbTree",
+    verbosity = 0,
+    trControl = trainControl(method = "cv", number = 30),
+    tuneGrid = xgb_caret$bestTune
+  )
+  
+  return(finalmodel)
+}
+```
+
+
+```{r}
 Xgboostinput<- fread("../results/06_Dimred_Exmort_monthly.csv")
 Xgboostinput2<-Xgboostinput %>% mutate(yearmon=as.numeric(as.factor(str_remove(pattern = "[a-zA-Z_]+",identifier)))) %>% filter(yearmon>14)
 
@@ -340,6 +370,8 @@ param_grid <- expand.grid(
   gamma = c(0),
   min_child_weight = c(0)
 )
+
+
 
 # Set the proportion for the test set (e.g., 0.2 for 20% test data)
 
@@ -384,7 +416,7 @@ pdp_all2 %>%   mutate(key = factor(key, levels=features)) %>%  ggplot(pdp_all2,
   geom_point()+
   geom_smooth(method = "loess", se=T)+
   theme_minimal()+
-  facet_wrap(~(key), scales = "free", ncol = 3)  + ggtitle("Second Wave")
+  facet_wrap(~(key), scales = "free", ncol = 3)  + ggtitle("")
 
 ```
 

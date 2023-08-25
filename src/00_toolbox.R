@@ -59,9 +59,9 @@ plot_WDI_SD<-function(data=corrWDItest,Wdi_list=comparethiswdi,criterium_name,cr
 }
 
 
-train_xgboost_model <- function(testdata, Label, features, custom_control, param_grid) {
+train_xgboost_model <- function(traindata, Label, features, custom_control, param_grid,tunelength=1) {
   # Filter the data based on IsoYear and select relevant columns
-  thisData_2_input <- testdata %>% select(Label, features) %>% drop_na()
+  thisData_2_input <- traindata %>% select(Label, features) %>% drop_na()
   
   
   # Test different parameters
@@ -69,9 +69,9 @@ train_xgboost_model <- function(testdata, Label, features, custom_control, param
     x = thisData_2_input %>% dplyr::select(features),
     y = thisData_2_input %>% pull(Label),
     method = "xgbTree",
-    verbosity = 0,
+    verbosity = 1,
     trControl = custom_control,tuneGrid=param_grid,
-    tuneLength = 1
+    tuneLength = tunelength
   )
   
   finalmodel <- caret::train(
