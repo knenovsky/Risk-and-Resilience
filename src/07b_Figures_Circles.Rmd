@@ -52,10 +52,6 @@ local_wdi_series  = wdi_series[,]
 
 #### setup
 ```{r}
-
-
-
-
 subsetwdi<-wdi_explained[wdi_explained$`Series Code`%in% used_var_names_max_dcor,]
 
 var_names         = used_var_names_max_dcor
@@ -1038,7 +1034,7 @@ expand_limits(x = c(-2.7, 2.7), y = c(-2.7, 2.7)) + scale_fill_discrete(labels=p
 ```
 
 
-# Result 6
+# Result 6 THE round
 
 Conrol THE outliers
 ```{r}
@@ -1055,6 +1051,7 @@ dimred2021_knn250_3 %>% filter(year%in% 2020) %>%  select(`Country Code`,`Short 
 
 
 ```{r}
+dimred2021_knn250_5
 dimred2021_knn250_3 %>% 
   # mutate(pscore_cat2 = fct_relevel(pscore_cat, 
   #           "", "<0", "0 to <5","5 to <10","10 to <20","20 to <30","30 to <40","40 to <50", ">=50" )) %>% 
@@ -1069,7 +1066,7 @@ dimred2021_knn250_3 %>%
 
   filter(!is.na(pscore_level))->dimred2021_knn250_3 
 dimred2021_knn250_3$p_score_level_label2 %>%  table
-
+dimred2021_knn250_3 %>%  dim
 levels(as.factor(dimred2021_knn250_3$p_score_level_label))
 Indicator<-"EN.ATM.CO2E.KD.GD"
 year_start<-"2015"
@@ -1081,7 +1078,8 @@ for(i in 1:nrow(subsetwdi)){
   a<-get_wdi_trajectory(data=dimred2021_knn250_3,Indicator,groupedby ="p_score_level_label2" ,CI = T)
   a %>% ggsave(file = paste0("../test/trajectories/split_regions/",str_replace_all(Indicator,"\\.","_"),".png"),device = "png")
 }
-
+dimred2021_knn250_5 %>%  filter(p_score_level_label2%in% "High other") %>%  select(`Country Code`,RegionSoviet) %>%  unique ->sad
+sad$RegionSoviet %>%  table
 dimred2021_knn250_5 %>%  filter(p_score_level_label2%in% "High other") %>% select(`Country Code`,RegionSoviet,`Country Name`) %>%  unique-> asd
 ```
 

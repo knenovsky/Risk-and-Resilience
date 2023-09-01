@@ -298,4 +298,27 @@ correlation_PCA<-function(indicator){
 
   return(list(indicator = indicator))
 }
-
+bivariate.map<-function(rasterx, rastery, colormatrix=col.matrix, nquantiles=10){
+  quanmean<-getValues(rasterx)
+  temp<-data.frame(quanmean, quantile=rep(NA, length(quanmean)))
+  brks<-with(temp, quantile(temp,na.rm=TRUE, probs = c(seq(0,1,1/nquantiles))))
+  r1<-within(temp, quantile <- cut(quanmean, breaks = brks, labels = 2:length(brks),include.lowest = TRUE))
+  quantr<-data.frame(r1[,2]) 
+  quanvar<-getValues(rastery)
+  temp<-data.frame(quanvar, quantile=rep(NA, length(quanvar)))
+  brks<-with(temp, quantile(temp,na.rm=TRUE, probs = c(seq(0,1,1/nquantiles))))
+  r2<-within(temp, quantile <- cut(quanvar, breaks = brks, labels = 2:length(brks),include.lowest = TRUE))
+  quantr2<-data.frame(r2[,2])
+  as.numeric.factor<-function(x) {as.numeric(levels(x))[x]}
+  col.matrix2<-colormatrix
+  cn<-unique(colormatrix)
+  for(i in 1:length(col.matrix2)){
+    ifelse(is.na(col.matrix2[i]),col.matrix2[i]<-1,col.matrix2[i]<-which(col.matrix2[i]==cn)[1])}
+  cols<-numeric(length(quantr[,1]))
+  for(i in 1:length(quantr[,1])){
+    a<-as.numeric.factor(quantr[i,1])
+    b<-as.numeric.factor(quantr2[i,1])
+    cols[i]<-as.numeric(col.matrix2[b,a])}
+  r<-rasterx
+  r[1:length(r)]<-cols
+  return(r)}

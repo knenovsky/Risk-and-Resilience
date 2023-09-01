@@ -77,9 +77,8 @@ excessCounrty_monthly_pvalue2<-excessCounrty_monthly_pvalue %>% arrange(country,
 ```{r}
 tempyear<-read.csv("../data/230808_Cocap_01_countries_mean_temp.csv")
 tempyear$X<-NULL
-tempyear %>%  filter(year%in%c(2020,2021))->tempyear2
 
-tempyear2 %>% pivot_longer(names_to = "month",
+tempyear %>%  filter(year%in%c(1900:2019)) %>% pivot_longer(names_to = "month",
                "Jan":"Dec",
                values_drop_na = TRUE) %>% mutate(month=case_when(month%in%"Jan"~1,
                                                                  month%in%"Feb"~2,
@@ -92,11 +91,44 @@ tempyear2 %>% pivot_longer(names_to = "month",
                                                                  month%in%"Sep"~9,
                                                                  month%in%"Oct"~10,
                                                                  month%in%"Nov"~11,
-                                                                 month%in%"Dec"~12))-> tempyear3
-tempyear3
+                                                                 month%in%"Dec"~12)) %>% group_by(ISO_code,month) %>% summarise(meanTemp=mean(value)) %>%  unique->  tempyear_mean
 
 
-out_month2$month <- as.yearmon(out_month2$monthyear, format = "%Y_%m")
+tempyear %>%  filter(year%in%c(2020)) %>% pivot_longer(names_to = "month",
+               "Jan":"Dec",
+               values_drop_na = TRUE) %>% mutate(month=case_when(month%in%"Jan"~1,
+                                                                 month%in%"Feb"~2,
+                                                                 month%in%"Mar"~3,
+                                                                 month%in%"Apr"~4,
+                                                                 month%in%"May"~5,
+                                                                 month%in%"Jun"~6,
+                                                                 month%in%"Jul"~7,
+                                                                 month%in%"Aug"~8,
+                                                                 month%in%"Sep"~9,
+                                                                 month%in%"Oct"~10,
+                                                                 month%in%"Nov"~11,
+                                                                 month%in%"Dec"~12))-> tempyear_2020
+tempyear %>%  filter(year%in%c(2021)) %>% pivot_longer(names_to = "month",
+               "Jan":"Dec",
+               values_drop_na = TRUE) %>% mutate(month=case_when(month%in%"Jan"~1,
+                                                                 month%in%"Feb"~2,
+                                                                 month%in%"Mar"~3,
+                                                                 month%in%"Apr"~4,
+                                                                 month%in%"May"~5,
+                                                                 month%in%"Jun"~6,
+                                                                 month%in%"Jul"~7,
+                                                                 month%in%"Aug"~8,
+                                                                 month%in%"Sep"~9,
+                                                                 month%in%"Oct"~10,
+                                                                 month%in%"Nov"~11,
+                                                                 month%in%"Dec"~12))-> tempyear_2021
+
+
+colnames(tempyear_mean)<-paste(colnames(tempyear_mean),"mean",sep="_")
+cbind(tempyear_2020,tempyear_mean) %>%  mutate(diff_Temp=(value-meanTemp_mean)) %>% select(year,ISO_code,month,diff_Temp)->temp2020
+cbind(tempyear_2021,tempyear_mean) %>%  mutate(diff_Temp=(value-meanTemp_mean)) %>% select(year,ISO_code,month,diff_Temp)->temp2021
+rbind(temp2020,temp2021) %>% arrange(ISO_code,year)->out_temp
+
 
 ```
 
@@ -219,7 +251,7 @@ Dimred_input<-rbind(dimred2019,dimred2020)
 Xgboostinput_first<-merge(Dimred_input,excessCounrty_monthly_pvalue2,by="identifier_CountryYear")
 Xgboostinput_second<-merge(Xgboostinput_first,thisisOWID,by.y="monthyear",by.x = "identifier")
 
-Xgboostinput<-tempyear3  %>% mutate(isoyearmonth=paste0(ISO_code,"_",year,"_",month)) %>% rename(meanTemp=value) %>%  select(isoyearmonth,meanTemp)%>% merge(Xgboostinput_second, . , by.x = "identifier",by.y = "isoyearmonth")
+Xgboostinput<-out_temp  %>% mutate(isoyearmonth=paste0(ISO_code,"_",year,"_",month)) %>% rename(diffTemp=diff_Temp) %>%  select(isoyearmonth,diffTemp)%>% merge(Xgboostinput_second, . , by.x = "identifier",by.y = "isoyearmonth")
 #Xgboostinput%>% fwrite("../results/06_Dimred_Exmort__withpc_monthly.csv")
 ```
 

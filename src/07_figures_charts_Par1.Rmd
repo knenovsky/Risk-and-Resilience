@@ -274,16 +274,16 @@ xgb.plot.importance(importance_matrix = importance_dt, top_n = 10)
 ```{r}
 Xgboostinput<- fread("../results/06_Dimred_Exmort__withpc_monthly.csv")
 Label<-"p_value_mort"
-features<-c("PC1","PC2","PC6","PC8","PC9","PC10","PC13")
+features<-c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10","PC11","PC12","PC13","PC14","PC15","PC16","PC17","PC18","PC19","PC20")
 
 set.seed(123)
-# custom_control <- trainControl(
-#   method = "cv",
-#   number = 30,  # Increase the number of folds
-#   search = "random",
-#   allowParallel = TRUE
-#   
-# )
+custom_control <- trainControl(
+  method = "cv",
+  number = 12,  # Increase the number of folds
+  search = "random",
+  allowParallel = TRUE
+
+)
 # custom_control <- trainControl(
 #   method = "cv",                # cross-validation
 #   number = 30,                   # number of folds
@@ -325,10 +325,25 @@ test_data <- Xgboostinput_filtered[-index, ]
 
 
 # Train the XGBoost model using the function
-trainedModel<- train_xgboost_model(train_data, Label, features, custom_control, param_grid)
+xgb_caret <- caret::train(
+    x = train_data %>% dplyr::select(features),
+    y = train_data %>% pull(Label),
+    method = "xgbTree",
+    verbosity = 1,
+    trControl = custom_control,tuneGrid=param_grid,
+    tuneLength = tunelength
+  )
+  
+finalmodel <- caret::train(
+    x = train_data %>% dplyr::select(features),
+    y = train_data %>% pull(Label),
+    method = "xgbTree",
+    verbosity = 0,
+    trControl = trainControl(method = "cv", number = 12),
+    tuneGrid = xgb_caret$bestTune)
 # Assuming you have the 'finalmodel' and 'test_data' from the previous steps
 predictedValue<-postResample(
-      predict(trainedModel, 
+      predict(finalmodel, 
           test_data %>% dplyr::select(features)),  
         test_data %>% pull(Label)
       )
@@ -340,8 +355,8 @@ predictedValue
 
 plota<-xgboost::xgb.ggplot.shap.summary(data = as.matrix(train_data %>% 
   dplyr::select(features)),
-  model = trainedModel$finalModel) +scale_color_viridis("Feature Value")+ theme_bw() + xlab("Features")+ylab("Shapley value")+theme(legend.position = "bottom")
-
+  model = finalmodel$finalModel) +scale_color_viridis("Feature Value")+ theme_bw() + xlab("Features")+ylab("Shapley value")+theme(legend.position = "bottom")
+plota
 importance_matrix <- xgb.importance(feature_names = colnames(features), model = trainedModel$finalModel)
 # importance_matrix %>% fwrite("../data/07_importance_PCA.csv")
 c<-xgb.ggplot.importance(importance_matrix) +
@@ -351,6 +366,8 @@ c<-xgb.ggplot.importance(importance_matrix) +
 apply(importance_matrix[,c(2,3,4)],2,sum)
 plot_grid(plota, c, labels = c("A","B"),rel_widths =   c(4/5, 1.5/5))+ggtitle("sada")
 #ggsave("../figures/06_plots/ResultsA_nonlinearexmort.png",device = "png")
+
+
 ```
 
 # Results 2 WDI or Dimred How predicts better bootstrap
