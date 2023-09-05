@@ -1527,6 +1527,7 @@ plot_iso<-cbind(plot_data %>% arrange(ID),a=Xgboostinput_Input_dep_pca$`Country 
 #plot_iso2<-plot_iso %>%  arrange(d) %>%  mutate(sorted_id=1:n()) 
 plot_iso2<-plot_iso %>%  arrange(desc(c),a,b) %>%  mutate(sorted_id=1:n()) 
 plot_iso3<- plot_iso2 %>%  select(-a,-b,-c,-d)
+pcaMeanshap<-plot_iso3 %>% arrange(ID)%>% select(-ID,-group,-sorted_id) %>%  apply(  . ,1, function(x)sum(abs(x)))
 # you may choose to zoom in at a location, and set y-axis limit using `y_parent_limit`
 shap.plot.force_plot(plot_iso3, zoom_in_location = countryvalue, y_parent_limit = c(-20,50))
 #shap.plot.force_plot_bygroup(plot_data)
@@ -1572,7 +1573,7 @@ mod <- xgboost::xgboost(data = dataX,
 
 # To return the SHAP values and ranked features by mean|SHAP|
 shap_values <- shap.values(xgb_model = mod, X_train = dataX)
-?shap.values
+
 
 shap_values$mean_shap_score %>%  sum()
 # The ranked features by mean |SHAP|
@@ -1590,17 +1591,28 @@ plot_iso2<-plot_iso %>%  arrange(desc(c),a,b) %>%  mutate(sorted_id=1:n())
 #plot_iso2<-plot_iso %>%  arrange(d) %>%  mutate(sorted_id=1:n()) 
 
 plot_iso3<- plot_iso2 %>%  select(-a,-b,-c,-d)
+isoMeanshap<-plot_iso3 %>% arrange(ID)%>% select(-ID,-group,-sorted_id) %>%  apply(  . ,1, function(x)sum(abs(x)))
 # you may choose to zoom in at a location, and set y-axis limit using `y_parent_limit`
 shap.plot.force_plot(plot_iso3, zoom_in_location = countryvalue, y_parent_limit = c(-20,50))
 #shap.plot.force_plot_bygroup(plot_data)
 
 # you may choose to zoom in at a location, and set y-axis limit using `y_parent_limit`
 isoPLot<-shap.plot.force_plot(plot_iso3, zoom_in_location = 1, y_parent_limit = c(-20,50))+ ggtitle("ISO ordered by region") +theme(legend.position = "bottom")
-isoPLot
+
 #shap.plot.force_plot_bygroup(plot_data)
 #ggsave(isoPLot,file="../figures/08_Shap_force_plot_iso.png",device = "png",width = 7,height = 5)
 ```
+
+
+
+### biplot for meanshap
+
+
 ```{r}
+plot_iso2 %>% arrange(ID) %>% select(ID,a,b,c,d) %>% cbind(pcaMeanshap) %>% cbind(isoMeanshap)->thesevalues
+thesevalues %>%  ggplot(aes(x=pcaMeanshap,isoMeanshap,color=c))+ geom_point() +facet_wrap(~c)+theme_bw() +scale_color_viridis()
+
+plot(pcaMeanshap,isoMeanshap)
 dimred2021_knn250_2 %>% select(`Country Code`,RegionSoviet) %>% unique() %>% mutate(Regions=as.numeric(as.factor(RegionSoviet))) %>% select(Regions,RegionSoviet) %>%  unique %>% arrange(Regions)
 ```
 
@@ -1609,7 +1621,7 @@ dimred2021_knn250_2 %>% select(`Country Code`,RegionSoviet) %>% unique() %>% mut
 ```{r}
 plot_iso %>%  filter(sorted_id>1350,sorted_id<1450)-> subsetISO4
 
- dimred2021_knn250_5 %>%  filter(`Country Code` %in% (subsetISO4$a %>%  unique)) %>% filter(year%in% 2020) %>%  select(1:4,RegionSoviet) %>%  unique
+ dimred2021_knn250_5 %>%  filter(`Country Code` %in% (subsetISO4$a %>%  unique)) %>% filter(year%in% 2020) %>%  select(1:4,RegionSoviet) %>%  unique %>% mutate(a=as.numeric(as.factor(RegionSoviet)))
 ```
 
 
