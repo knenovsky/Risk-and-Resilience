@@ -207,7 +207,7 @@ get_knn <- function(x) 5 # { ceiling(nrow(x) / 20) }
 dimred_pca <- function (x) {
   xe <- dimRed::embed(x, "PCA", ndim = ncol(x))
   xd <- dimRed::getData(dimRed::getDimRedData(xe))
-  x_cor <- cor(x, xd[, 1:5])
+  x_cor <- cor(x, xd[, 1:14])
 
   list(cor = x_cor, dim_red = xe)
 }
@@ -872,10 +872,12 @@ make_cons_iso_pca <- function (qual_comp_res,
   return(list(knns                   = knns,
               occurrence_table       = occurrence_table,
               wdi_data_cons          = wdi_data_cons,
+              wdi_data_cons_gf       =wdi_data_cons_gf,
               wdi_data_cons_pca      = wdi_data_cons_pca,
               wdi_data_cons_iso      = wdi_data_cons_iso,
               wdi_data_qual_cons_pca = wdi_data_qual_cons_pca,
-              wdi_data_qual_cons_iso = wdi_data_qual_cons_iso))
+              wdi_data_qual_cons_iso = wdi_data_qual_cons_iso
+              ))
 }
 
 plot_cons_iso_pca <- function (cons_iso_pca) {

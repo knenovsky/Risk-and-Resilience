@@ -59,7 +59,6 @@ excessCounrty_covariates<-read_excel("../data/230224_nature_WHO_excess_death/202
 excessRegion_year<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByRegion.xlsx",sheet = 2)
 excessRegion_income<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByIncome.xlsx",sheet = 2)
 excessRegion_income %>% group_by(income) %>% 
-
   summarise(p_value_mort=sum(excess.mean)/sum(expected.mean)*100,excess_comul=sum(excess.mean))
 excessCounrty_year_pvalue<-excessCounrty_year %>% group_by(country,iso3,year) %>% 
   summarise(p_value_mort=sum(excess.mean)/sum(expected.mean)*100,excess_comul=sum(excess.mean))

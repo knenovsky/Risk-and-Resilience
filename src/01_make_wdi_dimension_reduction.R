@@ -1,7 +1,7 @@
 #Load
 
 ## Load libraries
-rm(list = ls())
+# rm(list = ls())
 library(rstudioapi)
 library(magrittr)
 library(tidyverse)
@@ -29,8 +29,8 @@ FIGURE_DIR <- "../figures/01_figures/"
 WDI_DIR <- paste0(DATA_DIR, "WDI_data_230609/WDI_CSV")
 
 ## set up cluster 
-CLUSTER <- rep("localhost", 10)
-Sys.setenv(OPENBLAS_NUM_THREADS = 10)
+CLUSTER <- rep("localhost", 20)
+Sys.setenv(OPENBLAS_NUM_THREADS = 20)
 
 
 ## load data
@@ -69,7 +69,8 @@ indicator_sdg$SDG <- indicator_sdg$`SDG Target` %>%
 
 
 hdi_data    <- get_hdi_data()
-hdi_data%>% fwrite("../data/01_data/01_hdi_data.csv")
+#hdi_data%>% fwrite("../data/01_data/01_hdi_data.csv")
+# fread("../data/01_data/01_data/01_hdi_data.csv")
 ## Derived constants
 COUNTRY_CODES       <- get_country_codes(wdi_country)
 INDICATOR_CODES     <- get_indicator_codes(wdi_series)
@@ -90,24 +91,50 @@ plot_if_no_file(get_plot_file("n_var_vs_n_cntry.pdf"),
 
 ## Calculate the quality of the subsets
 qual_comp_res <- compute_if_no_file(
-  get_data_file("qual_comp_res.RDS"),
+  get_data_file("2309_qual_comp_res.RDS"),
   make_qual_comp_res,
   data = wdi_data,
   data_sensitivity = data_sensitivity_res
+  #,.overwrite = T
 )
 
 
-#qual_comp_res<-readRDS("../data2023_01/qual_comp_res.RDS")
+# qual_comp_res<-readRDS("../data/qual_comp_res.RDS")
 
 #get_data_file("qual_comp_res.RDS")
 
 
 ## Do some error checking and diagnostics
-qual_comp_res_stats(qual_comp_res)
 str(qual_comp_res[[1]])
 
 ## correlation of variables of axes with variables
-all_cors <- assemble_correlations(qual_comp_res)
+all_cors <- list(iso = res_iso, pca = res_pca)
+
+
+n_var <- length(RELATIVE_INDICATORS)
+n_dim <- dim(qual_comp_res[[1]]$cor_iso)[2]
+n_sam <- length(qual_comp_res)
+
+res_iso <- array(
+    NA_real_, dim = c(n_var, n_dim, n_sam),
+    dimnames = list(RELATIVE_INDICATORS, paste0("iso", seq_len(n_dim)), 1:n_sam)
+  )
+res_pca <- array(
+    NA_real_, dim = c(n_var, n_dim, n_sam),
+    dimnames = list(RELATIVE_INDICATORS, paste0("PC", seq_len(n_dim)), 1:n_sam)
+  )
+
+for (i in seq_len(n_sam)) {
+    idx <- RELATIVE_INDICATORS %in% rownames(qual_comp_res[[i]]$cor_pca)
+    idx <- RELATIVE_INDICATORS %in% rownames(qual_comp_res[[i]]$cor_pca)
+  
+    res_pca[idx, , i] <- qual_comp_res[[i]]$cor_pca[,1:5]
+    res_iso[idx, , i] <- qual_comp_res[[i]]$cor_iso
+  }
+  
+
+
+
 
 ## the used variable indices
 USED_VAR_IDX <- apply(all_cors$iso, 1, function(x) !all(is.na(x)))
@@ -119,7 +146,6 @@ USED_VAR_NAMES <-
   unlist %>%
   unique %>%
   sort
-
 YEARS <-
   qual_comp_res %>%
   lapply(function(x) x$cntry_year$year) %>%
@@ -145,17 +171,17 @@ COUNTRY_NAMES <-
 
 ## Playing around with this, it seems that k = 250 is cool
 cons_iso_pca <- compute_if_no_file(
-  get_data_file("cons_iso_pca.RDS"),
+  get_data_file("cons_iso_pca_rerun.RDS"),
   make_cons_iso_pca,
   qual_comp_res = qual_comp_res,
   wdi_data = wdi_data,
-  knns = c(25, 50, 100, 250, 350),
+  knns = c(250),
   n_used_vars = N_USED_VARS,
   country_names = COUNTRY_NAMES,
   used_var_names = USED_VAR_NAMES,
   years = YEARS,
-  ciso = TRUE
-  ## .overwrite = TRUE
+  ciso = F,
+   .overwrite = TRUE
 )
  cbind(cons_iso_pca$occurrence_table[, 1:2], cons_iso_pca$wdi_data_cons_iso[[2]]$d_geo) %>%
   data.table::fwrite(., get_data_file("d_geo.csv"))
@@ -164,10 +190,10 @@ cbind(cons_iso_pca$wdi_data_cons_iso[[2]]$d_geo) %>%
   write.table(get_data_file("d_geo_no_ind.csv"),
               row.names = FALSE, col.names = FALSE,
               sep = ",")
-
+cons_iso_pca$wdi_data_cons_gf %>% data.frame()
 cbind(cons_iso_pca$occurrence_table[, 1:2]) %>%
   data.table::fwrite(., get_data_file("d_geo_ind.csv"))
-
+cons_iso_pca
 occurrence_table       <- cons_iso_pca$occurrence_table
 wdi_data_cons          <- cons_iso_pca$wdi_data_cons
 wdi_data_cons_pca      <- cons_iso_pca$wdi_data_cons_pca
@@ -175,7 +201,14 @@ wdi_data_cons_iso      <- cons_iso_pca$wdi_data_cons_iso
 wdi_data_qual_cons_pca <- cons_iso_pca$wdi_data_qual_cons_pca
 wdi_data_qual_cons_iso <- cons_iso_pca$wdi_data_qual_cons_iso
 knns                   <- cons_iso_pca$knns
-knns
+wdi_data_qual_cons_pca
+wdi_data_cons_pcaGP_table      <- cbind(occurrence_table[,c(1,2)],cons_iso_pca$wdi_data_cons_gf)
+
+#wdi_data_cons_pcaGP_table %>% fwrite("../data/01_GP_data.csv")
+
+updatepca<-cons_iso_pca$wdi_data_cons_pca$cor 
+merge(wdi_explained[,c(1,3)],updatepca %>% data.frame() %>% rownames_to_column("Series Code"),by="Series Code")-> updatepca2
+
 plot_if_no_file(
   get_plot_file("01_2307_08_cons_quality_all_data.pdf"),
   plot_cons_iso_pca,

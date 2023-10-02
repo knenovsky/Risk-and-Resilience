@@ -5,7 +5,7 @@ date: "2023-07-08"
 output: html_document
 ---
 ```{r setup, include=FALSE}
-rm(list = ls())
+#rm(list = ls())
 library(rstudioapi)
 library(magrittr)
 library(tidyverse)
@@ -54,6 +54,8 @@ source("../libraries/01a_lib_social_indicators.R")
 
 excessCounrty_year<-read_excel("../../01_data_prep/data/set_mortality_230221/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx",sheet = 2)
 excessCounrty_month<-read_excel("../../01_data_prep/data/set_mortality_230221/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx",sheet = 2)
+excessCounrty_monthly_pvalue<-excessCounrty_year  %>% 
+  mutate(p_value_mort=(excess.mean)/(expected.mean)*100)
 # excessCounrty_covariates<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx",sheet = 3)
 # excessRegion_year<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByRegion.xlsx",sheet = 2)
 # excessRegion_income<-read_excel("../data/230224_nature_WHO_excess_death/2022-03-25_covid-19_gem/WHO_COVID_Excess_Deaths_EstimatesByIncome.xlsx",sheet = 2)

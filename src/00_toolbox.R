@@ -322,3 +322,114 @@ bivariate.map<-function(rasterx, rastery, colormatrix=col.matrix, nquantiles=10)
   r<-rasterx
   r[1:length(r)]<-cols
   return(r)}
+shapplotresults2<-function(data, shap_contrib = NULL, features = NULL, top_n = 10, 
+                           model = NULL, trees = NULL, target_class = NULL, approxcontrib = FALSE, 
+                           subsample = NULL,inputcolor="orange") 
+{
+  require(xgboost)
+  
+  data_list <- xgboost:::xgb.shap.data(data = data, shap_contrib = shap_contrib, 
+                                       features = features, top_n = top_n, model = model, trees = trees, 
+                                       target_class = target_class, approxcontrib = approxcontrib, 
+                                       subsample = subsample, max_observations = 10000)
+  p_data <- xgboost:::prepare.ggplot.shap.data(data_list, normalize = TRUE)
+  p_data[, `:=`("feature", factor(feature, rev(levels(feature))))]
+  value<-p_data%>%  group_by(feature) %>% summarise(absSHAP=round(digits = 2,sum(abs(shap_value)))) %>%  arrange(desc(absSHAP))
+  max_values <- p_data %>%
+    group_by(feature) %>%
+    summarise(max_positive_value = max(shap_value))
+  value2<-merge(value,max_values,by="feature")
+  supermax<-max(value2$max_positive_value)
+  sumofsum<-value2$absSHAP %>%  sum()
+  p <- ggplot2::ggplot(p_data, ggplot2::aes(x = feature, y = p_data$shap_value),alpha=0.1) + ggplot2::geom_jitter(alpha = 0.01, 
+                                                                                                                  width = 0.1,color=inputcolor)+ 
+    ggplot2::geom_violin(alpha = 0.8, color=inputcolor,size=0.8)+
+    ggplot2::geom_abline(slope = 0, 
+                         intercept = 0, colour = "grey35") + 
+    
+    ggplot2::geom_text(data = value2, aes(x = feature, y = supermax, label = absSHAP), 
+                       hjust = 1.1, vjust = -0.2, size = 3, fontface = "bold") +  # Add text annotations for max_positive_value
+    
+    ggplot2::coord_flip() + theme_tufte() + xlab("Features")+ylab("Shapley value")+theme(legend.position = "right")+labs(color = "Feature value")+ theme(
+      legend.position = c(1, 0.5),
+      legend.justification = c("right", "top"),
+      legend.text = element_text(size=10),
+      legend.box.just = "right",
+      axis.text.y = element_text( color="black",    size=16, angle=0 ),
+      
+      axis.title=element_text(size=12,face="bold")
+      
+    )+xlab("")
+  p
+}
+shap_plot_costumized_onlyPC<-function (data, shap_contrib = NULL, features = NULL, top_n = 1, 
+          model = NULL, trees = NULL, target_class = NULL, approxcontrib = FALSE, 
+          subsample = NULL, n_col = 1, col = rgb(0, 0, 1, 0.2), pch = ".", 
+          discrete_n_uniq = 5, discrete_jitter = 0.01, ylab = "SHAP", 
+          plot_NA = TRUE, col_NA = rgb(0.7, 0, 1, 0.6), pch_NA = ".", 
+          pos_NA = 1.07, plot_loess = TRUE, col_loess = 2, span_loess = 0.5, 
+          which = c("1d", "2d"), plot = TRUE, ...) 
+{
+  data_list <- xgboost:::xgb.shap.data(data = data, shap_contrib = shap_contrib, 
+                             features = features, top_n = top_n, model = model, trees = trees, 
+                             target_class = target_class, approxcontrib = approxcontrib, 
+                             subsample = subsample, max_observations = 100000)
+  data <- data_list[["data"]]
+  shap_contrib <- data_list[["shap_contrib"]]
+  features <- colnames(data)[grepl("PC",colnames(data))]
+  which <- match.arg(which)
+  if (which == "2d") 
+    stop("2D plots are not implemented yet")
+  if (n_col > length(features)) 
+    n_col <- length(features)
+  if (plot && which == "1d") {
+    op <- par(mfrow = c(ceiling(length(features)/n_col), 
+                        n_col), oma = c(0, 0, 0, 0) + 0.2, mar = c(3.5, 
+                                                                   3.5, 0, 0) + 0.1, mgp = c(1.7, 0.6, 0))
+    for (f in features) {
+      ord <- order(data[, f])
+      x <- data[, f][ord]
+      y <- shap_contrib[, f][ord]
+      x_lim <- range(x, na.rm = TRUE)
+      y_lim <- range(y, na.rm = TRUE)
+      do_na <- plot_NA && any(is.na(x))
+      if (do_na) {
+        x_range <- diff(x_lim)
+        loc_na <- min(x, na.rm = TRUE) + x_range * pos_NA
+        x_lim <- range(c(x_lim, loc_na))
+      }
+      x_uniq <- unique(x)
+      x2plot <- x
+      if (length(x_uniq) <= discrete_n_uniq) 
+        x2plot <- jitter(x, amount = discrete_jitter * 
+                           min(diff(x_uniq), na.rm = TRUE))
+      plot(x2plot, y, pch = pch, xlab = f, col = col, 
+           xlim = x_lim, ylim = y_lim, ylab = ylab, ...)
+      grid()
+      if (plot_loess) {
+        zz <- data.table(x = signif(x, 3), y)[, .(.N, 
+                                                  y = mean(y)), x]
+        if (nrow(zz) <= 5) {
+          lines(zz$x, zz$y, col = col_loess)
+        }
+        else {
+          lo <- stats::loess(y ~ x, data = zz, weights = zz$N, 
+                             span = span_loess)
+          zz$y_lo <- predict(lo, zz, type = "link")
+          lines(zz$x, zz$y_lo, col = col_loess)
+        }
+      }
+      if (do_na) {
+        i_na <- which(is.na(x))
+        x_na <- rep(loc_na, length(i_na))
+        x_na <- jitter(x_na, amount = x_range * 0.01)
+        points(x_na, y[i_na], pch = pch_NA, col = col_NA)
+      }
+    }
+    par(op)
+  }
+  if (plot && which == "2d") {
+    warning("Bivariate plotting is currently not available.")
+  }
+  invisible(list(data = data, shap_contrib = shap_contrib))
+}

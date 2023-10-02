@@ -139,7 +139,7 @@ system.time({
 stopCluster(cl)
 # Access the results for each indicator
 
-
+pcaC<-fread("../data/08_wdi_pca_correlation.csv")
 ```
 ### PCA correlation table
 ```{r}
@@ -367,6 +367,8 @@ predictedValue
 xgboost::xgb.ggplot.shap.summary(data = as.matrix(train_data %>% 
   dplyr::select(features)),
   model = trainedModel$finalModel) +scale_color_viridis("Feature Value")+ theme_bw() + xlab("Features")+ylab("Shapley value")+theme(legend.position = "left")
+
+
 ```
 
 ```{r}
@@ -1246,6 +1248,84 @@ xgboost::xgb.ggplot.shap.summary(data = as.matrix(train_data %>%
   model = finalmodel_iso$finalModel) +scale_color_viridis("Feature Value")+ theme_bw() + xlab("Features")+ylab("Shapley value")+theme(legend.position = "left")
 ```
 
+
+## PC as CV with regions
+```{r}
+Xgboostinput_covar_1b %>%  arrange(`Country Code`,year.x,month.x) %>% group_by(`Country Code`) %>% mutate(MonthIndex = row_number(`Country Code`)) ->Xgboostinput_covar_1c
+thesecountrieshaveallthemonth<-Xgboostinput_covar_1c %>% group_by(`Country Code`) %>% summarise(enoughMonth=length(MonthIndex)) %>%  filter(enoughMonth%in% 22)
+
+Xgboostinput_covar2<-Xgboostinput_covar_1c %>%
+  filter(`Country Code`%in%thesecountrieshaveallthemonth$`Country Code` ) %>%  select(any_of(c(feature_vector,dim_features,features1,"p_value_mort","Regions","Country Code","MonthIndex"))) %>%  drop_na()
+
+
+```
+
+
+```{r}
+Xgboostinput_covar2$Country <- as.factor(Xgboostinput_covar2$`Country Code`) %>%  as.numeric()
+features_time<-c(features,"Country","MonthIndex","Regions")
+test_proportion <- 0.8
+Label<-"p_value_mort"
+Xgboostinput_filtered<-Xgboostinput_covar2 %>%  ungroup() %>%  select(any_of(c(features_time,Label))) %>% scale() %>% data.frame() %>% drop_na()
+Xgboostinput_filtered %>% group_by(Country) %>% mutate(MonthIndex = row_number(Country))->Xgboostinput_filtered2
+thesecountrieshaveallthemonth<-Xgboostinput_filtered2 %>% group_by(Country) %>% summarise(enoughMonth=length(MonthIndex)) %>%  filter(enoughMonth%in% 22)
+Xgboostinput_filtered %>% filter(Country %in% thesecountrieshaveallthemonth$Country)-> Xgboostinput_filtered
+
+# Create train/test split for time series data
+Xgboostinput_filtered$regionsval<-Xgboostinput_filtered$Regions %>% as.factor() 
+# Convert the folds to indices for trainControl
+
+
+# Create stratified folds based on the 'region' variable.
+set.seed(123)  # For reproducibility
+folds <- createFolds(Xgboostinput_filtered$regionsval, k = 8, list = TRUE)
+# 
+# custom_control <- trainControl(
+#   method = "cv",
+#   index = folds, 
+#   allowParallel = TRUE
+# )
+
+
+# param_grid <- expand.grid(
+#   nrounds = c(50,100,200),
+#   eta = c(0.05,0.1,0.3),
+#   max_depth = c(3, 4,6,8),
+#   gamma = c(0, 0.1, 1, 2),
+#   colsample_bytree = c(0.5, 0.7, 0.9,1),
+#   min_child_weight = c(1, 3, 5),
+#   subsample = c(0.5, 0.7, 0.9)
+# )
+# tuneGrid = param_grid,
+doMC::registerDoMC(50)
+
+xgb_caret_iso <- caret::train(
+  x = Xgboostinput_filtered %>% dplyr::select(any_of(features)),
+  y = Xgboostinput_filtered %>% pull(Label),
+  method = "xgbTree",
+  verbosity = 1
+)
+
+finalmodel_iso <- caret::train(
+  x = Xgboostinput_filtered %>% dplyr::select(any_of(features)),
+  y = Xgboostinput_filtered %>% pull(Label),
+  method = "xgbTree",
+  verbosity = 0,
+  tuneGrid = xgb_caret_iso$bestTune
+)
+
+predictedValue<-postResample(
+      predict(finalmodel_iso, 
+          Xgboostinput_filtered %>% dplyr::select(any_of(features))),  
+        test_data %>% pull(Label)
+      )
+predictedValue
+xgboost::xgb.ggplot.shap.summary(data = as.matrix(train_data %>% 
+  dplyr::select(any_of(features))),
+  model = finalmodel_iso$finalModel) +scale_color_viridis("Feature Value")+ theme_bw() + xlab("Features")+ylab("Shapley value")+theme(legend.position = "left")
+
+```
+
 # Finalised Model
 
 In this model we can see 
@@ -1277,7 +1357,7 @@ Dimred_covar_set_vanilla %>%  select(`Country Code`,comorb_m_unscaled) %>% renam
 
 
 Xgboostinput_covar2<-Xgboostinput_covar_1c%>%select(any_of(c(feature_vector,dim_features,features1,"p_value_mort","Cormodity Index"))) %>%  drop_na() %>% 
-  rename("New cases"=new_cases_smoothed_per_million,"Vaccinations"=new_people_vaccinated_smoothed_per_hundred,"ICU/Week"=weekly_icu_admissions,"Hosp/Week"=weekly_hosp_admissions_per_million,"Excess Mortality"=p_value_mort,"Month in pandemic"=yearmon,"sd(Temp)"=diffTemp)
+  rename("New cases"=new_cases_smoothed_per_million"Vaccinations"=new_people_vaccinated_smoothed_per_hundred,"ICU/Week"=weekly_icu_admissions,"Hosp/Week"=weekly_hosp_admissions_per_million,"Excess Mortality"=p_value_mort,"Month in pandemic"=yearmon,"sd(Temp)"=diffTemp)
 
  
 
@@ -1431,7 +1511,7 @@ library("data.table"); library("here")
 })
 
 Label<-"Excess Mortality"
- features<-Xgboostinput_Input_dep %>% select(-Label)%>% colnames()
+features<-Xgboostinput_Input_dep %>% select(-Label)%>% colnames()
 y_var <-  Label
 dataX <- as.matrix(Xgboostinput_Input_dep %>% select(features))
 # hyperparameter tuning results
@@ -1496,7 +1576,65 @@ library("data.table"); library("here")
 
 Label<-"Excess Mortality"
  features<-c("iso1","iso2","iso3","iso4","New cases")
- features<-c("PC1","PC2","PC10","PC5","PC7","New cases")
+ features<-c("PC1","PC2","PC10","PC5","PC6","New cases")
+ y_var <-  Label
+dataX <- as.matrix(Xgboostinput_Input_dep %>% select(features))
+# hyperparameter tuning results
+param_list <- list(objective = "reg:squarederror",  # For regression
+                   eta = 0.3,
+                   max_depth = c(3,6),
+                   gamma = 0.01,
+                   subsample = 0.95
+                   )
+
+mod <- xgboost::xgboost(data = dataX, 
+                        label = as.matrix(Xgboostinput_Input_dep[[y_var]]), 
+                        params = param_list, nrounds = 100,
+                        verbose = FALSE, nthread = parallel::detectCores() - 2,
+                        early_stopping_rounds = 8)
+                       
+
+# To return the SHAP values and ranked features by mean|SHAP|
+shap_values <- shap.values(xgb_model = mod, X_train = dataX)
+shap_values$mean_shap_score %>%  sum()
+# The ranked features by mean |SHAP|
+# shap_values$mean_shap_score %>% data.frame(freq= . ) %>%  arrange(desc(freq))
+# ?
+shap_values2<-cbind(shap_values$shap_score,Xgboostinput_Input_dep$regions)
+plot_data <- shap.prep.stack.data(shap_contrib = shap_values2, top_n = 6, n_groups = 1)
+dimred2021_knn250_2 %>%  filter(year%in%2020) %>% select(`Country Code`,NY.GDP.PCAP.CD) %>%  filter(!is.na(NY.GDP.PCAP.CD)) %>% merge( . ,Xgboostinput_Input_dep_pca,by="Country Code") %>% rename(`GDP per Capita PPP`=NY.GDP.PCAP.CD)-> Xgboostinput_Input_dep_pca_a
+
+
+plot_iso<-cbind(plot_data %>% arrange(ID),a=Xgboostinput_Input_dep_pca$`Country Code`,b=Xgboostinput_Input_dep_pca$`Month in pandemic`,c=Xgboostinput_Input_dep_pca$Regions,d=Xgboostinput_Input_dep_pca_a$`GDP per Capita PPP`)
+
+
+#plot_iso2<-plot_iso %>%  arrange(d) %>%  mutate(sorted_id=1:n()) 
+plot_iso2<-plot_iso %>%  arrange(desc(d),a,b) %>%  mutate(sorted_id=1:n()) 
+plot_iso3<- plot_iso2 %>%  select(-a,-b,-c,-d)
+#pcaMeanshap<-plot_iso3 %>% arrange(ID)%>% select(-ID,-group,-sorted_id) %>%  apply(  . ,1, function(x)sum(abs(x)))
+# you may choose to zoom in at a location, and set y-axis limit using `y_parent_limit`
+col_pal <- c("slategrey","#1F968B",  "#7570b3", "#e7298a", "#3CBB75","yellow3", "orange","slategrey")
+pcaPLot<-shap.plot.force_plot(plot_iso3, zoom_in_location = 1, y_parent_limit = c(-20,50))+ ggtitle("Ordered by GDP per Capita") +theme(legend.position = "bottom") + scale_fill_viridis(discrete = T)
+pcaPLot
+
+#ashap
+#shap.plot.force_plot_bygroup(plot_data)
+#ggsave(pcaPLot,file="../figures/08_Shap_force_plot_per_capita_pca.png",width = 7,height = 5)
+```
+
+#### by month
+
+```{r}
+Xgboostinput_Input_dep<-Xgboostinput_Input_dep_pca
+
+suppressPackageStartupMessages({
+library("SHAPforxgboost"); library("ggplot2"); library("xgboost")
+library("data.table"); library("here")
+})
+
+Label<-"Excess Mortality"
+ features<-c("iso1","iso2","iso3","iso4","New cases")
+ features<-c("PC1","PC2","PC10","PC6","PC12","New cases")
  y_var <-  Label
 dataX <- as.matrix(Xgboostinput_Input_dep %>% select(features))
 # hyperparameter tuning results
@@ -1525,21 +1663,23 @@ plot_data <- shap.prep.stack.data(shap_contrib = shap_values2, top_n = 6, n_grou
 
 plot_iso<-cbind(plot_data %>% arrange(ID),a=Xgboostinput_Input_dep_pca$`Country Code`,b=Xgboostinput_Input_dep_pca$`Month in pandemic`,c=Xgboostinput_Input_dep_pca$Regions,d=Xgboostinput_Input_dep_pca$PC1)
 #plot_iso2<-plot_iso %>%  arrange(d) %>%  mutate(sorted_id=1:n()) 
-plot_iso2<-plot_iso %>%  arrange(desc(c),a,b) %>%  mutate(sorted_id=1:n()) 
+plot_iso2<-plot_iso %>%  arrange(desc(d),a,c) %>%  mutate(sorted_id=1:n()) 
 plot_iso3<- plot_iso2 %>%  select(-a,-b,-c,-d)
 pcaMeanshap<-plot_iso3 %>% arrange(ID)%>% select(-ID,-group,-sorted_id) %>%  apply(  . ,1, function(x)sum(abs(x)))
 # you may choose to zoom in at a location, and set y-axis limit using `y_parent_limit`
-shap.plot.force_plot(plot_iso3, zoom_in_location = countryvalue, y_parent_limit = c(-20,50))
+#shap.plot.force_plot(plot_iso3, zoom_in_location = countryvalue, y_parent_limit = c(-20,50))
 #shap.plot.force_plot_bygroup(plot_data)
 
 # you may choose to zoom in at a location, and set y-axis limit using `y_parent_limit`
-isoPLot<-shap.plot.force_plot(plot_iso3, zoom_in_location = 1, y_parent_limit = c(-20,50))+ ggtitle("Orderedbyregion") +theme(legend.position = "bottom")
+isoPLot<-shap.plot.force_plot(plot_iso3, zoom_in_location = 1, y_parent_limit = c(-20,50))+ ggtitle("Ordered by PC1") +theme(legend.position = "bottom")
 isoPLot
 
-#ashap
-#shap.plot.force_plot_bygroup(plot_data)
-#ggsave(ashap,file="../figures/08_Shap_force_plot_pca.png",width = 7,height = 5)
+# #ashap
+# #shap.plot.force_plot_bygroup(plot_data)
+# ggsave(isoPLot,file="../figures/08_Shap_force_plot_pca.png",width = 7,height = 5)
 ```
+
+
 
 
 ### iso
@@ -1593,14 +1733,18 @@ plot_iso2<-plot_iso %>%  arrange(desc(c),a,b) %>%  mutate(sorted_id=1:n())
 plot_iso3<- plot_iso2 %>%  select(-a,-b,-c,-d)
 isoMeanshap<-plot_iso3 %>% arrange(ID)%>% select(-ID,-group,-sorted_id) %>%  apply(  . ,1, function(x)sum(abs(x)))
 # you may choose to zoom in at a location, and set y-axis limit using `y_parent_limit`
-shap.plot.force_plot(plot_iso3, zoom_in_location = countryvalue, y_parent_limit = c(-20,50))
+# shap.plot.force_plot(plot_iso3, zoom_in_location = countryvalue, y_parent_limit = c(-20,50))
 #shap.plot.force_plot_bygroup(plot_data)
-
+plot_iso2$regions
 # you may choose to zoom in at a location, and set y-axis limit using `y_parent_limit`
-isoPLot<-shap.plot.force_plot(plot_iso3, zoom_in_location = 1, y_parent_limit = c(-20,50))+ ggtitle("ISO ordered by region") +theme(legend.position = "bottom")
+where<-plot_iso2 %>%  group_by(c) %>% summarise(regions=max(sorted_id))
+isoPLot<-shap.plot.force_plot(plot_iso3, zoom_in_location = 2400, y_parent_limit = c(-20,50))+ ggtitle("ISO ordered by region") +theme(legend.position = "bottom") + geom_vline(xintercept =where$regions,color="grey30" ) + annotate("text", x = where$regions, y = 20, label = where$c, vjust = -1, hjust = 1)
+shap.plot.force_plot_bygroup(plot_data)
+```
 
-#shap.plot.force_plot_bygroup(plot_data)
-#ggsave(isoPLot,file="../figures/08_Shap_force_plot_iso.png",device = "png",width = 7,height = 5)
+
+```{r}
+ggsave(ggarrange(pcaPLot,isoPLot,ncol = 1),file="../figures/08_Shap_forcebothiso.png",device = "png",width = 7,height =12)
 ```
 
 
