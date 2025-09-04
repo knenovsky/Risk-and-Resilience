@@ -1,0 +1,927 @@
+---
+title: "03_Model_ExMort"
+author: "Kolja Nenoff"
+date: "2023-11-06"
+output: html_document
+---
+
+
+#Load
+
+
+
+## Libraries
+```{r}
+rm(list = ls())
+.libPaths("../../R/04_Rlibrary/")
+libraries <- c("magrittr", "ggplot2", "data.table","patchwork","tidygraph","ggraph","igraph","tidyverse",
+               "ggcorrplot","MetBrewer","grid","gridExtra","ggpubr","cowplot","colorspace","RColorBrewer","gt","gtExtras",  "parallel","readxl","doMC","energy","sf","RhpcBLASctl")
+for (lib in libraries) {
+  if (!require(lib, character.only = TRUE)) {
+    install.packages(lib)
+    library(lib, character.only = TRUE)
+  }
+}
+
+# if (!require("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+#     BiocManager::install("pcaMethods")
+
+remove.packages("MASS")
+
+```
+
+## Theme
+```{r}
+#Theme settings
+## plot theme
+options(
+  # set default colors in ggplot2 to colorblind-friendly
+  # Okabe-Ito and Viridis palettes
+  ggplot2.discrete.colour = ggokabeito::palette_okabe_ito(),
+  ggplot2.discrete.fill = ggokabeito::palette_okabe_ito(),
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis",
+  # set theme font and size
+  book.base_family = "sans",
+  book.base_size = 14
+)
+## set default theme
+theme_set(
+  theme_minimal(
+    base_size = getOption("book.base_size"),
+    base_family = getOption("book.base_family")
+  ) %+replace%
+    theme(
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom"
+    )
+)
+
+```
+
+## Cluster
+```{r}
+blas_set_num_threads(1)
+omp_set_num_threads(1)
+```
+
+```{r}
+#Dir path
+DATA_DIR <- "../data/03_data"
+FIGURE_DIR <- "../figures/02_figures"
+LIB_DIR<-"../libraries"
+WDI_DIR <- "../data/231103_WDI"
+DIMRED_DIR<-"../data/01_data"
+EXMORT_DIR <- "../data/230225_WHO_Excess_Mort/2022-03-25_covid-19_gem"
+OWID_DIR<-"../data/231103_OWID_COVID"
+OUTPUT_DIR<- "../output"
+
+# File path
+exmort_path <- file.path(EXMORT_DIR, "WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx")
+dimred_path<-file.path(DIMRED_DIR,"01_wdi_data_cons_df_250.csv")
+wdi_series_path <- file.path(WDI_DIR, "WDISeries.csv")
+wdi_gf_path<-file.path(DIMRED_DIR, "01_wdi_gapfilled.csv")
+toolbox_path <- file.path(LIB_DIR, "00_toolbox.R") # Source helper functions
+owid_series_path<-file.path(OWID_DIR,"231103owid-covid-data.csv")
+source("../libraries/00_toolbox.R")
+```
+
+# Data prep
+
+
+### Excess Mortality
+```{r}
+## Excess Mort
+ExcessMortbyCountry<-read_excel(exmort_path,sheet = 2)
+excessCounrty_annual<-ExcessMortbyCountry %>% group_by(country,iso3,year) %>% 
+  reframe(p_value_mort=sum(excess.mean)/sum(expected.mean)*100)
+excessCounrty_annual2 <- dplyr::mutate(excessCounrty_annual, identifier = paste0(iso3, year)) %>% dplyr::select(-iso3)
+
+## Dimred Data
+dimred_250<-fread(dimred_path)
+
+## WDI
+wdi_series <- fread(wdi_series_path) %>%
+  setnames("Series Code", "Indicator Code")
+
+```
+
+### Our world in data
+```{r}
+## OWID
+owid_data<-fread(owid_series_path)
+owid_annual<-owid_data %>%  
+  mutate(year=year(date))  %>% 
+  filter(year%in%c(2020,2021)) %>% 
+  data.table() %>% dplyr::select(-date) %>% 
+  filter(!is.na(continent)& continent!="") %>%   
+  group_by(iso_code,location,year) %>% 
+  reframe(
+            Stringency_index=mean(stringency_index,na.rm=T),
+            # Average_hosp_admissions=sum(weekly_hosp_admissions,na.rm=T)/population,
+            # Average_ICU_admissions=sum(weekly_icu_admissions,na.rm=T)/population,
+            Covid_Cases_per_million=sum(new_cases_per_million,na.rm=T),
+
+            Owid_Total_death =sum(total_deaths_per_million,na.rm=T),
+            Vaccinations=sum(total_vaccinations_per_hundred,na.rm=T),
+            Available_Hospital_beds=mean(hospital_beds_per_thousand,na.rm=T),
+            Median_age=mean(median_age,na.rm=T),
+            aged_65_older=mean(aged_65_older,na.rm=T),
+            human_development_index=mean(human_development_index,na.rm=T),
+            handwashing_facilities=mean(handwashing_facilities,na.rm=T),
+            population_density=mean(population_density,na.rm=T),
+            diabetes_prevalence=mean(diabetes_prevalence,na.rm=T),
+            cardiovasc_death_rate=mean(cardiovasc_death_rate,na.rm=T)
+            
+            )%>%  arrange(iso_code,year) %>%  unique %>% mutate(identifier=paste0(iso_code,year))
+
+```
+
+```{r}
+
+feature_vector <- c(
+  "Country Code",
+  "urban_percent",
+  "Med_recources_m",
+  "med_UHD",
+  "life_expectancy",
+  "mortality_m",
+  #"int_tourism",
+  "older65",
+  "younger14",
+  "rural_percent",
+  "urban_percent",
+  "digitalisation_1",
+  "health_spending_percent",
+ # "HCI",
+  "obesity",
+  #"immunization_bad",
+  "comorb_m_unscaled",
+ # "household_avg",
+  "airpolution_avg"
+  #"mean_Dalyrate"
+
+)
+covar<-fread("../data/X_Covar_05_data.csv") %>% dplyr::select(any_of(feature_vector))
+
+```
+
+
+
+
+
+# Feature selection
+
+```{r}
+
+dim_features<-"iso1"
+require(ggcorrplot)
+corrframe<-dimred_250 %>%  filter(year %in% 2021) %>% 
+  dplyr::select(`Country Code`,dim_features,NY.GDP.PCAP.CD)  %>% 
+  inner_join( .  ,owid_annual %>% filter(year%in% 2021),by=c("Country Code"="iso_code")) %>% 
+  inner_join( . ,covar,by="Country Code")  %>% filter(!is.na(iso1),!is.na(airpolution_avg))%>% rename(
+    "Urban area (%)" ="urban_percent", 
+    "cNFC 1"="iso1",
+    # "PC 2"="PCA_2", 
+    # "PC 3"="PCA_3", 
+    # "PC 4"="PCA_4", 
+    # "PC 5"="PCA_5",
+    "Med. Infr"= "Med_recources_m",
+    "UHC index"="med_UHD", 
+    "Vaccinations per hundred"="Vaccinations",
+    "Life expectancy"="life_expectancy",
+    "Mortality index"="mortality_m", 
+    "GDP per Capita"="NY.GDP.PCAP.CD",
+    "Digitalisation Index"= "digitalisation_1",
+    "Oxford Stringency Index"="Stringency_index",
+    "Covid cases per million"="Covid_Cases_per_million",
+    "Age > 65 (%)"=aged_65_older,
+    "Human developmen index"=human_development_index,
+    "Cardiovascular death rate"=cardiovasc_death_rate,
+    "Population density"=population_density,
+    "Diabetetes (%)"=diabetes_prevalence,
+    "Health spending"="health_spending_percent",
+    "Obesity (%)"= "obesity", 
+    #"Basic Immunization"="immunization_bad",
+    "Comorbidity index"="comorb_m_unscaled",
+    "Air pollution"="airpolution_avg",
+    "Age (Median)"="Median_age") %>% 
+  dplyr::select(-`Country Code`,-year,-location,-younger14,-older65,-`Med. Infr`,-Available_Hospital_beds,-Owid_Total_death,-handwashing_facilities,-rural_percent,-identifier) %>%   mutate_all(~ifelse(is.nan(.), NA, .)) %>% filter(!is.na(`Oxford Stringency Index`),!is.na(`Digitalisation Index`),!is.na(`Obesity (%)`))
+cor_matrix <- round(abs(cor(corrframe)), 1) 
+
+
+vars <- names(corrframe)
+n <- length(vars)
+
+# Initialize an empty matrix
+dcor_matrix <- matrix(NA, n, n)
+colnames(dcor_matrix) <- rownames(dcor_matrix) <- vars
+
+# Compute distance correlations pairwise
+for (i in seq_len(n)) {
+  for (j in seq_len(n)) {
+    x <- corrframe[[i]]
+    y <- corrframe[[j]]
+    if (is.numeric(x) && is.numeric(y)) {
+      dcor_matrix[i, j] <- dcor(x, y)
+    }
+  }
+}
+compareFrame<- dcor_matrix %>%  data.frame()
+library(ggcorrplot)
+a<-ggcorrplot(dcor_matrix,
+           type = "upper",
+           lab = FALSE,
+           colors = viridisLite::viridis(100),
+           tl.cex = 10) +
+  scale_fill_viridis("Distance Correlation") +
+  theme_classic() +
+  theme(axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  xlab("") + ylab("")+ 
+scale_fill_viridis_c(option = "D", name = "Distance Correlation")
+a
+a %>% ggsave(file="../figures/03_figures/03_Energy_Corr.png",device = "png",width = 9,height = 9)
+# a %>% ggsave(file="../figures/Lancet_submission/CorTable.pdf",device = "pdf",width = 9,height = 9)
+
+```
+
+
+```{r}
+alfa<- round(abs(cor(corrframe)),digits = 3) %>%  data.frame
+alfa
+```
+
+
+## All important dimension
+```{r}
+dim_features<-paste0("iso",seq(1:10))
+corrframe2<-dimred_250 %>%  filter(year %in% 2021) %>% 
+  dplyr::select(`Country Code`,dim_features)  %>% 
+  inner_join( .  ,owid_annual %>% filter(year%in% 2021),by=c("Country Code"="iso_code")) %>% 
+  inner_join( . ,covar,by="Country Code")  %>% filter(!is.na(iso1),!is.na(airpolution_avg))%>% rename(
+    "Urban area (%)" ="urban_percent", 
+    "Med. Infr"= "Med_recources_m",
+    "UHC index"="med_UHD", 
+    "Life expectancy"="life_expectancy",
+    "Vaccinations per hundred"="Vaccinations",
+    "Mortality index"="mortality_m", 
+    "Digitalisation Index"= "digitalisation_1",
+    "Oxford Stringency Index"="Stringency_index",
+    "Covid cases per million"="Covid_Cases_per_million",
+    "Age > 65 (%)"=aged_65_older,
+    "HDI"=human_development_index,
+    "Cardiovasc death rate"=cardiovasc_death_rate,
+    "Pop dens"=population_density,
+    "Diabetetes (%)"=diabetes_prevalence,
+    "Health spending"="health_spending_percent",
+    "Obesity (%)"= "obesity", 
+    "Basic Immunization"="immunization_bad",
+    "Comorbidity index"="comorb_m_unscaled",
+    "Air pollution"="airpolution_avg",
+    "Age (Median)"="Median_age") %>% 
+  dplyr::select(-`Country Code`,-year,-location,-younger14,-older65,-`Med. Infr`,-Available_Hospital_beds,-Owid_Total_death,-handwashing_facilities,-rural_percent,-identifier) %>%   mutate_all(~ifelse(is.nan(.), NA, .)) %>% filter(!is.na(`Oxford Stringency Index`),!is.na(`Digitalisation Index`),!is.na(`Obesity (%)`))
+cor_matrixA <- round(abs(cor(corrframe2)), 1)
+require(ggcorrplot)
+
+vars <- names(corrframe)
+n <- length(vars)
+
+# Initialize an empty matrix
+dcor_matrix <- matrix(NA, n, n)
+colnames(dcor_matrix) <- rownames(dcor_matrix) <- vars
+
+# Compute distance correlations pairwise
+for (i in seq_len(n)) {
+  for (j in seq_len(n)) {
+    x <- corrframe[[i]]
+    y <- corrframe[[j]]
+    if (is.numeric(x) && is.numeric(y)) {
+      dcor_matrix[i, j] <- dcor(x, y)
+    }
+  }
+}
+compareFrame<- dcor_matrix %>%  data.frame()
+library(ggcorrplot)
+b<-ggcorrplot(dcor_matrix,
+           type = "upper",
+           lab = FALSE,
+           colors = viridisLite::viridis(100),
+           tl.cex = 10) +
+  scale_fill_viridis("Distance Correlation") +
+  theme_classic() +
+  theme(axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 90, hjust = 1)) +
+  xlab("") + ylab("")+ 
+scale_fill_viridis_c(option = "D", name = "Distance Correlation")
+
+b%>% ggsave(file="../figures/03_figures/03_Energy_Corr_supplment.png",device = "png",width = 9,height = 9)
+
+b%>% ggsave(file="../figures/Lancet_submission/CorTable_all.pdf",device = "pdf",width = 9,height = 9)
+```
+
+
+## Feature selection
+```{r}
+threshold <- 0.80
+
+cor_matrix2<-cor_matrix%>% data.frame %>% filter(cNFC.1<threshold) %>% rownames() 
+
+features_final<-cor_matrix2[!grepl("PCA|Air|Cardiovasc",cor_matrix2)]
+features_final
+```
+
+ [1] "Oxford Stringency Index" "Covid cases per million" "Vaccinations"            "Pop dens"               
+ [5] "Diabetetes (%)"            "Cardiovasc death rate"   "Urban area (%)"          "Obesity (%)"            
+ [9] "Comorbidity index"       "Air pollution"       
+### Covariates without cNFC 
+```{r}
+threshold <- 0.80
+cor_matrix%>% data.frame
+cor_matrix2<-cor_matrix%>% data.frame %>% filter(`Human.developmen.index`<threshold) %>% rownames() 
+
+features_final<-cor_matrix2[!grepl("PCA|Air|Cardiovasc",cor_matrix2)]
+appanfeatures_final
+```
+
+
+
+# Final models: 
+##  PC 20 model
+```{r}
+table2019_pc<-dimred_250 %>% filter(year%in%2019)
+table2020_pc<-dimred_250 %>% filter(year%in%2020) 
+table2019_pc2<-table2019_pc %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_pc2<-table2020_pc %>% mutate(identifier=paste0(`Country Code`,"2021"))
+WDI_pc_2020_2021<-rbind(table2019_pc2,table2020_pc2) %>%  filter(!is.na(iso1))
+Xgboostinput<- dplyr::inner_join(WDI_pc_2020_2021, excessCounrty_annual2, by = "identifier")
+Xgboostinput<-Xgboostinput %>% dplyr::select(`Country Code`,`p_value_mort`,`identifier`,paste0("PC_normal_",seq(1:20)))
+Xgboostinput %>%  filter(!(`Country Code`%in% "PER"))-> Xgboostinput
+
+## OWID add
+Xboostinput_exmort_owid<-owid_annual %>% rename(
+  "Oxford Stringency Index"="Stringency_index",
+  "Covid cases per million"="Covid_Cases_per_million",
+  "Age > 65 (%)"=aged_65_older,
+  "Vaccinations per hundred"="Vaccinations",
+  "HDI"=human_development_index,
+  "Cardiovasc death rate"=cardiovasc_death_rate,
+  "Pop dens"=population_density,
+  "Diabetetes (%)"=diabetes_prevalence,
+  "Age (Median)"="Median_age") %>% 
+  dplyr::select(any_of(features_final),all_of("identifier")) %>%
+  mutate_all(~ifelse(is.nan(.), NA, .)) %>% 
+  inner_join(Xgboostinput , .  ,by="identifier")
+  
+covar2020<-covar %>% rename(
+    "Urban area (%)" ="urban_percent", 
+    "Med. Infr"= "Med_recources_m",
+    "UHC index"="med_UHD", 
+    "Life expectancy"="life_expectancy",
+    "Mortality index"="mortality_m", 
+    "Digitalisation Index"= "digitalisation_1",
+    "Health spending"="health_spending_percent",
+    "Obesity (%)"= "obesity", 
+    "Basic Immunization"="immunization_bad",
+    "Comorbidity index"="comorb_m_unscaled", 
+    "Air pollution"="airpolution_avg") %>% mutate(identifier=paste0(`Country Code`,"2020")) 
+covar20202021<-rbind(covar2020,covar2020%>% mutate(identifier=paste0(`Country Code`,"2021")))
+
+
+Xboostinput_exmort_owid_covar<- covar20202021 %>%  dplyr::select(any_of(features_final),all_of("identifier")) %>% 
+  inner_join(Xboostinput_exmort_owid , .  ,by="identifier") 
+  
+
+
+a<-pcaMethods::pca(Xboostinput_exmort_owid_covar,method = "ppca")
+Xboostinput_exmort_owid_covar_imputed<-a@completeObs 
+colnames(Xboostinput_exmort_owid_covar_imputed)<-colnames(Xboostinput_exmort_owid_covar %>% dplyr::select(-`Country Code`,-identifier))
+
+# income_ex<-Xboostinput_exmort_owid_covar %>% na.omit()
+# income_ex
+
+# pca
+Xgboostinput_complete_pca<-cbind(Xgboostinput %>% dplyr::select(`Country Code`),Xboostinput_exmort_owid_covar_imputed)
+# Xgboostinput_complete_pca %>% #saveRDS(file = "../data/03_data/XboostDfPCA.RDS")
+# iso
+
+
+wdi_income_path<-file.path(WDI_DIR, "CLASS.xlsx") # Available on the Worldbank website. Clssification 20231103
+incomegroups<-read_xlsx(wdi_income_path)
+
+```
+
+
+
+```{r}
+pathWDI_pc20<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_pc20.RDS")
+this20<-readRDS(pathWDI_pc20)
+topruns<-this20$Xgboost_summary %>% arrange(desc(Rsquared))
+
+```
+
+
+```{r}
+Xgboostinput_pc<-Xgboostinput_complete_pca %>% rename("Country.Code"=`Country Code`)
+
+Label<-"p_value_mort"
+features<-Xgboostinput_pc %>% dplyr::select(-`Country.Code`,-p_value_mort) %>%  colnames()
+features<-features[!grepl("xford",features)]
+
+
+
+wdi_pc20Data<-createXgboostData_tuned(numberofruns = topruns$run,Xgboostinput_filtered =Xgboostinput_pc,features = features,Label = Label)
+
+
+wdi_pc20Data %>% #saveRDS("../output/03_Xgboost_pca20_models")
+
+
+
+
+```
+
+
+## New cases and vaccatioantion onlz
+
+```{r}
+Xgboostinput_pc<-Xgboostinput_complete_pca %>% rename("Country.Code"=`Country Code`) %>% filter(!(Country.Code%in% "PER"))
+
+Label<-"p_value_mort"
+features<-Xgboostinput_pc %>% dplyr::select(-`Country.Code`,-p_value_mort) %>%  colnames()
+features<-features[grepl("accination|COVID|ovid",features)]
+
+```
+
+
+
+
+
+```{r}
+
+
+wdi_newcases_vaccinations<-createXgboostData_tuned(numberofruns = topruns$run,Xgboostinput_filtered = Xgboostinput_pc,features = features,Label = Label)
+
+# gboss<-wdi_pc26Data$Xgboost_summary
+# gboss$Rsquared %>%  summary
+
+wdi_newcases_vaccinations %>% saveRDS("../output/03_Xgboost_onlyVACSandNewcases_models")
+
+```
+
+
+
+
+## ISO run
+
+
+```{r}
+pathWDI_iso10<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_iso10.RDS")
+this10<-readRDS(pathWDI_iso10)
+topruns<-this10$Xgboost_summary %>% arrange(desc(Rsquared))
+
+```
+
+
+```{r}
+Xgboostinput_iso<-dplyr::inner_join(WDI_pc_2020_2021, excessCounrty_annual2, by = "identifier") %>% dplyr::select(`Country Code`,`p_value_mort`,`identifier`,paste0("ISO_normal_",seq(1:10)))
+Xgboostinput %>%  filter(!(`Country Code`%in% "PER"))-> Xgboostinput
+
+Xgboostinput_complete_iso<-cbind(Xgboostinput_iso %>% dplyr::select(`Country Code`,ISO_normal_1,ISO_normal_2,ISO_normal_3,ISO_normal_4,ISO_normal_5,ISO_normal_6,ISO_normal_7,ISO_normal_8,ISO_normal_9,ISO_normal_10),Xboostinput_exmort_owid_covar_imputed)%>%
+  dplyr::select(-matches("^PC_normal"))
+Xgboostinput_iso<-Xgboostinput_complete_iso %>% rename("Country.Code"=`Country Code`)
+
+Xgboostinput_complete_iso %>% #saveRDS(paste0(DATA_DIR,"/XboostDfiso.RDS"))
+
+Label<-"p_value_mort"
+features<-Xgboostinput_iso %>% dplyr::select(-`Country.Code`,-p_value_mort) %>%  colnames()
+features<-features[!grepl("xford",features)]
+
+wdi_iso10Data<-createXgboostData_tuned(numberofruns = topruns$run,Xgboostinput_filtered =Xgboostinput_iso,features = features,Label = Label)
+gbossISO<-wdi_iso10Data$Xgboost_summary
+
+wdi_iso10Data %>% #saveRDS("../output/03_Xgboost_normal_iso10_models")
+```
+
+
+## E ISO run
+
+
+```{r}
+pathWDI10_e_isomap<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_ensemble_isomap10.RDS")
+
+this10<-readRDS(pathWDI10_e_isomap)
+topruns<-this10$Xgboost_summary %>% arrange(desc(Rsquared))
+
+
+```
+
+```{r}
+blas_set_num_threads(1)
+omp_set_num_threads(1)
+```
+
+
+```{r}
+Xgboostinput_iso<-dplyr::inner_join(WDI_pc_2020_2021, excessCounrty_annual2, by = "identifier") %>% dplyr::select(`Country Code`,`p_value_mort`,`identifier`,paste0("iso",seq(1:10)))
+Xgboostinput_iso<-Xgboostinput_iso[!Xgboostinput_iso$`Country Code` %in% "PER",]
+Xgboostinput %>%  filter(!(`Country Code`%in% "PER"))-> Xgboostinput
+
+Xgboostinput_complete_iso<-cbind(Xgboostinput_iso %>% dplyr::select(`Country Code`,iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,iso9,iso10),Xboostinput_exmort_owid_covar_imputed)%>%
+  dplyr::select(-matches("^PC_normal"))
+
+
+Xgboostinput_iso<-Xgboostinput_complete_iso %>% rename("Country.Code"=`Country Code`)
+
+#Xgboostinput_complete_iso %>% saveRDS(paste0(DATA_DIR,"/XboostDfEiso.RDS"))
+
+Label<-"p_value_mort"
+features<-Xgboostinput_iso %>% dplyr::select(-`Country.Code`,-p_value_mort) %>%  colnames()
+# features<-features[!grepl("accination|COVID|ovid|xford",features)]
+
+
+wdi_iso10Data<-createXgboostData_tuned(numberofruns = topruns$run[1:1000],Xgboostinput_filtered =Xgboostinput_iso,features = features,Label = Label)
+  # gbossISO<-wdi_iso10Data$Xgboost_summary
+# wdi_iso10Data$Xgboost_summary$Rsquared %>%  summary
+# wdi_iso10Data$Xgboost_summary %>%  summary
+# wdi_iso10Data %>% saveRDS("../output/03_2410_Xgboost_E_iso10_models")
+wdi_iso10Data$Feature_summary%>% group_by(feature) %>% 
+  reframe(value=sum(Shap_value_mean)) %>%  arrange(desc(value))
+```
+
+```{r}
+vlaue<-readRDS("../output/03_2410_Xgboost_E_iso10_models")
+vlaue$Xgboost_summary$Rsquared %>%summary
+```
+
+## Imputed
+
+
+```{r}
+pathWDI_imputed<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_imputed.RDS")
+wdi_gf<-fread(wdi_gf_path)
+this10<-readRDS(pathWDI_imputed)
+topruns<-this10$Xgboost_summary %>% arrange(desc(Rsquared))
+```
+
+```{r}
+table2019_wdiImputed<-(wdi_gf %>% filter(year%in%2019))
+table2020_wdiImputed<-(wdi_gf %>% filter(year%in%2020))
+table2019_wdiImputed2<-table2019_wdiImputed %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_wdiImputed2<-table2020_wdiImputed %>% mutate(identifier=paste0(`Country Code`,"2021"))
+WDI_imputed_2020_2021<-rbind(table2019_wdiImputed2,table2020_wdiImputed2)
+Xgboostinput_imputed<- dplyr::inner_join(WDI_imputed_2020_2021, excessCounrty_annual2, by = "identifier")  %>% dplyr::select(any_of(c("Country Code","p_value_mort","identifier",wdi_series$`Indicator Code`)))
+Xgboostinput_imputed %>%  filter((`Country Code`%in%Xgboostinput_iso$Country.Code ))-> Xgboostinput
+ 
+Xboostinput_exmort_owid_covar_imputed<-Xboostinput_exmort_owid_covar_imputed %>% data.frame()
+Xgboostinput_complete_iso<-cbind(Xgboostinput,Xboostinput_exmort_owid_covar_imputed)
+Xgboostinput_complete_iso<-Xgboostinput_complete_iso[,!duplicated(colnames(Xgboostinput_complete_iso)),with=F]
+Xgboostinput_iso<-Xgboostinput_complete_iso %>% rename("Country.Code"=starts_with("Country"))
+```
+
+```{r}
+## owid add
+Xboostinput_exmort_owid<-owid_annual %>% rename(
+  "Oxford Stringency Index"="Stringency_index",
+  "Covid cases per million"="Covid_Cases_per_million",
+  "Age > 65 (%)"=aged_65_older,
+  "HDI"=human_development_index,
+  "Cardiovasc death rate"=cardiovasc_death_rate,
+  "Pop dens"=population_density,
+  "Diabetetes (%)"=diabetes_prevalence,
+  "Age (Median)"="Median_age") %>% 
+  dplyr::select(any_of(features_final),all_of("identifier")) %>%
+  mutate_all(~ifelse(is.nan(.), NA, .)) %>% 
+  inner_join(Xgboostinput , .  ,by="identifier")
+  
+covar2020<-covar %>% rename(
+    "Urban area (%)" ="urban_percent", 
+    "Med. Infr"= "Med_recources_m",
+    "UHC index"="med_UHD", 
+    "Life expectancy"="life_expectancy",
+    "Mortality index"="mortality_m", 
+    "Digitalisation Index"= "digitalisation_1",
+    "Health spending"="health_spending_percent",
+    "Obesity (%)"= "obesity", 
+    "Basic Immunization"="immunization_bad",
+    "Comorbidity index"="comorb_m_unscaled", 
+    "Air pollution"="airpolution_avg") %>% mutate(identifier=paste0(`Country Code`,"2020")) 
+covar20202021<-rbind(covar2020,covar2020%>% mutate(identifier=paste0(`Country Code`,"2021")))
+
+
+Xboostinput_exmort_owid_covar<- covar20202021 %>%  dplyr::select(any_of(features_final),all_of("identifier")) %>% 
+  inner_join(Xboostinput_exmort_owid , .  ,by="identifier") 
+  
+a<-pcaMethods::pca(Xboostinput_exmort_owid_covar,method = "ppca")
+Xboostinput_exmort_owid_covar %>% apply(   . ,2 ,function(x)sum(is.na(x)))
+Xboostinput_exmort_owid_covar_imputed<-a@completeObs 
+colnames(Xboostinput_exmort_owid_covar_imputed)<-colnames(Xboostinput_exmort_owid_covar %>% dplyr::select(-`Country Code`,-identifier))
+
+# income_ex<-Xboostinput_exmort_owid_covar %>% na.omit()
+# income_ex
+
+# pca
+Xgboostinput_complete_pca<-cbind(Xgboostinput_imputed %>% dplyr::select(`Country Code`),Xboostinput_exmort_owid_covar_imputed)
+#Xgboostinput_complete_pca %>% #saveRDS(file = "../data/03_data/XboostDfimputed.RDS")
+# iso
+
+```
+
+
+```{r}
+Xgboostinput_complete_pca<-Xgboostinput_complete_pca %>% data.frame()
+Label<-"p_value_mort"
+features<-Xgboostinput_complete_pca %>% dplyr::select(-`Country.Code`,-p_value_mort) %>%  colnames()
+features<-features[!grepl("xford",features)]
+
+wdi_imputeedData<-createXgboostData_tuned(numberofruns = topruns$run[1:1000],Xgboostinput_filtered =Xgboostinput_complete_pca,features = features,Label = Label)
+gbossISO<-wdi_imputeedData$Xgboost_summary
+wdi_imputeedData$Xgboost_summary$Rsquared %>%  summary
+
+wdi_imputeedData %>% #saveRDS("../output/03_Xgboost_imputed_models")
+
+```
+
+
+
+## New cases Vaccinations and Covariables no iso
+
+
+
+<!-- #### WARNING bold assumptions included. -->
+<!-- imputation + covar 2020 and 2021 the same -->
+```{r}
+table2019_pc<-dimred_250 %>% filter(year%in%2019)
+table2020_pc<-dimred_250 %>% filter(year%in%2020) 
+table2019_pc2<-table2019_pc %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_pc2<-table2020_pc %>% mutate(identifier=paste0(`Country Code`,"2021"))
+WDI_pc_2020_2021<-rbind(table2019_pc2,table2020_pc2) %>%  filter(!is.na(iso1)) %>%  filter(!(`Country Code`%in% "PER"))
+WDIInput<-WDI_pc_2020_2021 %>% select(any_of(c("identifier","Country Code")))
+Xgboostinput<- dplyr::inner_join(WDIInput, excessCounrty_annual2, by = "identifier",suffix = c("","a"))
+
+feature_vector <- c(
+  "Country Code",
+  "urban_percent",
+  "Med_recources_m",
+  "med_UHD",
+  "life_expectancy",
+  "mortality_m",
+  #"int_tourism",
+  "older65",
+  "younger14",
+  "rural_percent",
+  "urban_percent",
+  "digitalisation_1",
+  "health_spending_percent",
+ # "HCI",
+  "obesity",
+  "immunization_bad",
+  "comorb_m_unscaled",
+ # "household_avg",
+  "airpolution_avg"
+  #"mean_Dalyrate"
+
+)
+covar<-fread("../data/X_Covar_05_data.csv") %>% dplyr::select(any_of(feature_vector))
+
+## owid add
+Xboostinput_exmort_owid<-owid_annual %>% rename(
+  "Oxford Stringency Index"="Stringency_index",
+  "Covid cases per million"="Covid_Cases_per_million",
+  "Age > 65 (%)"=aged_65_older,
+  "HDI"=human_development_index,
+  "Cardiovasc death rate"=cardiovasc_death_rate,
+  "Pop dens"=population_density,
+  "Diabetetes (%)"=diabetes_prevalence,
+  "Age (Median)"="Median_age")  %>% 
+  inner_join( Xgboostinput, .  ,by="identifier")
+  
+covar2020<-covar %>% rename(
+    "Urban area (%)" ="urban_percent", 
+    "Med. Infr"= "Med_recources_m",
+    "UHC index"="med_UHD", 
+    "Life expectancy"="life_expectancy",
+    "Mortality index"="mortality_m", 
+    "Digitalisation Index"= "digitalisation_1",
+    "Health spending"="health_spending_percent",
+    "Obesity (%)"= "obesity", 
+    "Basic Immunization"="immunization_bad",
+    "Comorbidity index"="comorb_m_unscaled", 
+    "Air pollution"="airpolution_avg") %>% mutate(identifier=paste0(`Country Code`,"2020"))  
+
+covar20202021<-rbind(covar2020,covar2020%>% mutate(identifier=paste0(`Country Code`,"2021")))
+
+
+Xboostinput_exmort_owid_covar<- covar20202021 %>% 
+  inner_join(Xboostinput_exmort_owid , .  ,by="identifier") 
+  
+
+Xboostinput_exmort_owid_covar<-Xboostinput_exmort_owid_covar%>%   mutate_all(~ifelse(is.nan(.), NA, .))
+
+require(pcaMethods)
+a<-pcaMethods::pca(Xboostinput_exmort_owid_covar,method = "ppca")
+Xboostinput_exmort_owid_covar %>% apply(   . ,2 ,function(x)sum(is.na(x)))
+Xboostinput_exmort_owid_covar_imputed<-a@completeObs 
+#colnames(Xboostinput_exmort_owid_covar_imputed)<-colnames(Xboostinput_exmort_owid_covar %>% dplyr::select(-`Country Code`,-identifier))
+
+# income_ex<-Xboostinput_exmort_owid_covar %>% na.omit()
+# income_ex
+
+# pca
+Xgboostinput_complete_pca<-cbind(Xgboostinput %>% dplyr::select(`Country Code`),Xboostinput_exmort_owid_covar_imputed)
+
+# Xgboostinput_complete_pca %>% #saveRDS(file = "../data/03_data/XboostDfPCA.RDS")
+# iso
+```
+```{r}
+Xgboostinput_complete_pca<-Xgboostinput_complete_pca %>% data.frame()
+Label<-"p_value_mort"
+features<-Xgboostinput_complete_pca %>% dplyr::select(-`Country.Code`,-p_value_mort) %>%  colnames()
+features
+
+features<- features[!grepl("year|Owid_Total_death|Owid_death_per_million|handwashin|Owid_Exmort",features)]
+       
+
+
+```
+
+```{r}
+# pathWDI10_e_isomap<-file.path(OUTPUT_DIR,"03_Xgboost_E_iso10_models")
+# 
+# this10<-readRDS(pathWDI10_e_isomap)
+topruns<-this10$Xgboost_summary %>% arrange(desc(Rsquared))
+this10$Xgboost_summary$Rsquared %>% median()
+
+
+```
+
+```{r}
+features <-c("Covid.cases.per.million", "Vaccinations","Oxford.Stringency.Index","HDI","Pop.dens","Diabetetes....","Obesity....","Comorbidity.index"  )     
+wdi_imputeedData<-createXgboostData_tuned(numberofruns = topruns$run[1:1000],Xgboostinput_filtered =Xgboostinput_complete_pca,features = features,Label = Label)
+
+gbossISO<-wdi_imputeedData$Xgboost_summary
+wdi_imputeedData$Feature_summary %>% group_by(feature) %>% reframe("lala"=sum(Shap_value_mean)) %>%  arrange(desc(lala))
+wdi_imputeedData$Xgboost_summary$Rsquared %>%  summary
+# wdi_imputeedData %>%
+#     saveRDS("../output/03_2410_Xgboost_CovariatesandVACS_final_withoutISO")
+```
+
+
+
+
+```{r}
+# test<-wdi_imputeedData$Xgboost_summary
+# wdi_iso10Data$Xgboost_summary$Rsquared %>%  summary()
+#Model_allcovar_noiso<-readRDS("../output/03_Xgboost_Covariates_final_withoutISO")
+
+Model_allcovar_noiso$Xgboost_summary$Rsquared %>%  summary
+wdi_imputeedData$Feature_summary %>%  group_by(feature) %>% 
+  reframe(thisSHAP=sum(Shap_value_mean)) %>% arrange(desc(thisSHAP))
+```
+```{r}
+Model_allcovar_noiso<-readRDS("../output/03_Xgboost_Covariates_final_withoutISO")
+
+```
+
+## Risk factors no vacs cases and isos
+```{r}
+features2<- features[!grepl("year|cases|accination|Oxford|Owid_Total_death|Owid_death_per_million|Owid_Exmort",features)]
+features2 <-features<-c("Comorbidity.index","Pop.dens","HDI","Diabetetes....", "Obesity...." )
+wdi_imputeedData<-createXgboostData_tuned(numberofruns = topruns$run[1:1000],Xgboostinput_filtered =Xgboostinput_complete_pca,features = features2,Label = Label)
+gbossISO<-wdi_imputeedData$Xgboost_summary
+wdi_imputeedData$Feature_summary %>% group_by(feature) %>% reframe("lala"=sum(Shap_value_mean)) %>%  arrange(desc(lala))
+wdi_imputeedData1$Feature_summary$feature %>%  unique
+# wdi_imputeedData %>%
+#  saveRDS("../output/03_Xgboost_Covariates_noCases_final_withoutISO")
+```
+
+
+```{r}
+wdi_imputeedData<-readRDS("../output/03_Xgboost_Covariates_noCases_final_withoutISO")
+addd<-wdi_imputeedData$Xgboost_summary
+a<-wdi_imputeedData$Feature_summary %>%  group_by(feature) %>% 
+   reframe(thisSHAP=mean(Shap_value_mean)) %>% arrange(desc(thisSHAP))
+
+wdi_imputeedData %>%  group_by(run) %>% 
+   reframe(thisSHAP=sum(abs(Shap_value_mean))) %>% arrange(desc(thisSHAP))
+lowestErro<-wdi_imputeedData$Feature_summary %>% filter(run%in% 78)
+lowestErro$Shap_value_mean %>%  sum
+lowestErro
+78
+```
+
+```{r}
+cor(Xgboostinput_complete_pca$handwashing_facilities,Xgboostinput_complete_pca$p_value_mort)
+cor(Xboostinput_exmort_owid_covar$handwashing_facilities,Xgboostinput_complete_pca$p_value_mort,use = "complete.obs")
+Xboostinput_exmort_owid_covar$handwashing_facilities %>%  summary
+look<-combn(Xboostinput_exmort_owid_covar[,10:35] %>% colnames,2)
+corvar<-data.frame()
+for(i in 1:ncol(look)){
+ try(ulf<-data.frame("var1"=look[1,i],"var2"=look[2,i],"cor"=as.numeric(unlist(cor(Xboostinput_exmort_owid_covar[,look[1,i],with = F],Xboostinput_exmort_owid_covar[,look[2,i],with = F],use = "complete.obs")))))
+corvar<-rbind(corvar,ulf)
+}
+
+cor(Xboostinput_exmort_owid_covar$HDI,Xboostinput_exmort_owid_covar$`UHC index`)
+
+```
+## Cases stringency vaccanation
+
+```{r}
+Xgboostinput_pc<-Xgboostinput_complete_pca %>% rename("Country.Code"=`Country Code`)
+Xgboostinput_pc %>%  filter(!(`Country.Code`%in% "PER"))-> Xgboostinput_pc
+Label<-"p_value_mort"
+features<-Xgboostinput_pc %>% dplyr::select(-`Country.Code`,-p_value_mort) %>%  colnames()
+features<-features[grepl("Oxford|accination|COVID|ovid",features)]
+
+
+
+
+wdi_newcases<-createXgboostData_tuned(numberofruns = topruns$run,Xgboostinput_filtered = Xgboostinput_pc,features = features,Label = Label)
+
+# gboss<-wdi_pc26Data$Xgboost_summary
+# gboss$Rsquared %>%  summary
+
+wdi_newcases #%>% saveRDS("../output/03_Xgboost_onlyVACSandNewcasesandstingeny_models")
+
+wdi_newcases$Xgboost_summary$Rsquared %>%  summary
+```
+```{r}
+Vaccinationsandoxford<-wdi_newcases_vaccinations$Xgboost_summary
+Vaccinations<-wdi_newcases$Xgboost_summary
+wdi_newcases_vaccinations$Feature_summary$feature %>% unique()
+Vaccinationsandoxford$Rsquared %>%  summary()
+```
+
+### Summary 
+R squared
+```{r}
+readRDS("../output/03_Xgboost_onlyVACSandNewcasesandstingeny_models")$Xgboost_summary$Rsquared %>% summary
+readRDS("../output/03_Xgboost_Covariates_final_withoutISO")$Xgboost_summary$Rsquared %>% summary
+readRDS("../output/03_Xgboost_imputed_models")$Xgboost_summary$Rsquared %>% summary
+readRDS("../output/03_Xgboost_pca20_models")$Xgboost_summary$Rsquared %>% summary
+readRDS("../output/03_Xgboost_normal_iso10_models")$Xgboost_summary$Rsquared %>% summary
+readRDS("../output/03_Xgboost_E_iso10_models")$Xgboost_summary$Rsquared %>% summary
+```
+R squared train
+```{r}
+
+
+readRDS("../output/03_Xgboost_onlyVACSandNewcases_models")$Xgboost_summary
+readRDS("../output/03_Xgboost_Covariates_final_withoutISO")$Xgboost_summary$overfit %>% summary
+readRDS("../output/03_Xgboost_imputed_models")$Xgboost_summary$overfit %>% summary
+readRDS("../output/03_Xgboost_pca20_models")$Xgboost_summary$overfit %>% summary
+readRDS("../output/03_Xgboost_normal_iso10_models")$Xgboost_summary$overfit %>% summary
+readRDS("../output/03_Xgboost_E_iso10_models")$Xgboost_summary$overfit %>% summary
+```
+
+# 6 isomap
+```{r}
+## E ISO run
+
+
+
+pathWDI10_e_isomap<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_ensemble_isomap10.RDS")
+
+this10<-readRDS(pathWDI10_e_isomap)
+topruns<-this10$Xgboost_summary %>% arrange(desc(Rsquared))
+
+
+```
+
+```{r}
+blas_set_num_threads(1)
+omp_set_num_threads(1)
+```
+
+
+```{r}
+Xgboostinput_iso<-dplyr::inner_join(WDI_pc_2020_2021, excessCounrty_annual2, by = "identifier") %>% dplyr::select(`Country Code`,`p_value_mort`,`identifier`,paste0("iso",seq(1:10)))
+Xgboostinput_iso<-Xgboostinput_iso[!Xgboostinput_iso$`Country Code` %in% "PER",]
+Xgboostinput %>%  filter(!(`Country Code`%in% "PER"))-> Xgboostinput
+
+Xgboostinput_complete_iso<-cbind(Xgboostinput_iso %>% dplyr::select(`Country Code`,iso1,iso2,iso3,iso4,iso5,iso6),Xboostinput_exmort_owid_covar_imputed)%>%
+  dplyr::select(-matches("^PC_normal"))
+
+
+Xgboostinput_iso<-Xgboostinput_complete_iso %>% rename("Country.Code"=`Country Code`)
+
+#Xgboostinput_complete_iso %>% saveRDS(paste0(DATA_DIR,"/XboostDfEiso.RDS"))
+
+Label<-"p_value_mort"
+features<-Xgboostinput_iso %>% dplyr::select(-`Country.Code`,-p_value_mort) %>%  colnames()
+# features<-features[!grepl("accination|COVID|ovid|xford",features)]
+
+
+wdi_iso10Data<-createXgboostData_tuned(numberofruns = topruns$run[1:1000],Xgboostinput_filtered =Xgboostinput_iso,features = features,Label = Label)
+# gbossISO<-wdi_iso10Data$Xgboost_summary
+# wdi_iso10Data$Xgboost_summary$Rsquared %>%  summary
+
+wdi_iso10Data #%>%  saveRDS("../output/03_Xgboost_06_E_iso10_models")
+
+wdi_iso10Data$Xgboost_summary$Rsquared %>%  summary
+
+
+```
+
+
+

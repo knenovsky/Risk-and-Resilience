@@ -1,0 +1,673 @@
+---
+title: "01_DimensionReduction"
+author: "Kolja Nenoff"
+date: "2023-11-03"
+output: html_document
+---
+
+The script is based on the code of Kreamer et al 2018.
+The world bank indicators are collected on the 03.11.2023 from https://datacatalog.worldbank.org/dataset/world-development-indicators
+
+
+#Load
+
+```{r}
+# rm(list = ls())
+#Libraries
+
+libraries <- c("magrittr", "tidyverse", "data.table", "parallel", 
+               "dimRed", "devtools", "igraph", "energy", "ggrepel",
+               "ggalt", "ggraph", "trend", "RANN",
+               "RJSONIO", "RSpectra", "ggokabeito")
+for (lib in libraries) {
+  if (!require(lib, character.only = TRUE)) {
+    install.packages(lib)
+    library(lib, character.only = TRUE)
+  }
+}
+
+options(
+  # set default colors in ggplot2 to colorblind-friendly
+  # Okabe-Ito and Viridis palettes
+  ggplot2.discrete.colour = ggokabeito::palette_okabe_ito(),
+  ggplot2.discrete.fill = ggokabeito::palette_okabe_ito(),
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis",
+  # set theme font and size
+  book.base_family = "sans",
+  book.base_size = 14
+)
+# set default theme
+theme_set(
+  theme_minimal(
+    base_size = getOption("book.base_size"),
+    base_family = getOption("book.base_family")
+  ) %+replace%
+    theme(
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom"
+    )
+)
+#Cluster 
+CLUSTER <- rep("localhost", 50)
+Sys.setenv(OPENBLAS_NUM_THREADS = 50)
+#Dir path
+DATA_DIR <- "../data/01_data"
+FIGURE_DIR <- "../figures/01_figures"
+LIB_DIR<-"../libraries"
+
+WDI_DIR <- paste0("../data/231103_WDI")
+
+
+#WDI
+wdi_series_path <- file.path(WDI_DIR, "WDISeries.csv")
+wdi_data_path<-file.path(WDI_DIR, "WDIData.csv")
+wdi_country_path<-file.path(WDI_DIR, "WDICountry.csv")
+wdi_income_path<-file.path(WDI_DIR, "CLASS.xlsx") # Available on the Worldbank website. Clssification 20231103
+# HDI 
+HDI_data_path<-file.path(DATA_DIR,"/","01_hdi_data.csv")
+
+# Exmort
+EXMORT_DIR <- "../data/230225_WHO_Excess_Mort/2022-03-25_covid-19_gem"
+exmort_path <- file.path(EXMORT_DIR, "WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx")
+
+#Costumized functions
+relative_indicators_path<-file.path(DATA_DIR,"01_relative_indicators_2023_06.R")
+DATA_DIR <- "../data/01_data"
+RELATIVE_INDICATORS_FILE_NAME<-"01_relative_indicators_2023_06.R"
+source(relative_indicators_path)
+toolbox_path <- file.path(LIB_DIR, "00_toolbox.R") # Source helper functions
+wdi_dimred_path <- file.path(LIB_DIR, "01_lib_WDI_dimred.R") # Kraemeretal2018 modified
+source(toolbox_path)
+source(relative_indicators_path)
+source(wdi_dimred_path)
+
+```
+
+
+
+
+# 1 Data preparation 
+
+```{r}
+# WDI annotation
+wdi_series <- fread(wdi_series_path) %>%
+  setnames("Series Code", "Indicator Code")
+
+wdi_data    <- fread(wdi_data_path,header = TRUE) %>% {
+      for (i in 5:ncol(.)) .[[i]] <- as.numeric(.[[i]])
+      .
+    } %>%
+    setkey(`Indicator Code`) %>% {
+      .[RELATIVE_INDICATORS]
+    }
+wdi_country <- fread(wdi_country_path)
+
+
+## HDI data
+hdi_data<-fread(HDI_data_path)
+indicator_sdg <- data.table::fread(get_data_file("indicator_sdg.csv"),header = TRUE)
+sdg_table <- data.table::fread(get_data_file("sdg_goals.csv"),header = TRUE)
+INDICATOR_CODES     <- get_indicator_codes(wdi_series)
+
+```
+
+
+
+
+
+##  1.1. Filter countries
+
+Include only countries with available Excess Mort
+```{r}
+ExcessMortbyCountry<-read_excel(exmort_path,sheet = 2)
+COUNTRY_CODES<-ExcessMortbyCountry$iso3 %>%  unique
+```
+
+
+
+## 1.2 Filter missing values
+
+Discard values with missing values higher than 50 % of the in 1990 to 2021
+```{r}
+
+wdi_data_transformed<-wdi_data %>%
+    dplyr::select(`Country Code`, `Indicator Code`,
+                  num_range("", 1990:2022))                 %>%
+    dplyr::filter(`Country Code` %in% COUNTRY_CODES)         %>%
+    dplyr::filter(`Indicator Code` %in% RELATIVE_INDICATORS) %>%
+    gather(year, value, num_range("", 1990:2022))           %>%
+    spread(`Indicator Code`, value, convert = TRUE)          %>%
+    dplyr::mutate(year = as.integer(year))                   %>%
+    dplyr::select_if( . %>% { !all(is.na(.) | (. == 0)) })  
+
+wdi_data_transformed_allindicators<-wdi_data %>%
+    dplyr::select(`Country Code`, `Indicator Code`,
+                  num_range("", 1990:2022))                 %>%
+    dplyr::filter(`Country Code` %in% COUNTRY_CODES)         %>%
+    # dplyr::filter(`Indicator Code` %in% RELATIVE_INDICATORS) %>%
+    gather(year, value, num_range("", 1990:2022))           %>%
+    spread(`Indicator Code`, value, convert = TRUE)          %>%
+    dplyr::mutate(year = as.integer(year))                   %>%
+    dplyr::select_if( . %>% { !all(is.na(.) | (. == 0)) })  
+#wdi_data_transformed_allindicators %>% fwrite("../data/01_data/wdi_data_transformed_allindicators.csv")
+na_fractions <- wdi_data_transformed %>%
+  map_dbl(~ mean(is.na(.))) %>%
+  enframe(name = "Variable", value = "Na_fraction") %>%
+  arrange(desc(Na_fraction))
+na_fractions_1<-na_fractions %>% filter(Na_fraction<.5)
+
+```
+
+
+### Interlude
+```{r}
+wdi_data_transformed_allindicators$ManufacturingofGDP<-wdi_data_transformed_allindicators$NV.IND.MANF.ZS/wdi_data_transformed_allindicators$NY.GDP.PCAP.CD
+wdi_data_transformed_allindicators$ManufacturingofGDP,wdi_data_transformed_allindicators$
+```
+
+
+## 1.3 Subset Indicators
+
+```{r}
+RELATIVE_INDICATORS<-get_relative_indicators() 
+RELATIVE_INDICATORS<-RELATIVE_INDICATORS[(RELATIVE_INDICATORS%in% na_fractions_1$Variable)]
+```
+
+
+
+# 2 Calculate and plot the missing value scores!
+
+```{r}
+data_sensitivity_res <- compute_if_no_file(
+  get_data_file("01_231204_data_sensitivity_res.RDS"),
+  make_data_sensitivity,x=wdi_data,country_codes=COUNTRY_CODES,
+  relative_indicators=RELATIVE_INDICATORS,year_range=1990:2021,.overwrite = F
+)
+
+```
+
+
+# 3 Estimate the WDI Subset with the highest quality
+
+The goal is to have maximized years and countries with lowest number of missing values
+
+```{r}
+qual_comp_res <- compute_if_no_file(
+  get_data_file("01_Qual_comp_res.RDS"),
+  make_qual_comp_res_score3,
+  data = wdi_data,
+  data_sensitivity = data_sensitivity_res
+  ,.overwrite = F
+)
+```
+
+
+
+```{r}
+all_cors <- assemble_correlations_m(qual_comp_res)
+
+qual_comp_res_stats(qual_comp_res)
+```
+
+
+##  variable indices
+```{r}
+USED_VAR_IDX <- apply(all_cors$iso, 1, function(x) !all(is.na(x)))
+N_USED_VARS <- sum(USED_VAR_IDX)
+USED_VAR_NAMES <-
+  qual_comp_res %>%
+  lapply(function (x) rownames(x$cor_pca)) %>%
+  unlist %>%
+  unique %>%
+  sort
+YEARS <-
+  qual_comp_res %>%
+  lapply(function(x) x$cntry_year$year) %>%
+  unlist %>%
+  unique %>%
+  sort
+
+COUNTRY_NAMES <-
+  qual_comp_res %>%
+  lapply(function(x) x$cntry_year$`Country Code`) %>%
+  unlist %>%
+  unique %>%
+  sort
+```
+
+
+
+# 4 Create  Ensemble Isomap and PPCA imputed PCA
+
+
+
+```{r}
+cons_iso_pca <- compute_if_no_file(
+  get_data_file("01_cons_iso_pca_iso_test.RDS"),
+  make_cons_iso_pca_m,
+  qual_comp_res = qual_comp_res,
+  wdi_data = wdi_data,
+  knns = c(250),
+  n_used_vars = N_USED_VARS,
+  country_names = COUNTRY_NAMES,
+  used_var_names = USED_VAR_NAMES,
+  years = YEARS,
+  ciso = T,
+   .overwrite = T
+)
+cons_iso_pca
+plot_if_no_file(
+  get_plot_file("01_cons_quality_ppca_iso.pdf"),
+  plot_cons_iso_pca,
+  cons_iso_pca = cons_iso_pca,
+  .overwrite = T
+)
+
+```
+
+
+
+# 5 Create dataset
+
+
+
+```{r}
+occurrence_table       <- cons_iso_pca$occurrence_table
+wdi_data_cons          <- cons_iso_pca$wdi_data_cons
+wdi_data_cons_pca      <- cons_iso_pca$wdi_data_cons_pca
+wdi_data_cons_iso      <- cons_iso_pca$wdi_data_cons_iso
+wdi_data_qual_cons_pca <- cons_iso_pca$wdi_data_qual_cons_pca
+wdi_data_qual_cons_iso <- cons_iso_pca$wdi_data_qual_cons_iso
+knns                   <- cons_iso_pca$knns
+#wdi_data_qual_cons_iso[[1]] %>% saveRDS("../data/01_data/eisomap.RDS")
+```
+
+```{r}
+
+wdi_data_cons_df <- make_wdi_data_cons_df(knn = 250,
+                                          wdi_data_cons     = wdi_data_cons,
+                                          wdi_data_cons_iso = wdi_data_cons_iso,
+                                          wdi_data_cons_pca = wdi_data_cons_pca,
+                                          wdi_country       = wdi_country,
+                                          occurrence_table  = occurrence_table,
+                                          hdi_data          = hdi_data)
+
+
+
+```
+
+
+
+
+
+
+
+# 6 Simple PCA
+
+## Gap filling algorithm
+```{r}
+years<-wdi_data_cons_df$year %>%  unique()
+
+country_names<- wdi_data_cons_df$`Country Code` %>%  unique()
+used_var_names<-colnames(wdi_data_cons_df)[colnames(wdi_data_cons_df)%in% wdi_series$`Indicator Code`]
+
+wdi_data_cons_scaled <- scale(as.matrix(wdi_data_cons_df %>% select(any_of(wdi_series$`Indicator Code`))))
+```
+
+
+
+```{r}
+Matrix <- as.matrix(wdi_data_cons_scaled, rownames.force = TRUE)
+cov_mat <- cov(Matrix, use = "pairwise.complete.obs")
+
+# Compute covariance matrix with available data
+Matrix_na <- as.matrix(wdi_data_cons_scaled, rownames.force = TRUE)
+Matrix_zero<- as.matrix(wdi_data_cons_scaled, rownames.force = TRUE)
+Matrix_zero[is.na(Matrix_zero)]<-0
+
+cov_matrix <- cov(Matrix, use = "pairwise.complete.obs")
+
+scaled_matrix<-cov_matrix
+covar_mat2<-scaled_matrix %>%  data.frame()
+scaled_cov_matrix<-scaled_matrix
+# Perform PCA
+eigen_result <- eigen(scaled_cov_matrix)
+eigenvalues <- eigen_result$values
+variance_explained_covar_adj <- cumsum(eigenvalues) / sum(eigenvalues)
+k<-sum(variance_explained_covar_adj[1:100]<0.90) 
+
+eigenvectors <- eigen_result$vectors %>% data.frame() %>% select(1:k) %>% as.matrix()
+
+  
+# Calculate PCA scores
+
+pca_scores <- Matrix_zero %*% eigenvectors[,]
+
+x_star<-pca_scores %*% t(eigenvectors)
+
+Matrix_new<-Matrix_na
+for (i in 1:nrow(Matrix_new)) {
+  for(j in 1:ncol(Matrix_new)){
+    if(is.na(Matrix_new[i,j])){
+
+      Matrix_new[i,j]<-x_star[i,j]
+    }
+  }
+  
+}
+
+
+##  save gapfill data
+
+wdi_data_cons_pca_gap_filled<-cbind(wdi_data_cons_df[,c(1,2)],Matrix_new)
+
+#fwrite(wdi_data_cons_pca_gap_filled, "../data/01_data/01_wdi_gapfilled.csv")
+
+dta_pca  <-dimred_pca(Matrix_new)                              
+qual_pca <- try( quality_pca(Matrix_new, dta_pca$dim_red, dmax = 35) )
+```
+
+
+```{r}
+dta_iso<-dimred_iso(Matrix_new,knn = 50)
+qual_iso <- try( quality_iso(Matrix_new, dta_iso$dim_red, dmax = 35) )
+
+```
+
+
+
+####Das geht wir können 
+
+
+# 8  create finaldata
+## Dimred Dataset
+
+```{r}
+sum(1-qual_pca<0.9)
+qual_pca
+sum(1-qual_iso<0.9)
+```
+pca 34 dimensions
+iso simplte 10 dimensions
+
+```{r}
+mydim_pca<-dta_pca$dim_red@data@data[, 1:50]
+mydim_iso<-dta_iso$dim_red@data@data[,c(1:40)]
+pc<-mydim_pca[,1:40]
+colnames(pc)<-paste0("PC_normal_",seq(1:ncol(pc)))
+
+iso<-mydim_iso[,1:40]
+colnames(iso)<-paste0("ISO_normal_",seq(1:ncol(iso)))
+
+wdi_data_cons_df2<-cbind(wdi_data_cons_df,pc,iso)
+plot(wdi_data_cons_df2$PC_normal_1,wdi_data_cons_df2$PCA_1)
+#fwrite(wdi_data_cons_df2,"../data/01_data/01_wdi_data_cons_df_250.csv")
+```
+
+
+
+
+
+# 9 Plot different compression states
+```{r}
+plot_if_no_file(
+  get_plot_file("the_main_gradients.pdf"),
+  plot_the_main_gradients,
+  wdi_data_cons_df = wdi_data_cons_df,
+  prim_font_size = 20,
+  .overwrite = TRUE
+)
+```
+
+### Save quality of pca
+```{r}
+qual_iso
+qual_pca
+explainedvarofdimred<-data.frame(isoDim=qual_iso[1:35] %>%  unlist(),pcaDim=qual_pca[1:35])
+ saveRDS(explainedvarofdimred %>% data.frame(), "../data/01_data/01_dimred_qual.RDS")
+```
+
+
+### Save loadings
+```{r}
+data_imputed<-fread("../data/01_data/01_wdi_gapfilled.csv") 
+data_imputed2<-data_imputed %>% select(-1,-2)
+# sanity checke it. The methods are simliar
+yo<-pcaMethods::pca(data_imputed2,nPcs = 40)
+loadingsData_a<-yo@loadings
+colnames(loadingsData_a)<-paste0("PCA_",seq(1:40))
+
+#saveRDS(loadingsData_a %>% data.frame(), "../data/01_data/01_wdi_loadings.csv")
+```
+
+```{r}
+library(pcaMethods)
+
+# Assuming you have a data frame 'df' with your input features and an output variable
+# Extract the output variable
+output_variable <- dimred_250[, ]
+
+# Perform PCA using pca
+pca_result@loadings <- pca(data_imputed[, ])
+# Extract standardized PCA scores
+pca_scores <- getLoadings(pca_result)
+
+# Combine PCA scores with the output variable
+pca_scores$Output <- output_variable
+
+# Calculate correlations
+correlations <- sapply(1:(ncol(pca_scores)-1), function(dim_index) {
+  cor(pca_scores[, dim_index], pca_scores$Output)
+})
+
+# Display correlations
+
+```
+
+
+
+
+
+
+```{r}
+sum(unlist(wdi_data_qual_cons_iso)>0.1)
+sum(unlist(wdi_data_qual_cons_pca)>0.1)
+sum(qual_pca>0.1)
+plot(qual_pca)
+plot(wdi_data_qual_cons_pca)
+plot(wdi_data_qual_cons_iso)
+```
+pca selfimputed 26
+ppca 12
+iso 26
+
+## Explainedvar
+
+# X Supplement
+### compare different imputation methods
+```{r}
+
+### unadjusted easy na adaption
+Matrix <- as.matrix(wdi_data_cons_scaled, rownames.force = TRUE)
+
+prepres <- pcaMethods::prep(Matrix, scale = "uv", center = TRUE,simple = FALSE)
+prepres$data %>%  dim
+data_prepres_uv_0<-prepres$data
+data_prepres_uv_0[is.na(data_prepres_uv_0)==T]<-0
+
+imputed_data_uv <- pcaMethods::pca(data_prepres_uv_0, "ppca", nPcs = 80, completeObs = TRUE)
+
+```
+## Compare the appraoches
+
+### estimate the distance
+
+
+```{r}
+ppca_res_2 <- pcaMethods::pca(wdi_data_cons_scaled, "ppca", nPcs = 2, completeObs = TRUE)
+ppca_res_20 <- pcaMethods::pca(wdi_data_cons_scaled, "ppca", nPcs = 20, completeObs = TRUE)
+ppca_res_80 <- pcaMethods::pca(wdi_data_cons_scaled, "ppca", nPcs = 80, completeObs = TRUE)
+ppca_res_80_b <- pcaMethods::pca(wdi_data_cons_scaled, "ppca", nPcs = 80, completeObs = TRUE)
+
+bpca_res2 <- pcaMethods::pca(wdi_data_cons_scaled, "bpca", nPcs = 2, completeObs = TRUE)
+bpca_res80 <- pcaMethods::pca(wdi_data_cons_scaled, "bpca", nPcs =80, completeObs = TRUE)
+svdImput_res2 <- pcaMethods::pca(wdi_data_cons_scaled, "svdImpute", nPcs = 2, completeObs = TRUE)
+#svdImput_res10 <- pcaMethods::pca(wdi_data_cons_scaled, "svdImpute", nPcs = 10, completeObs = TRUE)
+bpca_res80 <- pcaMethods::pca(wdi_data_cons_scaled, "bpca", nPcs = 80, completeObs = TRUE)
+
+svdImput_res80 <- pcaMethods::pca(wdi_data_cons_scaled, "svdImpute", nPcs = 80, completeObs = TRUE)
+cov0 <- pcaMethods::pca(data_prepres_uv_0, "svdImpute", nPcs = 10, completeObs = TRUE)
+# covCOOL <- pcaMethods::pca(pca_scores %>% data.frame(), "svdImpute", nPcs = 10, completeObs = TRUE)
+
+
+qual_pca2 <- try( quality_pca(ppca_res_2@completeObs, dimred_pca(ppca_res_2@completeObs)$dim_red , dmax = 30) )
+qual_pca20 <- try( quality_pca(ppca_res_20@completeObs, dimred_pca(ppca_res_20@completeObs)$dim_red , dmax = 30) )
+qual_pca80 <- try( quality_pca(ppca_res_80@completeObs, dimred_pca(ppca_res_80@completeObs)$dim_red , dmax = 30) )
+qual_bpca2 <- try( quality_pca(bpca_res2@completeObs, dimred_pca(bpca_res2@completeObs)$dim_red , dmax = 30) )
+qual_bpca80 <- try( quality_pca(bpca_res80@completeObs, dimred_pca(bpca_res80@completeObs)$dim_red , dmax = 30) )
+qual_svdImpute2 <- try(quality_pca(svdImput_res2@completeObs, 
+                                   dimred_pca(svdImput_res2@completeObs)$dim_red, 
+                                    dmax = 30) )
+# qual_svdImpute10 <- try( quality_pca(svdImput_res10@completeObs, dimred_pca(svdImput_res10@completeObs)$dim_red , dmax = 20) )
+qual_svdImpute80 <- try( quality_pca(svdImput_res80@completeObs,
+                                     dimred_pca(svdImput_res80@completeObs)$dim_red, dmax = 30 ))
+qual_cov0 <- try( quality_pca(cov0@completeObs, dimred_pca(cov0@completeObs)$dim_red , dmax = 30) )
+
+# explainedVar<-1-variance_explained_covar_adj[1:20]
+
+qualpcaCOVA<-1-qualpcaCOV
+isomapvar<-wdi_data_qual_cons_iso %>%  unlist()
+
+isomapvar<-wdi_data_qual_cons_iso %>% unlist
+qual_imp<-1-variance_explained
+
+pcares<-rbind(
+data.frame("type"="ppca 2","value"=qual_pca2,Number=seq_along(qual_pca2)),
+# data.frame("type"="ppca 20","value"=qual_pca20,Number=seq_along(qual_pca20)),
+data.frame("type"="ppca 80","value"=qual_pca80,Number=seq_along(qual_pca80)),
+# data.frame("type"="bpca 2","value"=qual_bpca2,Number=seq_along(qual_bpca2)),
+# data.frame("type"="bpca 80","value"=qual_bpca80,Number=seq_along(qual_bpca80)),
+# data.frame("type"="svd 2","value"=qual_svdImpute2,Number=seq_along(qual_svdImpute2)),
+# data.frame("type"="svd 10","value"=qual_svdImpute10,Number=seq_along(qual_svdImpute10)),
+# data.frame("type"="svd 80","value"=qual_svdImpute80,Number=seq_along(qual_svdImpute80)),
+data.frame("type"="Covar_NA_zero","value"=qual_cov0,Number=seq_along(qual_cov0)),
+data.frame("type"="Covar_adjust","value"=qualpcaCOVA,Number=seq_along(qualpcaCOVA)),
+data.frame("type"="Isomap","value"=isomapvar[1:30],Number=seq_along(isomapvar[1:30])))
+
+pcares$type<-factor(pcares$type,levels = c("Isomap","bpca 2","ppca 2","svd 2","ppca 20","Covar_NA_zero","Covar_adjust","ppca 80","bpca 80","svd 80"))
+#pcares %>% fwrite("../data/01_pca_data_compare.csv")
+pcares %>% mutate(type2=case_when(grepl("ppca",type)~"PPCA",
+                                  grepl("bpca",type)~"bPCA",
+                                  grepl("svd",type)~"SVD",
+                                  grepl("Covar_NA_",type)~"NA to zero",
+                                  grepl("Covar_adjust",type)~"Adjusted imputation",
+                                  grepl("Isomap",type)~"Isomap",
+                                  ))%>% ggplot(aes(x=Number,y=value,color=type))+geom_point()+geom_line()+xlim(0,30)+geom_hline(yintercept = 0.10)+ylab("Residual Variance")+ xlab("Number of dimensions")+ylim(0,1) +theme(legend.position = "right")+scale_color_manual(values = colorVALUE<- met.brewer(palette_name = "Lakota",return_hex = T))
+mat_b
+
+ggsave(file="../figures/01_figures/pca_compareBOLD.png",device = "png",height = 6,width = 10)
+
+```
+# dcor
+```{r}
+wdi_data_cons_df<-fread("../data/01_data/01_wdi_data_cons_df_250.csv")
+
+dcor_var_iso_cons <- compute_if_no_file(
+  get_data_file("wdi_data_cons_dcor.RDS"),
+  make_dcor_var_iso_cons,
+  wdi_data_cons_df = wdi_data_cons_df,
+  used_var_names = USED_VAR_NAMES,
+  .overwrite = T
+)
+isomapdcor<-dcor_var_iso_cons %>% data.frame()
+isomapdcor
+
+
+#saveRDS(isomapdcor,"../output/01_Corrtable_new_isomap.RDS")
+```
+
+
+
+#  consrved 6 Gap filling algorithm
+```{r}
+years<-YEARS
+country_names<- COUNTRY_NAMES
+used_var_names<-USED_VAR_NAMES
+
+data.table::setDT(occurrence_table)
+data.table::setDT(wdi_data_cons_df)
+data.table::setkey(occurrence_table, "Country Code", "year")
+data.table::setkey(wdi_data_cons_df, "Country Code", "year")
+
+wdi_series_indicators<-wdi_series$`Indicator Code` %>%  unique
+wdi_data_cons_df <- wdi_data_cons_df[occurrence_table[, 1:2]]
+
+#wdi_data_cons_scaled <- scale(as.matrix(wdi_data_cons_df %>% select(any_of(wdi_series_indicators))))
+
+wdi_data_cons_scaled <- scale(as.matrix(dimred_250 %>% select(any_of(wdi_series$`Indicator Code`))))
+
+
+Matrix <- as.matrix(wdi_data_cons_scaled, rownames.force = TRUE)
+cov_mat <- cov(Matrix, use = "pairwise.complete.obs")
+
+
+
+# Compute covariance matrix with available data
+Matrix_na <- as.matrix(wdi_data_cons_scaled, rownames.force = TRUE)
+Matrix_zero<- as.matrix(wdi_data_cons_scaled, rownames.force = TRUE)
+Matrix_zero[is.na(Matrix_zero)]<-0
+# Function to count pairwise complete observations
+pairwise_count <- function(data) {
+  sapply(1:ncol(data), function(i) {
+    sapply(1:ncol(data), function(j) {
+      sum(!is.na(data[, i]) & !is.na(data[, j]))
+    })
+  })
+}
+
+# Count pairwise complete observations
+pairwise_counts <- pairwise_count(Matrix)
+
+# Calculate necessary variables
+n <- nrow(Matrix) 
+cov_matrix <- cov(Matrix, use = "pairwise.complete.obs")
+
+# Scale the covariance matrix
+a<- ((n-1) / (pairwise_counts-1))
+a[1,503]
+scaled_cov_matrix <- cov_matrix * ((n-1) / (pairwise_counts-1))
+
+covar_mat<-scaled_cov_matrix %>%  data.frame()
+
+# Perform PCA
+eigen_result <- eigen(scaled_cov_matrix)
+eigenvalues <- eigen_result$values
+
+eigenvectors <- eigen_result$vectors %>% data.frame() %>% select(1:20) %>% as.matrix()
+variance_explained_covar_adj <- cumsum(eigenvalues) / sum(eigenvalues)
+
+# Calculate PCA scores
+
+pca_scores <- Matrix_zero %*% eigenvectors[,]
+
+x_star<-pca_scores %*% t(eigenvectors)
+
+Matrix_new<-Matrix_na
+for (i in 1:nrow(Matrix_new)) {
+  for(j in 1:ncol(Matrix_new)){
+    if(is.na(Matrix_new[i,j])){
+      Matrix_new[i,j]<-x_star[i,j]
+    }
+  }
+  
+}
+
+dta_pca  <- try( dimred_pca(Matrix_new)                              )
+
+qual_pca <- try( quality_pca(Matrix_new, dta_pca$dim_red, dmax = 30) )
+qualpcaCOV<-1-qual_pca
+
+wdi_data_cons_pca_gap_filled<-cbind(occurrence_table[,c(1,2)],Matrix_new)
+#fwrite(wdi_data_cons_pca_gap_filled, "../data/01_data/01_wdi_gapfilled.csv")
+```

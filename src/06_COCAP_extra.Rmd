@@ -1,0 +1,321 @@
+---
+title: "06_COCAP_extra"
+author: "Kolja Nenoff"
+date: "2024-07-01"
+output: html_document
+---
+
+#load
+
+
+## libraries
+```{r}
+rm(list = ls())
+# devtools::install_github("BlakeRMills/MetBrewer")
+libraries <- c("magrittr", "ggplot2", "data.table","patchwork","tidygraph","ggraph","igraph","tidyverse",
+               "ggcorrplot","MetBrewer","grid","gridExtra","ggpubr","cowplot","colorspace","RColorBrewer","gt","gtExtras",  "parallel","readxl","caret","doMC","xgboost","energy","sf","ggpmisc")
+for (lib in libraries) {
+  if (!require(lib, character.only = TRUE)) {
+    install.packages(lib)
+    library(lib, character.only = TRUE)
+  }
+}
+```
+## themes and setting
+
+```{r}
+#Theme settings
+## plot theme
+# color_seven<- ggokabeito::palette_okabe_ito()
+col_pal<- brewer.pal(n = 8, name = "Dark2")
+options(
+  # set default colors in ggplot2 to colorblind-friendly
+  # Okabe-Ito and Viridis palettes
+  ggplot2.discrete.colour = "viridis",
+  ggplot2.discrete.fill = "viridis",
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis",
+  # set theme font and size
+  book.base_family = "sans",
+  book.base_size = 8
+)
+default_fill_palette <- scale_fill_viridis_d(option="C",begin = 0,end = 0.9)
+# Gradient for 0 to 100 viridis_b
+#Cassatt1 or OKeeffe1 Colorblindfrinedly gradient form blue to red
+#Kandinsky four colors 
+#Veronese 7 colors
+## set default theme
+theme_set(
+  theme_bw(
+    base_size = getOption("book.base_size"),
+    base_family = getOption("book.base_family")
+  ) %+replace%
+    theme(
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom"
+    )
+)
+
+default_color_palette_plotA <- scale_color_viridis_d(option="C",begin = 0,end = 0.9, name = "Income Group",na.translate = F)
+```
+## data
+```{r}
+# paths
+DATA_DIR<-"../data/cocap_presi_data/"
+# DIMRED_DIR<-"../data/01_data/"
+# EXMORT_DIR <- "../data/230225_WHO_Excess_Mort/2022-03-25_covid-19_gem"
+# files
+dimred_path<-file.path(DATA_DIR,"01_wdi_data_cons_df_250.csv")
+Dimred_subset2020_path<-file.path(DATA_DIR,"worldmap_data.csv")
+predictiveScores_path<-file.path(DATA_DIR,"PredictiveScores.csv")
+exmort_path <- file.path(DATA_DIR, "WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx")
+
+```
+
+### Assign formula
+```{r}
+formula <- y ~ x
+```
+
+
+### preprocess data
+
+```{r}
+# Read and preprocess predictive scores
+predictiveScores <- fread(predictiveScores_path)
+predictiveScores$incomegroup <- factor(predictiveScores$incomegroup, levels=c("LI","LMI","HMI","HI"))
+DATA_DIR
+# Read other datasets
+
+owid_who_worldbank <- readRDS(paste0(DATA_DIR,"04_owid_data_conc.RDS"))
+GHSI_adjusted_Score_data <- fread(paste0(DATA_DIR,"thislinearresults.csv"))
+dimred_250 <- fread(dimred_path)
+Dimred_subset2020 <- fread(Dimred_subset2020_path)
+ExcessMortbyCountry <- read_excel(exmort_path, sheet = 2)
+
+# Process excess mortality data
+excessCountry_annual <- ExcessMortbyCountry %>%
+  group_by(country, iso3, year) %>%
+  summarise(p_value_mort = sum(excess.mean) / sum(expected.mean) * 100, ACM = sum(acm.mean))
+
+excessCountry_annual <- ExcessMortbyCountry %>%
+  mutate(yearmon = paste0(year, "_", month)) %>%
+  group_by(iso3, yearmon) %>%
+  summarise(p_value_mort = sum(excess.mean) / sum(expected.mean) * 100)
+
+# World map with Eckert IV projection
+# world <- ne_countries(scale = "medium", returnclass = "sf") %>%
+#   st_wrap_dateline(options = c("WRAPDATELINE=YES", "DATELINEOFFSET=180"), quiet = TRUE) %>%
+#   st_transform(crs = "+proj=eck4")
+
+
+
+
+
+```
+
+
+# Figures 
+## ExcessMort_income_plot
+
+```{r}
+#saveRDS(owid_who_worldbank,"../data/04_owid_data_conc.RDS")
+
+
+ExcessMort_income_plot <- owid_who_worldbank %>%
+  filter(!is.na(`Income Group`)) %>%
+  ggplot(aes(x = `Income Group`, y = `p_value_mort`, fill = `Income Group`)) +  # Change color to fill
+  geom_boxplot(color="black") +
+  default_fill_palette+  # Adjust color palette
+  default_color_palette_plotA+
+  theme(legend.position = "asd", axis.line = element_line(linetype = "dotted")) +
+ ylab(" %>% lity") +
+  xlab("Income Group") +
+  geom_hline(yintercept = 0, color = "grey30") +
+  geom_jitter(aes(color = `Income Group`),alpha = 0.6) +
+  stat_kruskal_test(label = "p = {p.format}",label.y = 50)
+
+```
+## GHSI_Exmort_plot
+```{r}
+
+
+dimred2020_predictiveScore<-inner_join(predictiveScores,Dimred_subset2020 %>% filter(year%in%2020) %>% select(`Country Code`,RegionSoviet),by="Country Code")
+
+
+GHSI_Exmort_plot<-dimred2020_predictiveScore %>%  filter(!is.na(incomegroup))  %>%ggplot(aes(x = ghsi_19, y = pscore_mean)) +
+  geom_point(aes(color = RegionSoviet), alpha = 0.9) +
+  geom_smooth(method = "lm", formula = formula, se = FALSE, color = "red4") +
+  theme(legend.position = "none", axis.line = element_line(linetype = "dotted")) +
+  stat_fit_glance(
+  method = "lm",
+  label.y = "top",
+  method.args = list(formula = formula),
+  mapping = aes(
+    label = sprintf(
+      'R^2~"="~%.2f~~italic(p)~"="~%.3f',  # Adjust the format to %.3f for three decimal places
+      after_stat(r.squared), after_stat(p.value)
+    )
+  ),
+  parse = TRUE,
+  size = 3
+  ) +
+  default_color_palette_plotA +  # Apply default color palette
+  xlab("GHSI") +
+  geom_hline(yintercept = 0, color = "grey30") +
+  ylab("Excess Mort") +scale_color_brewer(palette = "Dark2")
+
+```
+
+## cNFC plots
+```{r}
+
+
+cNFC_iso2<-Dimred_subset2020 %>% filter(p_value_mort<60) %>%
+  ggplot(aes(x = iso2, y = p_value_mort)) +
+  geom_point(aes(color = Regions), alpha = 0.9) +
+  geom_smooth(method = "lm", formula = formula, se = FALSE, color = "red4") +
+  theme(legend.position = "bottom", axis.line = element_line(linetype = "dotted")) +
+  stat_fit_glance(
+  method = "lm",
+  label.y = "top",
+  method.args = list(formula = formula),
+  mapping = aes(
+    label = sprintf(
+      'R^2~"="~%.2f~~italic(p <0.001)',  # Adjust the format to %.3f for three decimal places
+      after_stat(r.squared), after_stat(p.value)
+    )
+  ),
+  parse = TRUE,
+  size = 5
+  ) +
+  default_color_palette_plotA +  # Apply default color palette
+  xlab("cNFC trajectory: Labor market composition") +
+  geom_hline(yintercept = 0, color = "grey30") +
+  ylab("Excess Mortality")+scale_color_brewer(palette = "Dark2")
+
+# ggsave(file = "../figures/04_compressedNFC.png",device = "png",width = 7,height = 5)
+
+```
+
+
+## Adjusted_GHSI_Exmort_plot
+```{r}
+
+scale_to_100_reverse <- function(x) {
+  scaled_x <- 100 - ((x - min(x)) / (max(x) - min(x)) * 100)
+  return(scaled_x)
+}
+
+# Example usage
+GHSI_adjusted_Score_data$fitted <- scale_to_100_reverse(GHSI_adjusted_Score_data$fitted) 
+GHSI_adjusted_Score_data$incomegroup  <- factor(GHSI_adjusted_Score_data$incomegroup, levels=c("Low income","Lower middle income","Upper middle income","High income"))
+
+
+Adjusted_GHSI_Exmort<-GHSI_adjusted_Score_data[-c(113,19),] %>%  filter(!is.na(incomegroup))  %>%
+  ggplot(aes(x = fitted, y = exmort)) +
+  geom_point(aes(color = Regions), alpha = 0.9) +
+  geom_smooth(method = "lm", formula = formula, se = FALSE, color = "red4") +
+  theme(legend.position = "bottom", axis.line = element_line(linetype = "dotted")) +
+  stat_fit_glance(
+  method = "lm",
+  label.y = "top",
+  method.args = list(formula = formula),
+  mapping = aes(
+    label = sprintf(
+      'R^2~"="~%.2f~~italic(p)~"="~%.3f',  # Adjust the format to %.3f for three decimal places
+      after_stat(r.squared), after_stat(p.value)
+    )
+  ),
+  parse = TRUE,
+  size = 3
+  ) +
+  default_color_palette_plotA +  # Apply default color palette
+  xlab("GHSI adjusted") +
+  geom_hline(yintercept = 0, color = "grey30") +
+  ylab("Excess Mort")+scale_color_brewer(palette = "Dark2")
+Adjusted_GHSI_Exmort
+```
+
+## Plotpanel
+### Iso2 
+```{r}
+cNFC_iso2
+```
+
+### panel GHSI
+```{r}
+
+# plotpanel_b<- ggarrange(ExcessMort_income_plot+ylab("Excess Mortality (%)")+ylim(c(-10,60)), CU+ylab("")+ylim(c(-10,60)), DU+ylab("Excess Mortality (%)")+ylim(c(-10,60))+xlab(paste0("Isomap 2: Labor market composition")),Adjusted_GHSI_Exmort+ylab("")+ylim(c(-10,60))+xlab(paste0("GHSI+Isomaps")), legend = "none",labels = c("B","C","D","E"))
+# plotpanel_b
+ggarrange(GHSI_Exmort_plot+ylab("Excess Mortality (%)")+ylim(c(-10,60))+xlim(0,100),Adjusted_GHSI_Exmort+ylab("")+ylim(c(-10,60))+xlab(paste0("GHSI+cNFC")),ncol = 1,align = "h",common.legend = T,legend = "bottom") #%>% ggsave(file = "../figures/04_GHSI.png",device = "png",width = 5,height = 7)
+```
+
+## Worldmap
+```{r}
+# owid_data<-fread(owid_series_path)
+# owidMonth<-owid_data %>% group_by(iso_code) %>% 
+#   mutate(yearmon=paste0(year(date),"_",month(date))) %>% 
+#   group_by(iso_code,yearmon) %>% 
+#   reframe(
+#        Covid_Cases_per_million=sum(total_cases_per_million,na.rm=T),
+#        Stringency_index=mean(stringency_index,na.rm=T),
+#             Owid_Total_death =sum(total_deaths_per_million,na.rm=T),
+#             Owid_Exmort =mean(excess_mortality,na.rm=T))
+# ExcessMortMonth<-ExcessMortbyCountry %>% group_by(iso3) %>% 
+#   mutate(yearmon=paste0(year,"_",month)) %>% 
+#   group_by(iso3,yearmon) %>% 
+#   reframe(p_value_mort=sum(excess.mean)/sum(expected.mean)*100)
+#   
+# ulven<-inner_join(owidMonth,ExcessMortMonth,by=c("iso_code"="iso3","yearmon"="yearmon"))
+# pula<-ulven %>% 
+#   group_by(iso_code) %>% 
+#   # filter(!is.nan(Covid_Cases_per_million),!is.nan(Owid_Exmort)) %>% 
+#   reframe(
+#            dcor_case_deathEx=dcor(Covid_Cases_per_million, p_value_mort, index = 1.0),
+#            p_value_mort=mean(p_value_mort)
+#           # dcor_case_death=dcor(Covid_Cases_per_million, Owid_Exmort, index = 1.0),
+#           # dcor_death_Ex=dcor(Owid_Exmort, p_value_mort, index = 1.0)
+#           ) %>% arrange(desc(dcor_case_deathEx)) %>% 
+#   mutate(quartile = ntile(p_value_mort, 5)) %>% filter(!is.na(quartile))
+#   
+# kaluga<-pula %>% mutate(Quartiles=case_when(
+#   quartile%in%1~paste0(round(min(pula[pula$quartile%in%1,"p_value_mort"]))," - ",round(max(pula[pula$quartile%in%1,"p_value_mort"]))),
+#   quartile%in%2~paste0(round(min(pula[pula$quartile%in%2,"p_value_mort"]))," - ",round(max(pula[pula$quartile%in%2,"p_value_mort"]))),
+#   quartile%in%3~paste0(round(min(pula[pula$quartile%in%3,"p_value_mort"]))," - ",round(max(pula[pula$quartile%in%3,"p_value_mort"]))),
+#   quartile%in%4~paste0(round(min(pula[pula$quartile%in%4,"p_value_mort"]))," - ",round(max(pula[pula$quartile%in%4,"p_value_mort"]))),
+#   quartile%in%5~paste0(round(min(pula[pula$quartile%in%5,"p_value_mort"]))," - ",round(max(pula[pula$quartile%in%5,"p_value_mort"]))),
+#          ))
+# 
+# 
+# 
+# world_data <- merge(world,kaluga , by.x = "iso_a3", by.y = "iso_code", all.x = TRUE) 
+# # worldmap<-ggplot() +
+# #   geom_sf(data = world_data, aes(fill = `Vaccinations`), color = "white", lwd = 0.1) +
+# #   theme_classic()+theme(legend.position = "bottom",)
+# 
+# 
+# 
+# worldmap_excessMort <- ggplot() +
+#   geom_sf(data = world_data, aes(fill = reorder(Quartiles,quartile)), lwd = 0.1, size = 6) +
+#   scale_fill_viridis_d(begin = 0.4,end=0.9,
+#     option = "D",
+#     name = "Excess Mortality  ",na.translate = F)
+# 
+# 
+# Part1<-ggarrange(worldmap_excessMort,ncol=1,labels = c("A",""),legend = "top") 
+
+```
+
+
+
+#### COCAP plot
+```{r}
+# ggarrange(Part1,ggarrange(Introduction_A,legend,ncol = 1,heights = c(1,0.1)),ncol = 1,align = "hv",heights =   c(1,1.8),widths = c(1))
+
+#%>% 
+  # ggsave(file = "../figures/04_COCAP_introductionplot.png",device = "png",width = 6,height = 8)
+
+# D+theme(legend.position = "bottom")  
+#   ggsave(file = "../figures/04_COCAP_legend_introductionplot.png",device = "png",width = 6,height = 8)
+```

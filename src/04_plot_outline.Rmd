@@ -1,0 +1,3696 @@
+---
+title: "09_Paper_outline"
+author: "Kolja Nenoff"
+date: "2023-09-06"
+output: html_document
+---
+
+
+#load
+
+
+
+```{r}
+rm(list = ls())
+.libPaths("../../R/04_Rlibrary/")
+# devtools::install_github("BlakeRMills/MetBrewer")
+libraries <- c("magrittr", "ggplot2", "data.table","patchwork","tidygraph","ggraph","igraph","tidyverse",
+               "ggcorrplot","MetBrewer","grid","gridExtra","ggpubr","cowplot","colorspace","RColorBrewer","gt","gtExtras",  "parallel","readxl","caret","doMC","xgboost","energy","sf","RhpcBLASctl")
+for (lib in libraries) {
+  if (!require(lib, character.only = TRUE)) {
+    install.packages(lib)
+    library(lib, character.only = TRUE) 
+  }
+}
+```
+# themes and setting
+
+```{r}
+#Theme settings
+## plot theme
+# color_seven<- ggokabeito::palette_okabe_ito()
+col_pal<- brewer.pal(n = 8, name = "Dark2")
+options(
+  # set default colors in ggplot2 to colorblind-friendly
+  # Okabe-Ito and Viridis palettes
+  ggplot2.discrete.colour = "viridis",
+  ggplot2.discrete.fill = "viridis",
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis",
+  # set theme font and size
+  book.base_family = "sans",
+  book.base_size = 8
+)
+
+# Gradient for 0 to 100 viridis_b
+#Cassatt1 or OKeeffe1 Colorblindfrinedly gradient form blue to red
+#Kandinsky four colors 
+#Veronese 7 colors
+## set default theme
+theme_set(
+  theme_bw(
+    base_size = getOption("book.base_size"),
+    base_family = getOption("book.base_family")
+  ) %+replace%
+    theme(
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom"
+    )
+)
+
+library(dplyr)
+
+```
+
+## Cluster
+```{r}
+blas_set_num_threads(1)
+omp_set_num_threads(1)
+```
+
+```{r}
+#Cluster 
+
+#Dir path
+DATA_DIR <- "../data/04_data"
+FIGURE_DIR <- "../figures/04_figures"
+
+
+LIB_DIR<-"../libraries"
+WDI_DIR <- "../data/231103_WDI"
+DIMRED_DIR<-"../data/01_data"
+EXMORT_DIR <- "../data/230225_WHO_Excess_Mort/2022-03-25_covid-19_gem"
+OWID_DIR<-"../data/231103_OWID_COVID"
+OUTPUT_DIR<- "../output"
+
+# File path
+exmort_path <- file.path(EXMORT_DIR, "WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx")
+dimred_path<-file.path(DIMRED_DIR,"01_wdi_data_cons_df_250.csv")
+wdi_series_path <- file.path(WDI_DIR, "WDISeries.csv")
+wdi_gf_path<-file.path(DIMRED_DIR, "01_wdi_gapfilled.csv")
+toolbox_path <- file.path(LIB_DIR, "00_toolbox.R") # Source helper functions
+owid_series_path<-file.path(OWID_DIR,"231103owid-covid-data.csv")
+##Path to trained feature spaces (trained + Summarized 02)
+raw_wdi_only_path<-file.path(OUTPUT_DIR,"../output/WDI_scaled_randomgrid_raw.RDS")
+imputed_wdi_only_path<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_imputed.RDS")
+pc20_wdi_only_path<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_pc20.RDS")
+iso10_wdi_only_path<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_iso10.RDS")
+## Final model plus covariates (trained + Summarized 03)
+pc20_model_path<-file.path(OUTPUT_DIR,"03_Xgboost_pca20_models")
+iso10_model_path<-file.path(OUTPUT_DIR,"03_2410_Xgboost_E_iso10_models")
+# iso5_model_path<-file.path(OUTPUT_DIR,"03_Xgboost_iso_models")
+## Datasets for final analysis
+pca20_final_df_path<-paste0("../data/03_data/XboostDfPCA.RDS")
+iso10_final_df_path<-paste0("../data/03_data/XboostDfiso.RDS")
+# Dimred contstruction data
+RELATIVE_INDICATORS_FILE_NAME <- "../data/01_data/relative_indicators_2023_06.R"
+wdi_data_cons_gf<-fread("../data/01_data/01_wdi_gapfilled.csv")
+loading_df<-readRDS("../data/01_data/01_wdi_loadings.Rds") %>% data.frame()
+```
+
+# Data prep
+
+
+
+```{r}
+## Excess Mort
+ExcessMortbyCountry<-readxl::read_excel(exmort_path,sheet = 2)
+excessCounrty_annual<-ExcessMortbyCountry %>% group_by(country,iso3,year) %>% 
+  reframe(p_value_mort=sum(excess.mean)/sum(expected.mean)*100,ACM=sum(acm.mean))
+excessCounrty_annual2 <- dplyr::mutate(excessCounrty_annual, identifier = paste0(iso3, year),"Country Code"=iso3) %>% select(-iso3)
+
+## Dimred Data
+dimred_250<-fread(dimred_path)
+
+
+dimred_250$iso1 <- -dimred_250$iso1
+
+# Flip the dimensions for other analysis
+dimred_250$PC_normal_1 <- -dimred_250$PC_normal_1
+dimred_250$PC_normal_5 <- -dimred_250$PC_normal_5
+dimred_250$PC_normal_14 <- -dimred_250$PC_normal_14
+dimred_250$PC_normal_6 <- -dimred_250$PC_normal_6
+dimred_250$PC_normal_23 <- -dimred_250$PC_normal_23
+
+## WDI
+wdi_series <- fread(wdi_series_path) %>%
+  setnames("Series Code", "Indicator Code")
+##
+
+
+# ## PCA best model summary
+# summaryPCA_models<-readRDS(pc26_model_path)
+# ## ISO best model summary
+# summaryISO_models<-readRDS(iso10_model_path)
+```
+```{r}
+formula="Y~X"
+require("rnaturalearth")
+require(rnaturalearthdata)
+eck <- "+proj=eck4"
+
+world <- ne_countries(scale = "medium", returnclass = "sf")  %>%
+  st_wrap_dateline(options = c("WRAPDATELINE=YES","DATELINEOFFSET=180"), quiet = TRUE) %>%
+  st_transform(crs = eck)
+
+```
+
+# 0. Introduction plot
+```{r}
+wdi_series$`Indicator Code` %>%  unique %>% length()
+
+
+
+```
+
+```{r}
+dimred2021_knn250_withscors2<-fread("../data/PredictiveScores.csv") %>% filter(!is.na(incomegroup),incomegroup!="") %>% filter(!(`Country Code`%in% "PER"))
+dimred2021_knn250_withscors2$incomegroup<-str_replace_all(dimred2021_knn250_withscors2$incomegroup,"HMI","UMI")
+owid_data<-fread(owid_series_path)
+owid_annual<-owid_data %>%  
+  mutate(year=year(date))  %>% 
+  filter(year%in%c(2020,2021)) %>% 
+  data.table() %>% select(-date) %>% 
+  filter(!is.na(continent)& continent!="") %>%   
+  group_by(iso_code,location,year) %>% 
+  reframe(
+            Stringency_index=mean(stringency_index,na.rm=T),
+            Stringency_index_var=var(stringency_index,na.rm=T),
+            # Average_hosp_admissions=sum(weekly_hosp_admissions,na.rm=T)/population,
+            # Average_ICU_admissions=sum(weekly_icu_admissions,na.rm=T)/population,
+            Covid_Cases_per_million=sum(new_cases_per_million,na.rm=T),
+            Owid_death_per_million =sum(new_deaths_per_million,na.rm=T),
+            Owid_Exmort =mean(excess_mortality,na.rm=T),
+            Vaccinations=sum(total_vaccinations_per_hundred,na.rm=T),
+            Available_Hospital_beds=mean(hospital_beds_per_thousand,na.rm=T),
+            Median_age=mean(median_age,na.rm=T),
+            aged_65_older=mean(aged_65_older,na.rm=T),
+            human_development_index=mean(human_development_index,na.rm=T),
+            handwashing_facilities=mean(handwashing_facilities,na.rm=T),
+            population_density=mean(population_density,na.rm=T),
+            diabetes_prevalence=mean(diabetes_prevalence,na.rm=T),
+            cardiovasc_death_rate=mean(cardiovasc_death_rate,na.rm=T)
+            
+            )%>%  arrange(iso_code,year) %>%  unique %>% mutate(identifier=paste0(iso_code,year))
+
+
+owid_who<-inner_join(excessCounrty_annual,owid_annual,by=c("iso3"="iso_code","year"="year"))
+dimred2021_knn250_withscors2$incomegroup <- factor(dimred2021_knn250_withscors2$incomegroup, levels=c("LI","LMI","UMI","HI"))
+owid_who_worldbank<-inner_join(owid_who,dimred2021_knn250_withscors2[,c("Country Code","Income Group","incomegroup")],by=c("iso3"="Country Code"))
+
+owid_who_worldbank$`Income Group` <- factor(owid_who_worldbank$incomegroup, levels=c("LI","LMI","UMI","HI"))
+owid_who_worldbank$incomegroup <- factor(owid_who_worldbank$incomegroup, levels=c("LI","LMI","UMI","HI"))
+
+```
+### Income level and proportion of estimated values
+```{r}
+
+Incomeandestimation<-ExcessMortbyCountry %>% select(iso3,type) %>%  unique %>% 
+  merge( ,y =  dimred2021_knn250_withscors2,by.x="iso3",by.y = "Country Code")
+table(Incomeandestimation$type ,Incomeandestimation$`Income Group`) 
+```
+
+### Paper Income groups and vaccinations
+
+```{r}
+formula <- y ~ x
+default_color_palette_plotA <- scale_color_viridis_d(option="C",begin = 0,end = 0.9, name = "Income Group:  ",na.translate = F)
+default_fill_palette <- scale_fill_viridis_d(option="C",begin = 0,end = 0.9, name = "Income Group:  ")
+```
+
+```{r}
+dimred2021_knn250_withscors2$incomegroup <- factor(dimred2021_knn250_withscors2$incomegroup, levels=c("LI","LMI","UMI","HI"))
+owid_annual_extra<-owid_data %>%  
+  mutate(year=year(date))  %>% 
+  filter(year%in%c(2020,2021)) %>% 
+  data.table() %>% select(-date) %>% 
+  filter(!is.na(continent)& continent!="") %>%   
+  group_by(iso_code,location,year) %>% 
+  reframe(
+            Stringency_index=mean(stringency_index,na.rm=T),
+            Stringency_index_var=var(stringency_index,na.rm=T),
+            # Average_hosp_admissions=sum(weekly_hosp_admissions,na.rm=T)/population,
+            # Average_ICU_admissions=sum(weekly_icu_admissions,na.rm=T)/population,
+            Covid_Cases_per_million=sum(new_cases_per_million,na.rm=T),
+            test_per_thousend=sum(new_tests_smoothed_per_thousand,na.rm = T),
+            Owid_death_per_million =sum(new_deaths_per_million,na.rm=T),
+            Owid_Exmort =mean(excess_mortality,na.rm=T),
+            Vaccinations=sum(total_vaccinations_per_hundred,na.rm=T),
+            Available_Hospital_beds=mean(hospital_beds_per_thousand,na.rm=T),
+            Median_age=mean(median_age,na.rm=T),
+            aged_65_older=mean(aged_65_older,na.rm=T),
+            human_development_index=mean(human_development_index,na.rm=T),
+            handwashing_facilities=mean(handwashing_facilities,na.rm=T),
+            population_density=mean(population_density,na.rm=T),
+            diabetes_prevalence=mean(diabetes_prevalence,na.rm=T),
+            cardiovasc_death_rate=mean(cardiovasc_death_rate,na.rm=T)
+            
+            )%>%  arrange(iso_code,year) %>%  unique %>% mutate(identifier=paste0(iso_code,year))
+cor((owid_annual_extra$Covid_Cases_per_million),(owid_annual_extra$test_per_thousend),use = "complete.obs")
+owid_who_extra<-inner_join(excessCounrty_annual,owid_annual_extra,by=c("iso3"="iso_code","year"="year"))
+owid_who_extra
+
+
+owid_who_worldbank_extra<-inner_join(owid_who_extra,dimred2021_knn250_withscors2[,c("Country Code","Income Group","incomegroup")],by=c("iso3"="Country Code"))
+
+owid_who_worldbank_extraB<-owid_who_worldbank_extra %>%  filter(!is.na(`Income Group`),!is.infinite(log10(Owid_death_per_million)))
+
+owid_who_worldbank_extraB$incomegroup <- factor(owid_who_worldbank_extraB$incomegroup, levels=c("LI","LMI","UMI","HI"))
+```
+
+
+```{r}
+testperthousendplot<-owid_who_worldbank_extraB %>%
+  filter(!is.na(`Income Group`)) %>%
+  ggplot(aes(x = incomegroup, y = log(test_per_thousend), fill = incomegroup)) +  # Change color to fill
+  geom_violin(color="black") +
+  default_fill_palette+  # Adjust color palette
+  default_color_palette_plotA+
+  theme(legend.position = "asd", axis.line = element_line(linetype = "dotted")) +
+ ylab(" %>% lity") +
+  xlab("Income Group") +
+  geom_hline(yintercept = 0, color = "grey30") +
+  geom_jitter(aes(color = `Income Group`),alpha = 0.6) +
+  stat_kruskal_test(label = "p = {p.format}")
+
+cases_plot<-owid_who_worldbank_extraB %>%
+  filter(!is.na(`Income Group`)) %>%
+  ggplot(aes(x = incomegroup, y = log(Covid_Cases_per_million), fill = incomegroup)) +  # Change color to fill
+  geom_violin(color="black") +
+  default_fill_palette+  # Adjust color palette
+  default_color_palette_plotA+
+  theme(legend.position = "asd", axis.line = element_line(linetype = "dotted")) +
+ ylab(" %>% lity") +
+  xlab("Income Group") +
+  geom_hline(yintercept = 0, color = "grey30") +
+  geom_jitter(aes(color = `Income Group`),alpha = 0.6) +
+  stat_kruskal_test(label = "p = {p.format}")
+
+vaccinations_plot<-owid_who_worldbank_extraB %>%
+  filter(!is.na(`Income Group`)) %>%
+  ggplot(aes(x = incomegroup, y = log(Vaccinations), fill = incomegroup)) +  # Change color to fill
+  geom_violin(color="black") +
+  default_fill_palette+  # Adjust color palette
+  default_color_palette_plotA+
+  theme(legend.position = "asd", axis.line = element_line(linetype = "dotted")) +
+ ylab(" %>% lity") +
+  xlab("Income Group") +
+  geom_hline(yintercept = 0, color = "grey30") +
+  geom_jitter(aes(color = `Income Group`),alpha = 0.6) +
+  stat_kruskal_test(label = "p = {p.format}")
+
+vaccinations_plot<-owid_who_worldbank_extraB %>%
+  filter(!is.na(`Income Group`)) %>%
+  ggplot(aes(x = incomegroup, y = log(Vaccinations), fill = incomegroup)) +  # Change color to fill
+  geom_violin(color="black") +
+  default_fill_palette+  # Adjust color palette
+  default_color_palette_plotA+
+  theme(legend.position = "asd", axis.line = element_line(linetype = "dotted")) +
+ ylab(" %>% lity") +
+  xlab("Income Group") +
+  geom_hline(yintercept = 0, color = "grey30") +
+  geom_jitter(aes(color = `Income Group`),alpha = 0.6) +
+  stat_kruskal_test(label = "p = {p.format}")
+
+mortality_plot<-owid_who_worldbank_extraB %>%
+  filter(!is.na(`Income Group`)) %>%
+ggplot(aes(x = incomegroup, y = p_value_mort, fill = incomegroup)) +  # Change color to fill
+  geom_violin(color="black") +
+  default_fill_palette+  # Adjust color palette
+  default_color_palette_plotA+
+  theme(legend.position = "asd", axis.line = element_line(linetype = "dotted")) +
+ ylab(" %>% lity") +
+  xlab("Income Group") +
+geom_hline(yintercept = 0, color = "grey30") +
+  geom_jitter(aes(color = `Income Group`),alpha = 0.6) +
+  stat_kruskal_test(label = "p = {p.format}")
+
+ggarrange(cases_plot,vaccinations_plot,testperthousendplot)
+```
+
+
+
+```{r}
+formula="y~x"
+require(ggpmisc) 
+require(scales)
+options(
+  # set default colors in ggplot2 to colorblind-friendly
+  # Okabe-Ito and Viridis palettes
+  ggplot2.discrete.colour = ggokabeito::palette_okabe_ito(),
+  ggplot2.discrete.fill = ggokabeito::palette_okabe_ito(),
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis",
+  # set theme font and size
+  book.base_family = "sans",
+  book.base_size = 9
+  
+)
+
+theme_set(
+  theme_bw(
+    base_size = getOption("book.base_size"),
+    base_family = getOption("book.base_family")
+  ) %+replace%
+    theme(
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom"
+    )
+)
+```
+
+
+
+
+
+```{r}
+# Define default color palette
+# default_color_palette <- scale_fill_manual(values =  ggokabeito::palette_okabe_ito())
+# default_fill_palette <- scale_fill_manual(values =  ggokabeito::palette_okabe_ito())
+formula <- y ~ x
+default_color_palette_plotA <- scale_color_viridis_d(option="B",begin = 0,end = 0.9, name = "Income Group:  ",na.translate = F)
+default_fill_palette <- scale_fill_viridis_d(option="B",begin = 0,end = 0.9, name = "Income Group:  ")
+
+# Plot A
+# A <- owid_who_worldbank %>%
+#   ggplot(aes(x = log(Covid_Cases_per_million), y = log(Owid_death_per_million))) +
+#   geom_point(aes(color = `Income Group`), alpha = 0.9) +
+#   geom_smooth(method = "lm", formula = formula, se = FALSE, color = "red4") +
+#   theme(legend.position = "none", axis.line = element_line(linetype = "dotted")) +
+#   stat_fit_glance(
+#   method = "lm",
+#   label.y = "top",
+#   method.args = list(formula = formula),
+#   mapping = aes(
+#     label = sprintf(
+#       'R^2~"="~%.2f~~italic(p)~"="~%.3f',  # Adjust the format to %.3f for three decimal places
+#       after_stat(r.squared), after_stat(p.value)
+#     )
+#   ),
+#   parse = TRUE,
+#   size = 3
+#   ) +
+#   default_color_palette_plotA +  # Apply default color palette
+#   xlab("COVID-19 Cases (log)") +
+#   geom_hline(yintercept = 0, color = "grey30") +
+#   ylab("COVID-19 Death (log)")
+
+
+# Calculate the Pearson correlation coefficient and p-value
+
+filtered_data <- owid_who_worldbank %>%
+  filter(is.finite(Covid_Cases_per_million) & 
+         is.finite(Owid_death_per_million) &
+         Covid_Cases_per_million > 0 & 
+         Owid_death_per_million > 0)
+
+# Calculate the Pearson correlation coefficient and p-value
+cor_test <- cor.test(log(filtered_data$Covid_Cases_per_million), 
+                     log(filtered_data$Owid_death_per_million))
+
+pearson_corr <- cor_test$estimate
+pearson_pvalue <- cor_test$p.value
+# Generate the plot
+A <- owid_who_worldbank %>%
+  ggplot(aes(x = log(Covid_Cases_per_million), y = log(Owid_death_per_million))) +
+  geom_point(aes(color = `Income Group`), alpha = 0.9) +
+  geom_smooth(method = "lm", formula = formula, se = FALSE, color = "red4") +
+  theme(legend.position = "none", axis.line = element_line(linetype = "dotted")) +
+  # Add Pearson correlation and p-value to the plot
+   annotate("text", x = 7, y = Inf, label = sprintf('Pearson~r~"="~%.2f~~italic(p)~"< 0.001"', 
+           pearson_corr, pearson_pvalue), 
+           parse = TRUE, hjust = 1.1, vjust = 2, size = 3.5) +
+  default_color_palette_plotA +  # Apply default color palette
+  xlab("COVID-19 Cases (log)") +
+  geom_hline(yintercept = 0, color = "grey30") +
+  ylab("COVID-19 Death (log)")
+
+# Return the plot
+
+
+
+# Remove rows where values for the variables are not finite (i.e., NA, Inf, or -Inf)
+filtered_data_B <- owid_who_worldbank %>%
+  filter(is.finite(Covid_Cases_per_million) & 
+         is.finite(p_value_mort) &
+         Covid_Cases_per_million > 0 & 
+         p_value_mort > 0)
+
+# Calculate the Pearson correlation coefficient and p-value
+cor_test_B <- cor.test(log(filtered_data_B$Covid_Cases_per_million), 
+                       log(filtered_data_B$p_value_mort))
+
+pearson_corr_B <- cor_test_B$estimate
+pearson_pvalue_B <- cor_test_B$p.value
+
+# Generate the plot with Pearson correlation annotation
+B <- filtered_data_B %>%
+  ggplot(aes(x = log(Covid_Cases_per_million), y = log(p_value_mort))) +
+  geom_point(aes(color = `Income Group`), alpha = 0.9) +
+  geom_smooth(method = "lm", formula = formula, se = FALSE, color = "red4") +
+  theme(legend.position = "none", axis.line = element_line(linetype = "dotted")) +
+  # Annotate Pearson correlation and p-value
+  annotate("text", x = 7, y = Inf, label = sprintf('Pearson~r~"="~%.2f~~italic(p)~"< 0.001"', 
+           pearson_corr_B, pearson_pvalue_B), 
+           parse = TRUE, hjust = 1.1, vjust = 2, size = 3.5) +
+  default_color_palette_plotA +  # Apply default color palette
+  xlab("COVID-19 Cases (log)") +
+  geom_hline(yintercept = 0, color = "grey30") +
+  ylab("Excess Mortality (log)")
+
+# Return the plot
+B
+# 
+# # Plot B
+# B <- owid_who_worldbank$covi %>%
+#   ggplot(aes(x = log(Covid_Cases_per_million), y = log(p_value_mort))) +
+#   geom_point(aes(color = `Income Group`), alpha = 0.9) +
+#   geom_smooth(method = "lm", formula = formula, se = FALSE, color = "red4") +
+#   theme(legend.position = "none", axis.line = element_line(linetype = "dotted")) +
+#   stat_fit_glance(
+#     method = "lm",
+#     label.y = "top",
+#     method.args = list(formula = formula),
+#     mapping = aes(
+#       label = sprintf(
+#         'R^2~"="~%.2f~~italic(p)~"="~%s',
+#         after_stat(r.squared), after_stat(format(round(p.value,digits = 3)))
+#       )
+#     ),
+#     parse = TRUE,
+#     size = 3
+#   ) +
+#   default_color_palette_plotA +  # Apply default color palette
+# 
+#   xlab("COVID-19 Cases (log)") +
+#   geom_hline(yintercept = 0, color = "grey30") +
+#   ylab("Excess Mortality (log)") 
+# Plot C
+C <- filtered_data  %>% 
+  ggplot(aes(x = `Income Group`, y = Covid_Cases_per_million, fill = `Income Group`)) +  # Change color to fill
+  geom_boxplot(color="black") +
+  default_fill_palette +  # Adjust color palette
+  default_color_palette_plotA+
+  theme(legend.position = "none", axis.line = element_line(linetype = "dotted")) +
+  ylab("COVID-19 Cases per million") +
+  xlab("Income Group") +
+  geom_jitter(aes(color = `Income Group`),alpha = 0.6) +scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+              labels = trans_format("log10", math_format(10^.x))) +
+  stat_kruskal_test(label = "p = {p.format}",label.y = (5.2))
+
+C
+
+# Plot D
+D <- filtered_data %>%
+  filter(!is.na(`Income Group`)) %>%
+  ggplot(aes(x = `Income Group`, y = `p_value_mort`, fill = `Income Group`)) +  # Change color to fill
+  geom_boxplot(color="black") +
+  default_fill_palette+  # Adjust color palette
+  default_color_palette_plotA+
+  theme(legend.position = "asd", axis.line = element_line(linetype = "dotted")) +
+ ylab("Excess Mortality in %") +
+  xlab("Income Group") +
+  geom_hline(yintercept = 0, color = "grey30") +
+  geom_jitter(aes(color = `Income Group`),alpha = 0.6) +
+  stat_kruskal_test(label = "p = {p.format}",label.y = 55)
+
+legend <- 
+  # create some space to the left of the legend
+  owid_who_worldbank %>%
+  filter(!is.na(`Income Group`)) %>%
+  ggplot(aes(x = `Income Group`, y = `p_value_mort`, fill = `Income Group`)) +  # Change color to fill
+  geom_boxplot(color="black") +
+  default_fill_palette+  # Adjust color palette
+  default_color_palette_plotA
+
+legend1 = get_plot_component(legend, 'guide-box-bottom', return_all = TRUE)
+
+# Combine plots
+#Introduction_A <- ggarrange(A, B, C, D, legend = "none",labels = c("B","C","D","E"))
+Introduction_A <- ggarrange( C, D, legend = "none",labels = c("b","c"))
+
+Introduction_B = plot_grid(
+  Introduction_A, 
+  legend1, 
+  ncol = 1,          # Arrange in one column (vertical stacking)
+  rel_heights = c(1, 0.1)       # Align vertically
+)
+Introduction_B
+wdi_series$`Indicator Code` %>% unique() %>%  length()
+colnames(dimred_250)%in% wdi_series$`Indicator Code`
+```
+
+```{r}
+owid_who_worldbank %>%
+  ggplot(aes(x = log(Owid_death_per_million), y = log(p_value_mort))) +
+  geom_point(aes(color = `Income Group`), alpha = 0.9) +
+  geom_smooth(method = "lm", formula = formula, se = FALSE, color = "red4") +
+  theme(legend.position = "none", axis.line = element_line(linetype = "dotted")) +
+  stat_fit_glance(
+    method = "lm",
+    label.y = "top",
+    method.args = list(formula = formula),
+    mapping = aes(
+      label = sprintf(
+        'R^2~"="~%.2f~~italic(p)~"="~%s',
+        after_stat(r.squared), after_stat(format(round(p.value,digits = 3)))
+      )
+    ),
+    parse = TRUE,
+    size = 3
+  ) +
+  default_color_palette_plotA +  # Apply default color palette
+
+  xlab("COVID-19 Death (log)") +
+  geom_hline(yintercept = 0, color = "grey30") +
+  ylab("Excess Mortality (log)") 
+```
+
+
+```{r}
+excessCounrty_annual$p_value_mort %>%  mean(na.rm = T)
+excessCounrty_annual$p_value_mort %>%  sd(na.rm = T)
+
+```
+
+
+# plot figure
+
+
+## Plot the map
+
+```{r}
+
+owid_data<-fread(owid_series_path)
+owidMonth<-owid_data %>% group_by(iso_code) %>% 
+  mutate(yearmon=paste0(year(date),"_",month(date))) %>% 
+  group_by(iso_code,yearmon) %>% 
+  reframe(
+       Covid_Cases_per_million=sum(total_cases_per_million,na.rm=T),
+       Stringency_index=mean(stringency_index,na.rm=T),
+            Owid_Total_death =sum(total_deaths_per_million,na.rm=T),
+            Owid_Exmort =mean(excess_mortality,na.rm=T))
+ExcessMortMonth<-ExcessMortbyCountry %>% group_by(iso3) %>% 
+  mutate(yearmon=paste0(year,"_",month)) %>% 
+  group_by(iso3,yearmon) %>% 
+  reframe(p_value_mort=sum(excess.mean)/sum(expected.mean)*100)
+  
+ulven<-inner_join(owidMonth,ExcessMortMonth,by=c("iso_code"="iso3","yearmon"="yearmon"))
+pula<-ulven %>% 
+  group_by(iso_code) %>% 
+  # filter(!is.nan(Covid_Cases_per_million),!is.nan(Owid_Exmort)) %>% 
+  reframe(
+           dcor_case_deathEx=dcor(Covid_Cases_per_million, p_value_mort, index = 1.0),
+           p_value_mort=mean(p_value_mort)
+          # dcor_case_death=dcor(Covid_Cases_per_million, Owid_Exmort, index = 1.0),
+          # dcor_death_Ex=dcor(Owid_Exmort, p_value_mort, index = 1.0)
+          ) %>% arrange(desc(dcor_case_deathEx)) %>% 
+  mutate(quartile = ntile(p_value_mort, 5)) %>% filter(!is.na(quartile))
+  
+kaluga<-pula %>% mutate(Quartiles=case_when(
+  quartile%in%1~paste0(round(min(pula[pula$quartile%in%1,"p_value_mort"]))," - ",round(max(pula[pula$quartile%in%1,"p_value_mort"]))),
+  quartile%in%2~paste0(round(min(pula[pula$quartile%in%2,"p_value_mort"]))," - ",round(max(pula[pula$quartile%in%2,"p_value_mort"]))),
+  quartile%in%3~paste0(round(min(pula[pula$quartile%in%3,"p_value_mort"]))," - ",round(max(pula[pula$quartile%in%3,"p_value_mort"]))),
+  quartile%in%4~paste0(round(min(pula[pula$quartile%in%4,"p_value_mort"]))," - ",round(max(pula[pula$quartile%in%4,"p_value_mort"]))),
+  quartile%in%5~paste0(round(min(pula[pula$quartile%in%5,"p_value_mort"]))," - ",round(max(pula[pula$quartile%in%5,"p_value_mort"]))),
+         ))
+
+
+
+world_data <- merge(world,kaluga , by.x = "iso_a3_eh", by.y = "iso_code", all.x = TRUE) 
+# worldmap<-ggplot() +
+#   geom_sf(data = world_data, aes(fill = `Vaccinations`), color = "white", lwd = 0.1) +
+#   theme_classic()+theme(legend.position = "bottom",)
+
+
+
+# worldmap_excessMort <- ggplot() +
+#   geom_sf(data = world_data, aes(fill = reorder(Quartiles,quartile)), lwd = 0.1, size = 6) +
+#   scale_fill_viridis_d(begin = 0.4,end=0.9,
+#     option = "D",
+#     name = "Excess Mortality  ",na.translate = F)
+
+cap_value <- quantile(world_data$p_value_mort, 0.95,na.rm = T)  # Get the 95th percentile
+
+world_data$p_value_mort_capped <- pmin(world_data$p_value_mort, cap_value)
+
+
+# Q1 <- quantile(world_data$p_value_mort, 0.25, na.rm = TRUE)
+# Q3 <- quantile(world_data$p_value_mort, 0.75, na.rm = TRUE)
+# IQR <- Q3 - Q1
+# cap_value <- Q3 + 1.5 * IQR
+# world_data$p_value_mort_capped <- pmin(world_data$p_value_mort, cap_value)
+cap_value <- quantile(world_data$p_value_mort, 0.95,na.rm = T)  # Get the 95th percentile
+
+world_data$p_value_mort_capped <- pmin(world_data$p_value_mort, cap_value)
+
+
+worldmap_excessMort <- ggplot() +
+  geom_sf(data = world_data, aes(fill = p_value_mort_capped), lwd = 0.1, size = 6) +
+  scale_fill_viridis(begin = 0.0,end=1,
+    option = "D",
+    name = "Excess Mortality  ")
+
+worldmap_excessMort <- ggplot() +
+  geom_sf(data = world_data, aes(fill = p_value_mort_capped), lwd = 0.1, size = 6) +
+  scale_fill_gradient2(
+                       name = "Excess Mortality (%):     ", 
+                       low = "blue4",mid ="#FEFCC7" ,high = "#DD442F",
+                       limits = c(-10, 30)) 
+
+
+worldmap_excessMort
+
+
+```
+
+## Final plot
+```{r}
+Part1<-ggarrange(worldmap_excessMort,ncol=1,labels = c("a",""),legend = "top",heights = 1.5,widths = 10)
+```
+
+```{r}
+Introduction_A <- ggarrange( C+ ylab("COVID-19 Cases / 1M"), D+ ylab("Excess Mortality (%)") , legend = "none",labels = c("b","c"))
+
+Introduction_B = plot_grid(
+  Introduction_A, 
+  legend1, 
+  ncol = 1,          # Arrange in one column (vertical stacking)
+  rel_heights = c(1, 0.1)       # Align vertically
+)
+Introduction_B
+```
+
+```{r}
+cowplot::plot_grid(Part1,Introduction_B,ncol = 1,rel_widths =  c(1.2,0.9),rel_heights = c(1.2,0.8)) %>% 
+   ggsave(file = "../figures/04_250718_introductionplot.png",device = "png",width = 5,height = 5.7)
+
+# cowplot::plot_grid(Part1,Introduction_B,ncol = 1,rel_widths =  c(1,1))%>% 
+#   ggsave(file = "../figures/04_2412_introductionplot.png",device = "png",width = 8,height = 10)
+
+
+# cowplot::plot_grid(Part1,Introduction_B,ncol = 1,rel_widths =  c(1.2,0.9),rel_heights = c(1.2,0.8)) %>% 
+#    ggsave(file = "../figures/Lancet_submission/Introduction_plot.pdf",device = "pdf",width = 5,height = 5.7)
+```
+
+
+
+## Exmort compaerd worldmap supplements
+```{r}
+owid_data<-fread(owid_series_path)
+owidMonth<-owid_data %>% group_by(iso_code) %>% 
+  mutate(yearmon=paste0(year(date),"_",month(date))) %>% 
+  group_by(iso_code,yearmon) %>% 
+  reframe(
+       Covid_Cases_per_million=sum(total_cases_per_million,na.rm=T),
+       Stringency_index=mean(stringency_index,na.rm=T),
+            Owid_Total_death =sum(total_deaths_per_million,na.rm=T),
+            Owid_Exmort =mean(excess_mortality,na.rm=T))
+ExcessMortMonth<-ExcessMortbyCountry %>% group_by(iso3) %>% 
+  mutate(yearmon=paste0(year,"_",month)) %>% 
+  group_by(iso3,yearmon) %>% 
+  reframe(p_value_mort=sum(excess.mean)/sum(expected.mean)*100)
+  
+ulven<-inner_join(owidMonth,ExcessMortMonth,by=c("iso_code"="iso3","yearmon"="yearmon"))
+cor(ulven$Owid_Exmort,ulven$p_value_mort,use = "complete.obs")
+```
+
+
+#### how much correlation between the estimated values as income levels
+```{r}
+Exmortestimationsandincome<-inner_join(x=ulven,y=dimred2021_knn250_withscors2[,c("Country Code","incomegroup")],by=c("iso_code"="Country Code"))
+LI<-Exmortestimationsandincome[Exmortestimationsandincome$incomegroup%in%"UMI",]
+cor(LI$Owid_Exmort,LI$p_value_mort,use = "complete.obs")
+LI$Owid_Exmort
+```
+
+
+```{r}
+pula<-ulven %>% 
+  group_by(iso_code) %>% 
+  filter(!is.nan(Covid_Cases_per_million),!is.nan(Owid_Exmort)) %>% 
+  reframe(
+          dcor_case_deathEx=dcor(Covid_Cases_per_million, p_value_mort, index = 1.0),
+          dcor_case_death=dcor(Covid_Cases_per_million, Owid_Exmort, index = 1.0),
+          dcor_death_Ex=dcor(Owid_Exmort, p_value_mort, index = 1.0),
+          dcor_death_total=dcor(Owid_Exmort, p_value_mort, index = 1.0),
+          Owid_Total_death
+          ) %>% arrange(desc(dcor_case_deathEx))
+pula$iso_code %>%  unique %>%  length()
+# Merge your data frame with the world map data
+world_data <- merge(world,pula , by.x = "iso_a3", by.y = "iso_code", all.x = TRUE)
+# world_data <- merge(world,yo , by.x = "iso_a3", by.y = "iso_code", all.x = TRUE)
+worldmap_supplement_1<-ggplot() +
+  geom_sf(data = world_data, aes(fill = dcor_death_total) , lwd = 0.1,size=6) +
+  theme_classic()+theme(legend.position = "not",)+scale_fill_viridis(option = "D")+ggtitle("COVID-19 Deaths (OWID) and \nCOVID-19 Cases (OWID)")
+worldmap_supplement_2<-ggplot() +
+  geom_sf(data = world_data, aes(fill = dcor_case_death) , lwd = 0.1,size=6) +
+  theme_classic()+theme(legend.position = "not",)+scale_fill_viridis(option = "D")+ggtitle("Exces mortality (OWID) and \nCOVID-19 Cases (OWID)")
+worldmap_supplement_3<-ggplot() +
+  geom_sf(data = world_data, aes(fill = dcor_case_deathEx) , lwd = 0.1,size=6) +
+  theme_classic()+theme(legend.position = "not",)+scale_fill_viridis(option = "D")+ggtitle("Excess mortality (WHO) and \nCOVID-19 Cases (OWID)")
+worldmap_supplement_4<-ggplot() +
+  geom_sf(data = world_data, aes(fill = dcor_death_Ex) , lwd = 0.1,size=6) +
+  theme_classic()+theme(legend.position = "not",)+scale_fill_viridis(option = "D")+ggtitle("Excess mortality (OWID) and \nExmort (WHO) Correlation")
+worldmap_supplement_supplement<-ggplot() +
+  geom_sf(data = world_data, aes(fill = dcor_death_Ex) , lwd = 0.1,size=6) +
+  theme_classic()+theme("dCor:",legend.position = "bottom",)+scale_fill_viridis(option = "D")+ggtitle("Excess mortality (OWID) and \nExcess mortality (WHO) Correlation")
+#worldmap_supplement_2
+# worldmap_supplement_3
+# worldmap_supplement_1
+legend1 = get_plot_component(worldmap_supplement_supplement, 'guide-box-bottom', return_all = TRUE)
+legend1
+plot_performance<-plot_grid(ggarrange(worldmap_supplement_1,worldmap_supplement_2,worldmap_supplement_3,worldmap_supplement_4,ncol=2,nrow = 2,heights = c(1,1),labels = c("a","b","c","d")), legend1,ncol = 1, rel_heights = c(1.3, 0.2))
+plot_performance
+plot_performance %>% 
+ ggsave(file = "../figures/04_Introductions_world_maps_supplement.png",device = "png")
+
+plot_performance %>% 
+ ggsave(file = "../figures/Lancet_submission/04_Introductions_world_maps_supplement.pdf",device = "pdf")
+```
+
+
+
+# Correlations
+```{r}
+filtered_data <- owid_who_worldbank %>%
+  filter(is.finite(Covid_Cases_per_million) & 
+         is.finite(Owid_death_per_million) &
+         Covid_Cases_per_million > 0 & 
+         Owid_death_per_million > 0)
+
+# Calculate the Pearson correlation coefficient and p-value
+cor_test <- cor.test(log(filtered_data$Covid_Cases_per_million), 
+                     log(filtered_data$Owid_death_per_million))
+
+filtered_data <- owid_who_worldbank %>%
+  filter(is.finite(p_value_mort) & 
+         is.finite(Owid_death_per_million) &
+         Covid_Cases_per_million > 0 & 
+         Owid_death_per_million > 0)
+filtered_data %>%  dim
+
+cor_test_B <- cor.test(log(filtered_data_B$Owid_death_per_million), 
+                       log(filtered_data_B$p_value_mort))
+
+pearson_corr_B <- cor_test_B$estimate
+pearson_corr_B
+pearson_pvalue_B <- cor_test_B$p.value
+
+owid_annual
+
+```
+```{r}
+owid_annual_extra<-owid_data %>%  
+  mutate(year=year(date))  %>% 
+  filter(year%in%c(2020,2021)) %>% 
+  data.table() %>% select(-date) %>% 
+  filter(!is.na(continent)& continent!="") %>%   
+  group_by(iso_code,location,year) %>% 
+  reframe(
+            Stringency_index=mean(stringency_index,na.rm=T),
+            Stringency_index_var=var(stringency_index,na.rm=T),
+            Average_hosp_admissions=sum(weekly_hosp_admissions,na.rm=T)/population,
+            Average_ICU_admissions=sum(weekly_icu_admissions,na.rm=T)/population,
+            Covid_Cases_per_million=sum(new_cases_per_million,na.rm=T),
+            tests_per_thousand=sum(new_tests_per_thousand,na.rm=T),
+            
+            test_per_thousend=sum(new_tests_smoothed_per_thousand,na.rm = T),
+            Owid_death_per_million =sum(new_deaths_per_million,na.rm=T),
+            Owid_Exmort =mean(excess_mortality,na.rm=T),
+            Vaccinations=sum(total_vaccinations_per_hundred,na.rm=T),
+            Available_Hospital_beds=mean(hospital_beds_per_thousand,na.rm=T),
+            Median_age=mean(median_age,na.rm=T),
+            aged_65_older=mean(aged_65_older,na.rm=T),
+            human_development_index=mean(human_development_index,na.rm=T),
+            handwashing_facilities=mean(handwashing_facilities,na.rm=T),
+            population_density=mean(population_density,na.rm=T),
+            diabetes_prevalence=mean(diabetes_prevalence,na.rm=T),
+            cardiovasc_death_rate=mean(cardiovasc_death_rate,na.rm=T)
+            
+            )%>%  arrange(iso_code,year) %>%  unique %>% mutate(identifier=paste0(iso_code,year))
+cor((owid_annual_extra$Covid_Cases_per_million),(owid_annual_extra$test_per_thousend),use = "complete.obs")
+cor(owid_annual_extra$Covid_Cases_per_million,owid_annual_extra$Owid_death_per_million)
+```
+
+
+# Results 0 Dimred plots
+
+```{r}
+explainedvarofdimred<-readRDS( "../data/01_data/01_dimred_qual.RDS")
+eisoexplained<-readRDS("../data/01_data/eisomap.RDS")
+
+1-eisoexplained[1:6] 
+explainedvarofdimred$`Ensemble Isomap`<-eisoexplained[1:35]
+explainedvarofdimred$Dimension<-seq(nrow(explainedvarofdimred))
+colnames(explainedvarofdimred)<-c("Isomap", "PCA"  ,"E-Isomap",  "Dimensions")
+explainedvarofdimred$PCA<- explainedvarofdimred$PCA
+dataExplained<-explainedvarofdimred %>% pivot_longer(names_to = "Method",cols = c("Isomap","PCA","E-Isomap")) #%>%
+dataExplained$Method<-factor(dataExplained$Method,levels = c("PCA","Isomap","E-Isomap")) 
+  
+DimredPLotA<- dataExplained %>% ggplot( . ,aes(x=Dimensions,y=value,color=Method))+geom_point()+geom_line()+geom_hline(yintercept = 0.1,linetype="dotted")+ylab("Residual variance")+xlim(0,35)  + theme(
+    legend.position = c(0.95, 0.95),
+    legend.justification = c("right", "top"))+ylim(0,0.7)+scale_color_manual(values = c(col_pal[1],col_pal[2],"orange"))
+
+dimred_250 %>%  filter(!is.na(PC_normal_1),!is.na(ISO_normal_1))-> subsetpcsiso
+
+```
+
+
+```{r}
+
+colors = MetPalettes
+library(gridExtra)
+a<-dimred_250 %>% ggplot()+geom_point(aes(x=ISO_normal_1,y=PC_normal_1),color=col_pal[3])+ theme_bw() + ylab("Principle component 1") +xlab("Isomap dimension 1")+scale_y_continuous(position = "right")
+b<-ggplot(dimred_250) +geom_point(aes(x=ISO_normal_1,y=NY.GDP.PCAP.CD),color=col_pal[4])+ theme_bw() +ylab("GDP per capita")+ xlab("Isomap dimension 1")
+c<-ggplot(dimred_250) +geom_point(aes(x=ISO_normal_1,y=SH.STA.MMRT),color=col_pal[5])+ theme_bw() +ylab("Maternal mortality ratio")+ xlab("Isomap dimension 1")+scale_y_continuous(position = "right")
+
+cor(dimred_250$iso1,dimred_250$ISO_normal_1,use = "complete.obs")
+
+
+
+
+d<-dimred_250 %>% ggplot()+geom_point(aes(y=NY.GDP.PCAP.CD,x=PC_normal_1),color=col_pal[4])+ theme_bw() + xlab("Principle Component 1") +ylab("GDP per capita")+scale_y_continuous(position = "right")
+
+ElementR<-cowplot::plot_grid(DimredPLotA,a,b,c,cols = 2 ,align = "h",
+          labels = c("a", "b", "c","d"))
+
+ElementR %>% 
+  ggsave(file="../figures/04_figures/04_Dimredcompare_v2.png",device = "png",width = 7,height = 6)
+```
+
+# Results 1: WDI vs. PCA vs. Dimred
+
+```{r}
+pathWDI_pc10<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_pc10.RDS")
+pathWDI_pc20<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_pc20.RDS")
+pathWDI_pc34<-file.path(OUTPUT_DIR,"WDI_scaled_pc34.RDS")
+pathWDI_pc40<-file.path(OUTPUT_DIR,"WDI_scaled_pc40.RDS")
+pathWDI_imputed<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_imputed.RDS")
+pathWDI_raw<-file.path(OUTPUT_DIR,"WDI_scaled_randomgrid_raw.RDS")
+
+pathWDI_iso40<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_iso40.RDS")
+pathWDI_iso10<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_iso10.RDS")
+pathWDI_iso7<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_iso7.RDS")
+pathWDI_iso5<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_iso5.RDS")
+pathWDI10_e_isomap<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_ensemble_isomap10.RDS")
+pathWDI20ppcaPCA<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_ppca_pca20.RDS")
+```
+
+
+```{r,raw}
+wdi_rawData<-readRDS(pathWDI_raw)
+wdi_rawData$Feature_summary %>%  group_by(feature) %>% 
+  reframe(importance= sum(Shap_value_mean)) %>% 
+  arrange(desc(importance))
+
+```
+
+
+```{r,raw}
+wdi_imputedData<-readRDS(pathWDI_imputed)
+
+wdi_pc40Data<-readRDS(pathWDI_pc40)
+wdi_pc34Data<-readRDS(pathWDI_pc34)
+wdi_pc20Data<-readRDS(pathWDI_pc20)
+wdi_pc10Data<-readRDS(pathWDI_pc10)
+wdi_iso40Data<-readRDS(pathWDI_iso40)
+# wdi_iso20Data<-readRDS(pathWDI_iso20)
+wdi_iso10Data<-readRDS(pathWDI_iso10)
+wdi_iso7Data<-readRDS(pathWDI_iso7)
+wdi_iso5Data<-readRDS(pathWDI_iso5)
+WDI10_e_isomap<-readRDS(pathWDI10_e_isomap)
+WDI20ppcaPCA<-readRDS(pathWDI20ppcaPCA)
+WDI10_e_isomap$Xgboost_summary$RMSE %>%  median
+WDI10_e_isomap$Xgboost_summary$RMSE %>%  IQR
+
+```
+
+
+```{r,raw}
+performance_df<-rbind(wdi_rawData$Xgboost_summary %>% mutate(ident="A: WDI (Baseline)"),
+                      wdi_imputedData$Xgboost_summary%>% mutate(ident="A: WDI (imputed)"),
+                      wdi_pc40Data$Xgboost_summary%>% mutate(ident="B: PCA 40"),
+                      wdi_pc34Data$Xgboost_summary%>% mutate(ident="B: PCA 34"),
+                      wdi_pc20Data$Xgboost_summary%>% mutate(ident="B: PCA 20"),
+                      wdi_iso40Data$Xgboost_summary%>% mutate(ident="C: Isomap 40"),
+                      wdi_iso10Data$Xgboost_summary%>% mutate(ident="C: Isomap 10"),
+                      wdi_iso7Data$Xgboost_summary%>% mutate(ident="C: Isomap 10"),
+                      wdi_iso5Data$Xgboost_summary%>% mutate(ident="C: Isomap 5"),
+                      WDI10_e_isomap$Xgboost_summary %>% mutate(ident="D: e-Isomap 10"),
+                      WDI20ppcaPCA$Xgboost_summary %>% mutate(ident="D: ppca PCA 20")
+                      )
+
+```
+
+
+
+
+### Plot Baseline PCA Isomap
+```{r,raw}
+myvector<-c("grey30","slategrey","steelblue","#7079BB","#B8509F","#73C9BC", "#C7D92D","#4EBA7C","orange","skyblue")
+
+RMSE_decision<-performance_df %>%  
+  mutate(Class=case_when(  grepl("^B",ident)~"B: PCA",
+                           grepl("^C",ident)~"C: Isomap", 
+                           grepl("^A",ident)~"A: Baseline",TRUE~"D: Others"
+                           )) %>% filter(!grepl("D:",ident)) %>% 
+  ggplot(aes(x=RMSE),"black")+geom_density(aes(fill=ident),alpha=0.5)+geom_vline(xintercept = median(wdi_rawData$Xgboost_summary$RMSE))+scale_fill_manual(values =myvector )+scale_color_manual(values =myvector )+xlab("Root Mean Square Error") + facet_wrap(~Class,ncol = 1)+
+    theme(strip.text.x = element_text(hjust = 0, margin=margin(l=0.1)))
+
+
+R2_decision<-performance_df  %>%  
+  mutate(Class=case_when(  grepl("^B",ident)~"B: PCA",
+                           grepl("^C",ident)~"C: Isomap", 
+                           grepl("^A",ident)~"A: Baseline",TRUE~"D: Others"
+                           )) %>% filter(!grepl("D:",ident)) %>% 
+  ggplot(aes(x=Rsquared),"black")+geom_density(aes(fill=ident),alpha=0.5)+geom_vline(xintercept = median(wdi_rawData$Xgboost_summary$Rsquared))+scale_fill_manual(values =myvector )+scale_color_manual(values =myvector )+xlab(expression("Explained Variance")) + facet_wrap(~Class,ncol = 1) +
+    theme(strip.text.x = element_text(hjust = 0, margin=margin(l=0.1)))
+legend <- get_legend(
+  # create some space to the left of the legend
+  RMSE_decision + theme(legend.box.margin = margin(0, 0, 0, 12),legend.text=element_text(size=10))+scale_fill_manual("",values =myvector) +scale_color_manual(values =myvector ))
+
+prow <- plot_grid(
+  RMSE_decision + theme(legend.position="none"),
+  R2_decision + theme(legend.position="none")+ylab(""),
+  labels = c("I.", "II."),
+  ncol = 2
+)
+plot_performance<-plot_grid(prow, legend,ncol = 1, rel_heights = c(1.3, 0.2))
+plot_performance
+
+# ggsave(plot_performance,file = "../figures/04_figures/04_performanceplots.png",device = "png",width = 9,height = 5)
+
+```
+
+### Plot Supplement
+```{r,raw}
+
+
+performance_df$ident <- factor(performance_df$ident, levels=c(
+"A: WDI (Baseline)","A: WDI (imputed)","B: PCA 40" ,"B: PCA 34","B: PCA 20","C: Isomap 40","C: Isomap 10","C: Isomap 5","D: e-Isomap 10","D: ppca PCA 20" ))
+
+RMSE_decision<-performance_df %>%  
+  mutate(Class=case_when(  grepl("^B",ident)~"B: PCA",
+                           grepl("^C",ident)~"C: Isomap", 
+                           grepl("^A",ident)~"A: Baseline",TRUE~"D: Others"
+                           )) %>% 
+  ggplot(aes(x=RMSE),"black")+geom_histogram(aes(fill=ident),alpha=0.9)+geom_vline(xintercept = median(wdi_rawData$Xgboost_summary$RMSE))+scale_fill_manual(values =myvector )+scale_color_manual(values =myvector )+xlab("Root Mean Square Error") + facet_wrap(~Class,ncol = 1)+
+    theme(strip.text.x = element_text(hjust = 0, margin=margin(l=0.1)))
+
+
+R2_decision<-performance_df  %>%  
+  mutate(Class=case_when(  grepl("^B",ident)~"B: PCA",
+                           grepl("^C",ident)~"C: Isomap", 
+                           grepl("^A",ident)~"A: Baseline",TRUE~"D: Others"
+                           )) %>% 
+  ggplot(aes(x=Rsquared),"black")+geom_histogram(aes(fill=ident),alpha=0.9)+geom_vline(xintercept = median(wdi_rawData$Xgboost_summary$Rsquared))+scale_fill_manual(values =myvector )+scale_color_manual(values =myvector )+xlab(expression("Explained Variance")) + facet_wrap(~Class,ncol = 1) +
+    theme(strip.text.x = element_text(hjust = 0, margin=margin(l=0.1)))
+
+legend <- get_legend(
+  # create some space to the left of the legend
+  RMSE_decision + theme(legend.box.margin = margin(0, 0, 0, 12),legend.text=element_text(size=10))+scale_fill_manual("",values =myvector) +scale_color_manual(values =myvector ))
+
+prow <- plot_grid(
+  RMSE_decision + theme(legend.position="none"),
+  R2_decision + theme(legend.position="none")+ylab(""),
+  labels = c("I.", "II."),
+  ncol = 2
+)
+plot_performance_supp<-plot_grid(prow, legend,ncol = 1, rel_heights = c(1.3, 0.2))
+plot_performance_supp
+# ggsave(plot_performance_supp,file = "../figures/04_figures/04_performanceplots_supplement.png",device = "png",width = 9,height = 5)
+
+```
+
+
+
+# Table 1 Predictivte performance
+
+```{r}
+wdi_rawData$Xgboost_summary$RMSE %>%  summary()
+wdi_imputedData$Xgboost_summary$RMSE %>%  summary()
+wdi_pc20Data$Xgboost_summary$RMSE %>%  summary()
+wdi_iso10Data$Xgboost_summary$RMSE %>%  summary()
+wdi_ppcaPCA20$Xgboost_summary$RMSE %>%  summary()
+wdi_e_iso10Data$Xgboost_summary$RMSE %>%  summary()
+
+```
+rsquared
+```{r}
+wdi_rawData$Xgboost_summary$Rsquared %>%  summary()
+wdi_imputedData$Xgboost_summary$Rsquared %>%  summary()
+wdi_pc20Data$Xgboost_summary$Rsquared %>%  summary()
+wdi_iso10Data$Xgboost_summary$Rsquared %>%  summary()
+# wdi_ppcaPCA20$Xgboost_summary$Rsquared %>%  summary()
+# wdi_e_iso10Data$Xgboost_summary$Rsquared %>%  summary()
+```
+```{r}
+
+wdi_iso10Data$Feature_summary %>%  filter(importance>80) %>% group_by(feature) %>% reframe(asd=length(importance)) %>%  arrange(desc(asd))
+cor(dimred_250$ISO_normal_3,dimred_250$PC_normal_4)
+```
+
+# Results 2 final Plot panel
+```{r}
+# correlation of the variables
+look<-combn(Xgboostinput_complete_iso[,2:ncol(Xgboostinput_complete_iso)] %>% colnames,2)
+corvar<-data.frame()
+for(i in 1:ncol(look)){
+ try(ulf<-data.frame("var1"=look[1,i],"var2"=look[2,i],"cor"=as.numeric(unlist(cor(Xgboostinput_complete_iso[,look[1,i],with = F],Xgboostinput_complete_iso[,look[2,i],with = F],use = "complete.obs")))))
+corvar<-rbind(corvar,ulf)
+}
+
+```
+
+## Feature importance
+
+
+
+```{r}
+colors <- viridisLite::viridis(n = 4, option = "D")
+modeliso10<-readRDS("../output/03_2410_Xgboost_E_iso10_models")
+importantFeatures<-modeliso10$Feature_summary %>%  group_by(feature) %>% 
+   reframe(Shapley_mean=mean(abs(Shap_value_mean)),Importance=mean(importance)) %>%  arrange(desc(Shapley_mean))
+modeliso10$Xgboost_summary$Rsquared %>%  max
+
+
+groupedModeloutput<-modeliso10$Feature_summary %>% group_by(run) %>%
+  mutate(COVID_VACS=case_when(grepl("Covid|Vac|Ox",feature)~"Pandemic \nindicators",
+                              grepl("iso",feature)~"cNFC",
+                              TRUE~"Epidem. \nfeatures"))
+
+datablopA<-modeliso10$Feature_summary %>%  group_by(feature)%>%
+  filter(feature%in%importantFeatures$feature[1:10]) %>%
+  mutate(feature=case_when(grepl("Covid",feature)~"Covid-19 Cases",TRUE~feature),type=case_when(grepl("Covid|Vac|Ox",feature)~"Pandemic \nindicators",
+                              grepl("iso",feature)~"cNFC",
+                              TRUE~"Epidem. \nfeatures"))
+
+# datablopA %>% ggplot( . , aes(x=reorder(feature,(Shap_value_mean)), y=Shap_value_mean))+
+#   geom_violin()  +
+#   coord_flip() + ylab("Shapley value")+ xlab("")
+
+datablop<-groupedModeloutput %>%  group_by(run,COVID_VACS)   %>% reframe(Shap_value_mean=sum(Shap_value_mean)) %>% mutate(feature=COVID_VACS)
+interRes<-datablop %>% group_by(COVID_VACS) %>% reframe(aplha=sum(Shap_value_mean))
+
+interRes$aplha/sum(interRes$aplha)
+
+explainedVar<-datablop %>%  group_by(feature)   %>% reframe(Shap_value_mean1=mean(Shap_value_mean),
+                                                            Shap_value_median1=median(Shap_value_mean),
+                                                            Shap_value_var1=var(Shap_value_mean),
+                                                            ) 
+modelShap<-datablop %>%  group_by(run)   %>% reframe(Shap_value_mean1=sum(Shap_value_mean)  )
+
+
+datablop %>% group_by(COVID_VACS) %>% reframe(median=paste("|SHAP|: Median =",round(median(Shap_value_mean),1)),value=paste("IQR = ",round(IQR(Shap_value_mean),1)))
+
+SummedupPredictions<-datablop  %>% group_by(run) %>%  reframe(sum(Shap_value_mean
+))
+
+
+datablop$type<-factor(datablop$COVID_VACS,levels = c("Pandemic \nindicators","Epidem. \nfeatures" ,"cNFC"))
+datablopA$typeA<-factor(datablopA$type,levels = c("Pandemic \nindicators","Epidem. \nfeatures" ,"cNFC"))
+
+SectionOver<-rbind(datablop) %>% ggplot( . , aes(x=reorder(feature,(Shap_value_mean)), y=Shap_value_mean,fill=type))+
+  geom_boxplot()  + ylab("Importance (SHAP)")+ xlab("")+ylim(0,11) +scale_fill_manual(values=colors) +theme_bw() +theme(legend.position = "bottom" )
+SectionOver
+```
+
+
+```{r}
+plot(modeliso10$Xgboost_summary$shap_mean,modeliso10$Xgboost_summary$RMSE)
+
+```
+
+```{r}
+datablopA$feature<-str_replace(datablopA$feature,"iso","cNFC ")
+datablopA$feature<-str_replace(datablopA$feature,"Vaccinations per hundred","Vaccinations")
+SectionUnder<-datablopA %>% ggplot( . , aes(x=reorder(feature,(Shap_value_mean)), y=Shap_value_mean,fill=typeA))+
+  geom_boxplot(alpha=0.6)  + ylab("Importance (SHAP)")+ xlab("")+scale_fill_manual(values=colors)+theme(legend.position = "F")+theme_bw()+theme(legend.position = "bottom") +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2))
+
+```
+```{r}
+modeliso10$Xgboost_summary$RMSE %>%  density() %>%  plot()
+
+```
+
+
+```{r}
+datablop$type<-"A"
+datablopA$type<-"B"
+
+as<-datablop %>%  group_by(run)   %>% reframe(Shap_value_mean=sum(Shap_value_mean)) 
+as$Shap_value_mean %>% IQR
+# plotB<-groupedModeloutput %>%  group_by(run,COVID_VACS)   %>% reframe(Shap_value_mean=sum(Shap_value_mean)) %>%
+#   ggplot( . , aes(x=reorder(COVID_VACS,(Shap_value_mean)), y=Shap_value_mean))+
+#   geom_violin()  +
+#   coord_flip() + ylab("Shapley value")+ xlab("")
+# plotB
+```
+
+
+```{r}
+Element_one<-cowplot::plot_grid(SectionOver,SectionUnder,labels = c("A", "B"),rel_heights =   c(0.8,2.3),ncol = 1)
+
+Element_one
+```
+
+```{r}
+datablop<-groupedModeloutput %>%  group_by(run,feature)   %>% reframe(Shap_value_mean=sum(Shap_value_mean)) 
+runsum<-datablop %>%  group_by(run)   %>% reframe(absolute=sum(Shap_value_mean)) 
+runsum1<-merge(datablop,runsum,by="run") %>%  mutate(contributionperrun=Shap_value_mean/absolute)
+discussion<-runsum1 %>%  group_by(feature)   %>% reframe(percentcontribtution=(median(contributionperrun)*100),iqr=(IQR(contributionperrun))*100) %>% arrange(desc(percentcontribtution))
+discussion$percentcontribtution[1:7] %>%  sum()
+
+```
+
+
+```{r}
+Newcasesmodel<-readRDS("../output/240822_archived/03_Xgboost_onlyVACSandNewcases_models")$Xgboost_summary
+Covar_cases<-readRDS("../output/03_Xgboost_Covariates_noCases_final_withoutISO")$Xgboost_summary
+iso10<-readRDS("../output/WDI_randomgrid_scaled_ensemble_isomap10.RDS")$Xgboost_summary
+CompleteModel<- modeliso10$Xgboost_summary
+CompleteModel$Rsquared %>%  summary
+```
+
+
+```{r}
+Newcasesmodel$type<-"Pandemic \nindicators"
+iso10$type<-"cNFC"
+CompleteModel$type<-"Final Model"
+Covar_cases$type<-"Epidem. \nfeatures"
+these<-bind_rows(Newcasesmodel,iso10,Covar_cases,CompleteModel)
+these$type<-factor(these$type,levels = c("Pandemic \nindicators","Epidem. \nfeatures","cNFC","Final model"))
+
+
+summarymaker<-these %>% group_by(type) %>%  
+  reframe(Rsquared_median=median(Rsquared),
+          Rsquared_IQR=IQR(Rsquared),
+          Rsquared_max=max(Rsquared),)
+paste0("$R^2$: Median=\num{",(round(summarymaker[4,2],3)*100),"}",
+       "IQR=\num{",(round(summarymaker[4,3],3)*100),"}"
+       )
+
+```
+
+```{r}
+covariates<-readRDS("../output/03_Xgboost_Covariates_final_withoutISO")
+covariates$Feature_summary %>%  group_by(feature)   %>% reframe(Shap_value_mean1=mean(Shap_value_mean),
+                                                            Shap_value_median1=median(Shap_value_mean),
+                                                            Shap_value_var1=var(Shap_value_mean),
+                                                            ) %>%  arrange(desc(Shap_value_mean1))
+```
+
+
+### Sumamrise the performance
+```{r}
+
+plot_df <- CompleteModel %>%
+  pivot_longer(cols = c(Rsquared, RMSE), names_to = "Metric", values_to = "Value")
+ggplot(plot_df, aes(x = Value, fill = type)) +
+  geom_histogram(position = "identity", alpha = 0.8, bins = 40, color = "black") +
+  facet_wrap(~ Metric, scales = "free_x", labeller = labeller(
+    Metric = c(
+      Rsquared = expression(R^2~"(Explained variance)"),
+      RMSE = "RMSE (Prediction error)"
+    )
+  )) +
+  scale_y_continuous(position = "right") +
+  scale_fill_manual("Groups:", values = colors) +
+  theme_bw() +
+  theme(
+    legend.position = "left",
+    panel.grid.minor = element_blank(),
+    strip.text = element_text(face = "bold")
+  ) +
+  xlab("") +
+  ylab("") +
+  annotate("text", 
+           x = Inf, y = Inf, 
+           label = pval_text, 
+           hjust = 1.1, vjust = 1.5,
+           size = 2.5, fontface = "italic")
+```
+
+
+
+## Plot
+```{r}
+# colors <- viridisLite::viridis(n = 4, option = "F")
+options(scipen=999)
+kw_test <- kruskal.test(Rsquared ~ type, data = these)
+pval_text <- ifelse(kw_test$p.value < 0.001, 
+                    "Kruskal-Wallis: p < 0.001", 
+                    paste0("Kruskal-Wallis: p = ", signif(kw_test$p.value, 3)))
+colors <- ggokabeito::palette_okabe_ito()[c(6,4,3,2)] 
+# R2_decision<-these %>% 
+#   ggplot(aes(x=Rsquared,fill=type))+geom_density(alpha=0.7)+xlab(expression("Explained Variance")) +scale_y_continuous(position = "right") +scale_fill_manual("Components:",values = colors)+theme_bw()+theme(legend.position = "asd")
+these<-bind_rows(Newcasesmodel,iso10,Covar_cases,CompleteModel)
+these[these$type=="Final Model","type"]<-"Integrated \nmodel"
+these$type<-factor(these$type,levels = c("Pandemic \nindicators","Epidem. \nfeatures","cNFC","Integrated \nmodel"))
+
+R2_decision <- these %>%
+  ggplot(aes(x = Rsquared, fill = type)) +
+  geom_histogram(position = "identity", alpha = 0.8, bins = 40, color = "black") +
+  xlab(expression("Group-wise explained variance (R"^2*")")) +
+  scale_y_continuous(position = "right") +
+  scale_fill_manual("Groups:", values = colors) +
+  theme_bw() +
+  theme(
+    legend.position = "left",
+    panel.grid.minor = element_blank()
+  ) +
+  ylab("") +
+  annotate("text", 
+           x = Inf, y = Inf, 
+           label = pval_text, 
+           hjust = 1.1, vjust = 1.5,
+           size = 2.5, fontface = "italic")
+these
+datablop<-groupedModeloutput %>%  group_by(run,COVID_VACS)   %>% reframe(Shap_value_mean=sum(Shap_value_mean)) %>% mutate(feature=COVID_VACS)
+datablop$type<-factor(datablop$COVID_VACS,levels = c("Pandemic \nindicators","Epidem. \nfeatures" ,"cNFC"))
+datablopA$typeA<-factor(datablopA$type,levels = c("Pandemic \nindicators","Epidem. \nfeatures" ,"cNFC"))
+
+SectionOver<-rbind(datablop) %>% ggplot( . , aes(x=reorder(feature,(Shap_value_mean)), y=Shap_value_mean,fill=type))+
+  geom_boxplot()  + ylab("Importance (SHAP)")+ xlab("")+ylim(0,11) +scale_fill_manual(values=colors) +theme_bw() +theme(legend.position = "as" ,
+        panel.border = element_rect(colour = colors[4], fill=NA, linewidth=1) )+theme(legend.position = "bottom",
+        panel.border = element_rect(colour = colors[4], fill=NA, linewidth=1,
+        linetype = "solid"))+ xlab("Group contribution in integrated model")
+
+datablopA$feature<-datablopA$feature %>% str_replace_all("^Vaccinations per hundred$","Vaccinations/100")
+datablopA$feature<-datablopA$feature %>% str_replace_all("^Vaccinations","Vaccinations/100")
+datablopA$feature<-datablopA$feature %>% str_replace_all("^Covid-19 Cases$","Cases/1M")
+SectionUnder<-datablopA %>% ggplot( . , aes(x=reorder(feature,(Shap_value_mean)), y=Shap_value_mean,fill=typeA))+
+  geom_boxplot(alpha=0.8)  + ylab("Importance (SHAP)")+ xlab("")+scale_fill_manual(values=colors)+theme(legend.position = "F")+theme_bw()+theme(legend.position = "bottom",
+        panel.border = element_rect(colour = colors[4], fill=NA, linewidth=1,
+        linetype = "solid")) +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2)) + xlab("Top 10 feature contributions in the integrated model")
+
+ggarrange(ggarrange(R2_decision,SectionOver+theme(legend.position ="as"),labels = c("a", "b")),SectionUnder+theme(legend.position = "as"),ncol=1,labels = c("", "c")) # %>%  ggsave(file="../figures/04_figures/04_2505_condensed.png",device = "png",width = 9,height = 7)
+
+
+# ggarrange(ggarrange(R2_decision,SectionOver+theme(legend.position ="as"),labels = c("a", "b")),SectionUnder+theme(legend.position = "as"),ncol=1,labels = c("", "c"))  %>%  ggsave(file="../figures/Lancet_submission/Results1.pdf",device = "pdf",width = 9,height = 7)
+```
+
+
+
+```{r}
+# cowplot::plot_grid(SectionOver,SectionUnder,labels = c("A", "B"),rel_heights =   c(1.1,2),ncol = 2)
+# ggarrange(ggarrange(SectionOver+theme(legend.position ="as"),R2_decision,labels = c("A", "B")),SectionUnder+theme(legend.position = "as"),ncol=1,labels = c("", "C")) %>%  ggsave(file="../figures/04_figures/04_2505_condensed.png",device = "png",width = 9,height = 7)
+```
+
+
+### forceplot 
+
+```{r}
+
+require(SHAPforxgboost)
+bestSEED<-modeliso10$Xgboost_summary %>% arrange(desc(Rsquared))
+set.seed(bestSEED$SeedNum[1000])
+
+Xgboostinput_complete_iso <-readRDS(paste0("../data/03_data/XboostDfEiso.RDS"))
+Xgboostinput_iso<-Xgboostinput_complete_iso%>% rename("Country.Code"=`Country Code`,
+                                                     "Diabetes (%)" =`Diabetetes (%)`,
+                                                     "COVID-19 cases"=`Covid cases per million`,
+                                                     "Comorbity"=`Comorbidity index` )
+
+dimred_250$incomegroup <- factor(dimred_250$`Income Group`, levels=c("Low income","Lower middle income","Upper middle income","High income"))
+additionalVariables<-dimred_250 %>% filter(year%in%2019)%>%  select(`Country Code`,incomegroup,NY.GDP.PCAP.CD) %>% 
+  mutate(incomegroup=case_when(
+    incomegroup%in%"Low income"~"LI",
+    incomegroup%in%"Lower middle income"~"LMI",
+    incomegroup%in%"Upper middle income"~"UMI",
+    incomegroup%in%"High income"~"HI",
+    TRUE~incomegroup))%>%  unique
+additionalVariables$incomegroup <- factor(additionalVariables$incomegroup, levels=c("LI","LMI","UMI","HI"))
+
+Label<-"p_value_mort"
+features<-Xgboostinput_iso %>% select(-`Country.Code`,-p_value_mort) %>%  colnames()
+features_iso<-Xgboostinput_iso %>% select(-`Country.Code`,-p_value_mort) %>%  colnames()
+features_iso<-features_iso[grep("cases|iso",features_iso)]
+Xgboostinput_iso<-Xgboostinput_iso %>% filter(!((`Country.Code`%in%"PER")))
+#features<-features_iso
+features<-modeliso10$Feature_summary$feature %>%  unique
+features<-  c("Vaccinations","COVID-19 cases","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10","Obesity (%)","Diabetes (%)","Comorbity","Urban area (%)","Oxford Stringency Index" )
+y_var <-  Label
+dataX <- as.matrix(Xgboostinput_iso %>% select(features))
+
+# hyperparameter tuning results
+param_list <- list(objective = "reg:squarederror",  # For regression
+  nrounds = c(100,50),  # Number of boosting rounds
+  max_depth = c(3, 2),     # Maximum tree depth
+  eta = c(0.05),    # Learning rate
+  gamma = c(0, 5),       # L2 regularization
+ colsample_bytree = c( 0.9,1),
+  subsample = c(0.7, 0.8, 0.9),  # Subsample ratio
+  min_child_weight = c(5, 10)  # Minimum child weight
+                   )
+    
+
+
+mod <- xgboost::xgboost(data = dataX, 
+                        label = as.matrix(Xgboostinput_iso[[y_var]]), 
+                        params = param_list, nrounds = 1000,
+                        verbose = FALSE, nthread = 30,
+                        early_stopping_rounds = 100)
+# To return the SHAP values and ranked features by mean|SHAP|
+# predictions <- predict(mod, dataX)
+# actual_values <- as.matrix(Xgboostinput_iso[[y_var]])
+# # Calculate the residual sum of squares (RSS) and total sum of squares (TSS)
+# rss <- sum((actual_values - predictions)^2)
+# tss <- sum((actual_values - mean(actual_values))^2)
+# # Calculate R^2
+# r2 <- 1 - (rss / tss)
+# # Print R^2 value
+# print(r2)
+
+shap_values <- shap.values(xgb_model = mod, X_train = dataX)
+
+
+shap_values$mean_shap_score %>%  sum()
+# The ranked features by mean |SHAP|
+# shap_values$mean_shap_score %>% data.frame(freq= . ) %>%  arrange(desc(freq))
+# ?
+shap_values2<-shap_values$shap_score
+# shap_values2$Epidemiological<-shap_values2$Vaccinations+shap_values2$`COVID-19 cases`
+# shap_values2$Vaccinations<-NULL
+# shap_values2$`COVID-19 cases`<-NULL
+# shap_values2$`COVID-19 cases`<-NULL
+plot_data <- shap.prep.stack.data(shap_contrib = shap_values2, top_n = 16, n_groups = 1)
+
+
+
+plot_iso<-cbind(plot_data %>% arrange(ID),a=Xgboostinput_iso$Country.Code,b=Xgboostinput_iso$iso1)
+# 
+muhara<-inner_join(plot_iso,additionalVariables,by=c("a"="Country Code"))
+muhara2<-muhara  %>% mutate(`Pandemic Indicators`=`COVID-19 cases`+Vaccinations+`Oxford Stringency Index`,
+                   `cNFC`=iso1+iso2+iso3+iso4+iso5+iso6+iso7+iso8+iso9+iso10,
+                   `Epidemiological Features`=`Obesity (%)`+`Diabetes (%)`+`rest_variables`+`Comorbity`,
+                   ) %>%  select(-c(iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,iso9,iso10,`Obesity (%)`,`rest_variables`,`Comorbity`,`COVID-19 cases`,Vaccinations,`Oxford Stringency Index`,`Diabetes (%)`))
+
+```
+
+
+### How well is the prediction
+```{r}
+
+require(SHAPforxgboost)
+bestSEED<-modeliso10$Xgboost_summary %>% arrange(desc(Rsquared))
+set.seed(bestSEED$SeedNum[1000])
+
+Xgboostinput_complete_iso <-readRDS(paste0("../data/03_data/XboostDfEiso.RDS"))
+Xgboostinput_iso<-Xgboostinput_complete_iso%>% rename("Country.Code"=`Country Code`,
+                                                     "Diabetes (%)" =`Diabetetes (%)`,
+                                                     "COVID-19 cases"=`Covid cases per million`,
+                                                     "Comorbity"=`Comorbidity index` )
+
+dimred_250$incomegroup <- factor(dimred_250$`Income Group`, levels=c("Low income","Lower middle income","Upper middle income","High income"))
+additionalVariables<-dimred_250 %>% filter(year%in%2019)%>%  select(`Country Code`,incomegroup,NY.GDP.PCAP.CD) %>% 
+  mutate(incomegroup=case_when(
+    incomegroup%in%"Low income"~"LI",
+    incomegroup%in%"Lower middle income"~"LMI",
+    incomegroup%in%"Upper middle income"~"UMI",
+    incomegroup%in%"High income"~"HI",
+    TRUE~incomegroup))%>%  unique
+additionalVariables$incomegroup <- factor(additionalVariables$incomegroup, levels=c("LI","LMI","UMI","HI"))
+
+Label<-"p_value_mort"
+features<-Xgboostinput_iso %>% select(-`Country.Code`,-p_value_mort) %>%  colnames()
+features_iso<-Xgboostinput_iso %>% select(-`Country.Code`,-p_value_mort) %>%  colnames()
+features_iso<-features_iso[grep("cases|iso",features_iso)]
+Xgboostinput_iso<-Xgboostinput_iso %>% filter(!((`Country.Code`%in%"PER")))
+#features<-features_iso
+features<-modeliso10$Feature_summary$feature %>%  unique
+features<-  c("Vaccinations","COVID-19 cases","iso1","iso2","iso3","iso4","iso5","iso6","iso7","iso8","iso9","iso10","Obesity (%)","Diabetes (%)","Comorbity","Urban area (%)","Oxford Stringency Index" )
+y_var <-  Label
+dataX <- as.matrix(Xgboostinput_iso %>% select(features))
+
+# hyperparameter tuning results
+param_list <- list(objective = "reg:squarederror",  # For regression
+  nrounds = c(100,50),  # Number of boosting rounds
+  max_depth = c(3, 2),     # Maximum tree depth
+  eta = c(0.05),    # Learning rate
+  gamma = c(0, 5),       # L2 regularization
+ colsample_bytree = c( 0.9,1),
+  subsample = c(0.7, 0.8, 0.9),  # Subsample ratio
+  min_child_weight = c(5, 10)  # Minimum child weight
+                   )
+    
+
+
+mod <- xgboost::xgboost(data = dataX, 
+                        label = as.matrix(Xgboostinput_iso[[y_var]]), 
+                        params = param_list, nrounds = 100,
+                        verbose = FALSE, nthread = 30,
+                        early_stopping_rounds = 100)
+predicted <- predict(mod, newdata = dataX)
+
+# Actual values
+actual <- Xgboostinput_iso[[y_var]]
+comparison_df <- data.frame(
+  Country = Xgboostinput_iso$`Country.Code`,
+  Actual = actual,
+  Predicted = predicted
+)
+
+ggplot(comparison_df, aes(x = Actual, y = Predicted)) +
+  geom_point(alpha = 0.7) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "red") +
+  theme_minimal() +
+  labs(title = "Predicted vs Actual",
+       x = "Actual Values",
+       y = "Predicted Values")
+
+rmse_val <- rmse(actual, predicted)
+mae_val <- mae(actual, predicted)
+r2_val <- cor(actual, predicted)^2
+
+cat("RMSE:", rmse_val, "\n")
+cat("MAE:", mae_val, "\n")
+cat("R-squared:", r2_val, "\n")
+
+comparison_df <- comparison_df %>%
+  left_join(additionalVariables, by = c("Country" = "Country Code"))
+
+ggplot(comparison_df, aes(x = Actual, y = Predicted, color = incomegroup)) +
+  geom_point(alpha = 0.8, size = 3) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
+  scale_color_manual(values = c("LI" = "#000004FF", "LMI" = "#6B186EFF", "UMI" = "#DD513AFF", "HI" = "#F6D645FF")) +
+  theme_minimal() +
+  labs(title = "Predicted vs Actual by Income Group",
+       color = "Income Group")
+   
+
+```
+
+
+
+
+```{r}
+regionalised<-dimred_250 %>%  select(`Country Code`,RegionSoviet) %>%  unique
+muhara2%>% 
+  merge( . ,regionalised,by.x = "a",by.y ="Country Code") %>%  
+  ggplot(aes(x=`Pandemic Indicators`,y=cNFC,color=RegionSoviet)) +geom_point()
+    
+
+muhara2      # %>% fwrite("2502_ForcePlotdata.csv")           
+
+# plot_iso2<-muhara1 %>%  arrange(incomegroup,NY.GDP.PCAP.CD) %>% mutate("e-Isomap"=rest_variables)%>%  mutate(sorted_id=1:n()) 
+# aldender<-shap.plot.force_plot((plot_iso2 %>% select(-a,-b,-rest_variables,-NY.GDP.PCAP.CD,-incomegroup)), zoom_in_location = 295,y_zoomin_limit = c(-20,20))+scale_fill_viridis_d(begin = 0,end=0.5,
+#     name = "Contribution",na.translate = F)+theme(legend.position = "None")
+# 
+# where<-plot_iso2 %>%  group_by(incomegroup) %>% summarise(regions=max(sorted_id))
+# options(book.base_family = "sans",
+#   book.base_size = 8)
+# `
+# isoforcePLot<-shap.plot.force_plot((plot_iso2 %>% select(-a,-b,-rest_variables,-NY.GDP.PCAP.CD,-incomegroup)), zoom_in_location = 285,y_zoomin_limit = c(-10,10))+scale_fill_viridis_d(begin = 0,end=0.5,
+#     name = "Contribution",na.translate = F)+theme(legend.position = "None")+ geom_vline(xintercept =where$regions,color="grey30" ) + annotate("text", x = where$regions, y = 37, label = where$incomegroup, vjust = -1, hjust = 1)+scale_y_continuous(position = "right")+ xlab("Countries ordered by GDP per Capita")+ylab("SHAP values by feature type")  +   theme_bw(
+#     base_size = getOption("book.base_size"),
+#     base_family = getOption("book.base_family")
+#   ) %+replace%
+#     theme(
+#       panel.grid.minor = element_blank(),
+#       legend.position = "yuhfguyf"
+#     )+scale_fill_manual(values = c(colors[c(1,3)]))
+
+plot_iso2<-muhara2 %>%  arrange(incomegroup,NY.GDP.PCAP.CD)%>%  mutate(sorted_id=1:n()) 
+plot_iso2 %>% select(-a,-b,-NY.GDP.PCAP.CD,-incomegroup)
+aldender<-shap.plot.force_plot((plot_iso2 %>% select(-a,-b,-NY.GDP.PCAP.CD,-incomegroup)), zoom_in_location = 295,y_zoomin_limit = c(-20,20))+scale_fill_viridis_d(begin = 0,end=0.5,
+    name = "Contribution",na.translate = F)+theme(legend.position = "None")
+
+where<-plot_iso2 %>%  group_by(incomegroup) %>% summarise(regions=max(sorted_id))
+options(book.base_family = "sans",
+  book.base_size = 8)
+
+isoforcePLot<-shap.plot.force_plot((plot_iso2 %>% select(-a,-b,-incomegroup,-NY.GDP.PCAP.CD)), zoom_in_location = 285,y_zoomin_limit = c(-10,10))+scale_fill_viridis_d(begin = 0,end=0.5,
+    name = "Contribution",na.translate = F)+theme(legend.position = "None")+ geom_vline(xintercept =where$regions,color="grey30" ) + annotate("text", x = where$regions, y = 37, label = where$incomegroup, vjust = -1, hjust = 1)+scale_y_continuous(position = "right")+ xlab("Countries ordered by GDP per Capita")+ylab("SHAP values by feature type")  +   theme_bw(
+    base_size = getOption("book.base_size"),
+    base_family = getOption("book.base_family")
+  ) %+replace%
+    theme(
+      panel.grid.minor = element_blank(),
+      legend.position = "yuhfguyf"
+    )+scale_fill_manual(values = c(colors[c(1,3,2)]))
+
+isoforcePLot
+
+
+```
+
+```{r}
+isoforcePLot<-plot_df %>%
+  filter(!is.na(income)) %>%
+  ggplot(aes(x = income, y = shap, fill = component)) +
+  geom_boxplot(outlier.shape = NA, width = 0.6, position = position_dodge(width = 0.7)) +
+  scale_fill_manual(values = colors[c(3, 2, 1)], name = NULL) +
+  labs(
+    x = NULL,
+    y = "SHAP value (contribution to excess mortality)"
+  ) +
+  coord_cartesian(ylim = c(NA, 20)) +  # limit y-axis
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "top",
+    panel.grid.major.x = element_blank()
+  )
+```
+
+#### merge
+```{r}
+
+cool<-cowplot::plot_grid(Element_one,cowplot::plot_grid(R2_decision+theme(legend.position = "ad"),isoforcePLot,ncol = 1,rel_heights =   c(0.8,2.3),labels = c("", "D")),labels = c(" ", "C"),rel_heights =   c(0.8,1),ncol = 2)
+cool
+# cool<-cowplot::plot_grid(Element_one,cowplot::plot_grid(isoforcePLot,ncol = 1,rel_heights =   c(0.8,2.3),labels = c("", "D")),labels = c(" ", "C"),rel_heights =   c(0.8,1),ncol = 2)
+
+legend1 = get_plot_component(R2_decision, 'guide-box-top', return_all = TRUE)
+legend_centered = plot_grid(
+  NULL, legend1, NULL, 
+  ncol = 3, 
+  rel_widths = c(1, 1, 1) # Adjust to center the legend
+)
+
+final_plot = plot_grid(
+  cool, 
+  legend1, 
+  ncol = 1,          # Arrange in one column (vertical stacking)
+  rel_heights = c(1, 0.08),  # Adjust heights, give more space to panelA
+  align = "v"        # Align vertically
+)
+final_plot
+#final_plot %>%  ggsave(file="../figures/04_figures/04_2505_isoResults.png",device = "png",width = 9,height = 10)
+```
+
+# Results 3 What can we say about the features.
+
+```{r}
+raw_wdi_only<-readRDS(raw_wdi_only_path)
+imputed_wdi_only<-readRDS(imputed_wdi_only_path)
+pca_wdi_only<-readRDS(pc20_wdi_only_path)
+iso_wdi_only<-readRDS(iso10_wdi_only_path)
+```
+
+## Imputed
+```{r}
+modelimputed<-readRDS("../output/240821_archived/03_Xgboost_imputed_Nocases_models")
+topruns<-modelimputed$Xgboost_summary %>% arrange(desc(Rsquared))
+Xgboostinput_imputed <-readRDS("../data/03_data/XboostDfimputed.RDS")
+Xgboostinput_imputed<-Xgboostinput_imputed%>% rename("Diabetes (%)" =`Diabetetes....`)
+Label<-"p_value_mort"
+features<-Xgboostinput_imputed %>% select(-`Country.Code`,-p_value_mort) %>%  colnames()
+Xgboostinput_filtered<-Xgboostinput_imputed%>%  filter(!(Country.Code%in% "PER"))
+# Xgboostinput_filtered$p_value_mort <- log(Xgboostinput_filtered$p_value_mort)
+set.seed(topruns$SeedNum[1])
+features_imputed<-Xgboostinput_filtered %>%  select(-p_value_mort,-Country.Code) %>%  colnames()
+features_imputed<-features_imputed
+wdi_imputed_shaptable<-data.frame()
+wdi_imputed_bootstrap<-data.frame()
+registerDoMC(1)
+
+  
+  # Split test training
+  countries<-Xgboostinput_filtered$Country.Code %>%  unique
+  test_proportion <- 0.8
+  train_countries <- sample(countries, size = length(countries) * test_proportion)
+  train_data_imputed <- Xgboostinput_filtered %>% filter(Country.Code%in% train_countries)
+  test_data <- Xgboostinput_filtered %>% filter(!(Country.Code%in% train_countries))
+  train_data_imputed$group <- as.numeric(factor(train_data_imputed$Country.Code))
+  # Set up trainControl to perform group-wise cross-validation
+  folds<-createFolds(train_data_imputed$group, k = 5, list = TRUE)
+  custom_control <- trainControl(
+    index = folds,
+    method = "repeatedcv",
+    number = 10,
+    repeats = 5, # Number of repetitions
+    verboseIter = TRUE
+  )
+   param_grid <- expand.grid(
+      nrounds = c(100, 200, 300),  # Number of boosting rounds
+      max_depth = c(3, 4, 5),     # Maximum tree depth
+      eta = c(0.01, 0.1, 0.3),    # Learning rate
+      gamma = c(0, 1, 10),       # L2 regularization
+      colsample_bytree = c( 0.9,1),
+      subsample = c(0.7, 0.8, 0.9),  # Subsample ratio
+      min_child_weight = c(1, 5, 10)  # Minimum child weight
+    )
+    
+  # Test different parameters
+  xgb_caret_wdi_raw <- caret::train(
+    x = train_data_imputed %>% dplyr::select(features_imputed),
+    y = train_data_imputed %>% pull(Label),
+    method = "xgbTree",trControl = custom_control,tuneGrid = param_grid,tuneLength = 100,
+    verbosity = 0
+  )
+  train_data_imputed_imputed<-train_data_imputed
+  finalmodel_wdi_imputed <- caret::train(
+    x = train_data_imputed %>% dplyr::select(features_imputed),
+    method = "xgbTree",
+    verbosity = 0,trControl = custom_control,
+    tuneGrid = xgb_caret_wdi_raw$bestTune
+  )
+  
+  predictedValue_imputed<-postResample(
+    predict(finalmodel_wdi_imputed, 
+            test_data %>% dplyr::select(features_imputed)),  
+    test_data %>% pull(Label)
+  )
+  
+  
+  shaptable_imputed <- xgb.plot.shap.summary(data = as.matrix(train_data_imputed_imputed %>% select(features_imputed)), model = finalmodel_wdi_imputed$finalModel, top_n =100)
+  dimre
+
+
+shaptableImputed<-shaptable_imputed$data %>% group_by(feature) %>% summarise(numberobservations=length(shap_value),Shap_value_mean=mean(abs(shap_value))) %>%  arrange(desc(Shap_value_mean))
+  # 
+  # imp<-varImp(finalmodel_wdi_imputed)$importance %>%
+  #   mutate(feature = rownames(varImp(finalmodel_wdi_raw)$importance))%>%
+  #   rename(importance = Overall)%>%
+  #   filter(importance > 0)
+
+```
+#### Dont forget to rerun imputed with the other factors
+
+
+
+##  PCA model
+
+### run XGBOOST PCA 20
+
+
+```{r}
+
+```
+
+
+```{r}
+
+modelpca20<-readRDS(pc20_model_path)
+topruns<-modelpca20$Xgboost_summary %>% arrange(desc(Rsquared))
+# 
+# modelpca20$Feature_summary %>%  group_by(feature) %>% 
+#   reframe(Shapley_mean=median(abs(Shap_value_mean)),Importance=median(importance,na.rm=T)) %>%  arrange(desc(Shapley_mean))
+modelpca20$Xgboost_summary$Rsquared %>%  summary
+```
+```{r}
+a<-dimred_250 %>%  filter(year%in%2020) %>% select(`Country Code`,iso1)
+```
+
+
+```{r}
+Xgboostinput_complete_pca <-readRDS(pca20_final_df_path)
+
+
+# Xgboostinput_complete_pca$PCA_1 <- -Xgboostinput_complete_pca$PCA_1
+# Xgboostinput_complete_pca$PCA_5 <- -Xgboostinput_complete_pca$PCA_5
+# Xgboostinput_complete_pca$PCA_14 <- -Xgboostinput_complete_pca$PCA_14
+# Xgboostinput_complete_pca$PCA_6 <- -Xgboostinput_complete_pca$PCA_6
+# Xgboostinput_complete_pca$PCA_23 <- -Xgboostinput_complete_pca$PCA_23
+
+Xgboostinput_pc<-Xgboostinput_complete_pca%>% rename("Country.Code"=`Country Code`,
+                                                     "Diabetes (%)" =`Diabetetes (%)`,
+                                                     "COVID-19 cases"=`Covid cases per million`,
+                                                     "Comorbity"=`Comorbidity index` )
+
+Label<-"p_value_mort"
+features<-Xgboostinput_pc %>% select(-`Country.Code`,-p_value_mort) %>%  colnames()
+
+
+```
+
+
+
+```{r}
+Xgboostinput_filtered<-Xgboostinput_pc%>%  filter(!(Country.Code%in% "PER"))
+```
+
+```{r}
+Xgboostinput_filtered
+```
+
+```{r}
+# Xgboostinput_filtered$p_value_mort <- log(Xgboostinput_filtered$p_value_mort)
+set.seed(topruns$SeedNum[1])
+features_pca<-Xgboostinput_filtered %>%  select(-p_value_mort,-Country.Code) %>%  colnames()
+features_pca<-features_pca
+wdi_imputed_shaptable<-data.frame()
+wdi_imputed_bootstrap<-data.frame()
+registerDoMC(40)
+
+  
+  # Split test training
+  countries<-Xgboostinput_filtered$Country.Code %>%  unique
+  test_proportion <- 0.8
+  train_countries <- sample(countries, size = length(countries) * test_proportion)
+  train_data_pca <- Xgboostinput_filtered %>% filter(Country.Code%in% train_countries)
+  test_data <- Xgboostinput_filtered %>% filter(!(Country.Code%in% train_countries))
+  train_data_pca$group <- as.numeric(factor(train_data_pca$Country.Code))
+  # Set up trainControl to perform group-wise cross-validation
+  folds<-createFolds(train_data_pca$group, k = 5, list = TRUE)
+  custom_control <- trainControl(
+    index = folds,
+    method = "repeatedcv",
+    number = 10,
+    repeats = 5, # Number of repetitions
+    verboseIter = TRUE
+  )
+   param_grid <- expand.grid(
+      nrounds = c(100, 200, 300),  # Number of boosting rounds
+      max_depth = c(3, 4, 5),     # Maximum tree depth
+      eta = c(0.01, 0.1, 0.3),    # Learning rate
+      gamma = c(0, 1, 10),       # L2 regularization
+      colsample_bytree = c( 0.9,1),
+      subsample = c(0.7, 0.8, 0.9),  # Subsample ratio
+      min_child_weight = c(1, 5, 10)  # Minimum child weight
+    )
+    
+  # Test different parameters
+  xgb_caret_wdi_raw <- caret::train(
+    x = train_data_pca %>% dplyr::select(features_pca),
+    y = train_data_pca %>% pull(Label),
+    method = "xgbTree",trControl = custom_control,tuneGrid = param_grid,tuneLength = 1000,
+    verbosity = 0
+  )
+  train_data_pca_pca<-train_data_pca
+  finalmodel_wdi_pca <- caret::train(
+    x = train_data_pca %>% dplyr::select(features_pca),
+    y = train_data_pca %>% pull(Label),
+    method = "xgbTree",
+    verbosity = 0,trControl = custom_control,
+    tuneGrid = xgb_caret_wdi_raw$bestTune
+  )
+  
+  predictedValue_pca<-postResample(
+    predict(finalmodel_wdi_pca, 
+            test_data %>% dplyr::select(features_pca)),  
+    test_data %>% pull(Label)
+  )
+  
+  
+  shaptable_pca <- xgb.plot.shap.summary(data = as.matrix(train_data_pca_pca %>% select(features_pca)), model = finalmodel_wdi_pca$finalModel, top_n =20)
+  
+  
+  # shaptable$data %>% group_by(feature) %>% summarise(numberobservations=length(shap_value),Shap_value_mean=mean(abs(shap_value))) %>%  arrange(desc(Shap_value_mean))->shaptable_data
+  # 
+  # imp<-varImp(finalmodel_wdi_pca)$importance %>%
+  #   mutate(feature = rownames(varImp(finalmodel_wdi_raw)$importance))%>%
+  #   rename(importance = Overall)%>%
+  #   filter(importance > 0)
+
+
+### plot
+```
+
+
+
+##  ISO model
+### run XGBOOST iso10
+
+```{r}
+
+modeliso10<-readRDS("../output/240822_archived/03_Xgboost_E_iso10_models")
+
+topruns<-modeliso10$Xgboost_summary %>% arrange(desc(Rsquared))
+modeliso10$Xgboost_summary$Rsquared %>%  max()
+modeliso10$Xgboost_summary$Rsquared %>%  median
+modeliso10
+xgboostresults<-modeliso10$Xgboost_summary
+```
+```{r}
+dcor(Xgboostinput_iso$Vaccinations,Xgboostinput_iso$iso1)
+```
+
+
+```{r}
+
+Xgboostinput_complete_iso <-readRDS("../data/03_data/XboostDfEiso.RDS")
+# Xgboostinput_complete_iso %>% fwrite("../output/04_final_dataset.csv")
+Xgboostinput_iso<-Xgboostinput_complete_iso%>% rename("Country.Code"=`Country Code`,
+                                                     "Diabetes (%)" =`Diabetetes (%)`,
+                                                     "COVID-19 cases"=`Covid cases per million`,
+                                                     "Comorbity"=`Comorbidity index` )
+
+Label<-"p_value_mort"
+features<-Xgboostinput_iso %>% select(-`Country.Code`,-p_value_mort) %>%  colnames()
+features_iso<-Xgboostinput_iso %>% select(-`Country.Code`,-p_value_mort) %>%  colnames()
+
+features_iso<-features_iso
+# Xgboostinput_complete_iso %>% write_csv("../output/thisisisoxgboost.csv")
+```
+
+```{r}
+incomeGroupDeaths<-merge(Xgboostinput_complete_iso,dimred_250 %>% select(`Country Code`,`Income Group`,RegionSoviet) %>%  unique,by="Country Code")
+anova_result<-aov(p_value_mort~`Income Group`,incomeGroupDeaths) 
+qqnorm(residuals(anova_result))
+qqline(residuals(anova_result))
+```
+
+
+
+```{r}
+df_scaled<-Xgboostinput_iso[,-1] %>% scale() %>% data.frame()
+df_scaled_withlabels<-cbind(Xgboostinput_iso[,1],Xgboostinput_iso[,-1])
+colnames(df_scaled_withlabels)<-colnames(Xgboostinput_iso) 
+
+
+Xgboostinput_filtered<-df_scaled_withlabels%>%  filter(!(Country.Code%in% "PER"))
+set.seed(topruns$SeedNum[1])
+features_iso<-Xgboostinput_filtered %>%  select(-p_value_mort,-Country.Code) %>%  colnames()
+features_iso<-features_iso
+
+wdi_imputed_shaptable<-data.frame()
+wdi_imputed_bootstrap<-data.frame()
+
+
+# Split test training
+  countries<-Xgboostinput_filtered$Country.Code %>%  unique
+  test_proportion <- 0.8
+  train_countries <- sample(countries, size = length(countries) * test_proportion)
+  train_data <- Xgboostinput_filtered %>% filter(Country.Code%in% train_countries)
+  test_data <- Xgboostinput_filtered %>% filter(!(Country.Code%in% train_countries))
+  train_data$group <- as.numeric(factor(train_data$Country.Code))
+  # Set up trainControl to perform group-wise cross-validation
+  folds<-createFolds(train_data$group, k = 5, list = TRUE)
+custom_control <- trainControl(
+    index = folds,
+    method = "repeatedcv",
+    number = 10,
+    repeats = 5, # Number of repetitions
+    verboseIter = TRUE,allowParallel = T
+  )
+param_grid <- expand.grid(
+  nrounds = c(100, 200, 300),  # Number of boosting rounds
+  max_depth = c(3, 4, 5),     # Maximum tree depth
+  eta = c(0.01, 0.1, 0.3),    # Learning rate
+  gamma = c(0, 1, 10),       # L2 regularization
+  colsample_bytree = c( 0.9,1),
+  subsample = c(0.7, 0.8, 0.9),  # Subsample ratio
+  min_child_weight = c(1, 5, 10)  # Minimum child weight
+)
+Sys.setenv(OPENBLAS_NUM_THREADS = 1)
+doMC::registerDoMC(30)
+
+
+  # Test different parameters
+xgb_caret_wdi_raw <- caret::train(
+  x = train_data %>% dplyr::select(features_iso),
+  y = train_data %>% pull(Label),
+  method = "xgbTree",
+  tuneGrid = param_grid,
+  trControl = custom_control,
+  tuneLength = 100,
+  verbosity = 0
+)
+
+
+
+finalmodel_wdi_iso <- caret::train(
+    x = train_data %>% dplyr::select(features_iso),
+    y = train_data %>% pull(Label),
+    method = "xgbTree",
+    verbosity = 0,trControl = custom_control,
+    tuneGrid = xgb_caret_wdi_raw$bestTune
+  )
+  
+  predictedValue_iso<-postResample(
+    predict(finalmodel_wdi_iso, 
+            test_data %>% dplyr::select(features_iso)),  
+    test_data %>% pull(Label)
+  )
+  predictedValue_iso
+  train_data_iso<-train_data
+  shaptable <- xgb.plot.shap.summary(data = as.matrix(train_data %>% select(features_iso)), model = finalmodel_wdi_iso$finalModel, top_n =20)
+  
+shaptable
+  # shaptable$data %>% group_by(feature) %>% summarise(numberobservations=length(shap_value),Shap_value_mean=mean(abs(shap_value))) %>%  arrange(desc(Shap_value_mean))->shaptable_data
+  # 
+  # imp<-varImp(finalmodel_wdi_raw)$importance %>%
+  #   mutate(feature = rownames(varImp(finalmodel_wdi_raw)$importance))%>%
+  #   rename(importance = Overall)%>%
+  #   filter(importance > 0)
+
+```
+```{r}
+finalmodel_wdi_iso <- caret::train(
+    x = train_data %>% dplyr::select(features_iso),
+    y = train_data %>% pull(Label),
+    method = "blassoAveraged",
+    verbosity = 0
+  )
+finalmodel_wdi_iso
+finalmodel_wdi_iso
+lm(p_value_mort~ . ,train_data[,-1]) %>% summary
+```
+
+
+```{r}
+Xgboostinput_filtered<-Xgboostinput_filtered %>% data.frame
+features<-colnames(Xgboostinput_filtered)[!(Xgboostinput_filtered %>%  colnames() %in%c("Country.Code","p_value_mort"))]
+
+
+```
+
+
+
+# Discussion plot
+```{r}
+df_scaled<-Xgboostinput_iso[,-1] %>% scale() %>% data.frame()
+df_scaled_withlabels<-cbind(Xgboostinput_iso[,1],Xgboostinput_iso[,-1])
+colnames(df_scaled_withlabels)<-colnames(Xgboostinput_iso) 
+
+Xgboostinput_filtered<-df_scaled_withlabels%>%  filter(!(Country.Code%in% "PER"))
+set.seed(topruns$SeedNum[1])
+features_iso<-Xgboostinput_filtered %>%  select(-p_value_mort,-Country.Code) %>%  colnames()
+
+
+wdi_imputed_shaptable<-data.frame()
+wdi_imputed_bootstrap<-data.frame()
+
+
+set.seed(1212)
+
+# Split test training
+countries<-Xgboostinput_filtered$Country.Code %>%  unique
+test_proportion <- 1
+train_countries <- sample(countries, size = length(countries) * test_proportion)
+train_data <- Xgboostinput_filtered %>% filter(Country.Code%in% train_countries)
+train_data$group <- as.numeric(factor(train_data$Country.Code))
+folds<-createFolds(train_data$group, k = 5, list = TRUE)
+
+# Load the necessary libraries
+library(doParallel)
+library(caret)
+
+# Register 30 cores for parallel processing
+modeliso10$Xgboost_summary->resultsEval
+resultsEval$trainR2 %>% mean
+set.seed(627)
+# Custom trainControl with repeated cross-validation
+custom_control <- trainControl(
+  index = folds,
+  method = "repeatedcv",
+  number = 10,
+  repeats = 5,  # Number of repetitions
+  verboseIter = TRUE,
+  allowParallel = TRUE
+)
+
+# Parameter grid for XGBoost
+param_grid <- expand.grid(
+      nrounds = c(300),  # Number of boosting rounds
+      max_depth = c( 3),     # Maximum tree depth
+      eta = c(0.01),    # Learning rate
+      gamma = c(1),       # L2 regularization
+      colsample_bytree = c( 0.8),
+      subsample = c(0.8),  # Subsample ratio
+      min_child_weight = c(5)
+    )
+
+# Train the model using caret with parallel processing
+xgb_caret_wdi_raw <- caret::train(
+  x = train_data %>% dplyr::select(features_iso),
+  y = train_data %>% pull(Label),
+  method = "xgbTree",
+  tuneGrid = param_grid,
+  trControl = custom_control,
+  verbosity = 1
+)
+
+# Use the best model parameters to train the Final model
+finalmodel_wdi_iso <- caret::train(
+  x = train_data %>% dplyr::select(features_iso),
+  y = train_data %>% pull(Label),
+  method = "xgbTree",
+  tuneGrid = xgb_caret_wdi_raw$bestTune,
+  verbosity = 0
+)
+
+
+# Stop the cluster after training is complete
+
+train_data_iso<-train_data
+  shaptable <- xgb.plot.shap.summary(data = as.matrix(train_data %>% dplyr::select(features_iso)), model = finalmodel_wdi_iso$finalModel, top_n =20)
+```
+
+
+```{r}
+col_pal <- c("grey80",  # Red
+                   "#377EB8",  # Blue
+                   "#4DAF4A",  # Green
+                   "#984EA3",  # Purple
+                   "#FF7F00",  # Orange
+                   "#FFFF33",  # Yellow
+                   "#A65628",  # Brown
+                   "#F781BF",  # Pink
+                   "firebrick3")  # Gray
+# col_pal <- c("#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", 
+#             "#fdb462", "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd", 
+#             "#ccebc5", "#ffed6f", "black")
+
+
+theme_set(
+  theme_bw(
+    base_size = getOption("book.base_size"),
+    base_family = getOption("book.base_family")
+  ) %+replace%
+    theme(
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom"
+    )
+)
+options(
+  # set default colors in ggplot2 to colorblind-friendly
+  # Okabe-Ito and Viridis palettes
+  ggplot2.discrete.colour = col_pal,
+  ggplot2.discrete.fill = col_pal,
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis",
+  # set theme font and size
+  book.base_family = "sans",
+  book.base_size = 12
+)
+ shaptable <- xgb.plot.shap.summary(data = as.matrix(train_data %>% select(features_iso)), model = finalmodel_wdi_iso$finalModel, top_n =20)
+ 
+
+library(ggExtra)
+train_data2<-train_data %>%  mutate(Country.Code_label=case_when(
+                                                    Country.Code%in%"RUS"~"Russia",
+                                                    Country.Code%in%"DEU"~"Germany",
+                                                    # 
+                                                    Country.Code%in%"USA"~"USA",
+                                                    Country.Code%in%"BRA"~"Brazil",
+                                                    # 
+                                                    # Country.Code%in%"THA"~"Thailand",
+                                                    # Country.Code%in%"KOR"~"Korea",
+                                                    # 
+                                                    # Country.Code%in%"IDN"~"Indonesia",
+                                                    # Country.Code%in%"NAM"~"Namibia",
+                                                    # 
+                                                    # Country.Code%in%"PRY"~"Paraguay",
+                                                    # Country.Code%in%"TUN"~"Tunesia",
+                                                    # 
+                                                    # Country.Code%in%"COD"~"Congo (REP)",
+                                                    # Country.Code%in%"DZA"~"Algeria",
+                                                    # 
+                                                    
+                                                    # 
+                                                    
+                                                    # Country.Code%in%"YEM"~"Yemen",
+                                                    TRUE~""
+                                                    ))%>%
+  mutate(dot_size = ifelse(Country.Code_label == "","a", "b"))%>%
+  mutate(alpha = ifelse(Country.Code_label == "","a", "b")) %>% inner_join( . ,excessCounrty_annual[,c("p_value_mort","year")] ) 
+
+p2 <- ggMarginal((cbind(train_data2,shaptable$data %>%  filter(feature%in%c("iso2") ))%>% 
+  ggplot()+geom_point(aes(x=feature_value,y=shap_value,color=Country.Code_label,alpha=as.factor(alpha),size=as.factor(dot_size)))+scale_size_manual(values=c(1,3))+ylab("SHAP values") +scale_alpha_manual(values = c(0.4,1))+scale_size_manual(values=c(2,5))+ geom_smooth(aes(x=feature_value,y=shap_value))+theme(legend.position = "none") +xlab("cNFC 2")), type="histogram")
+p3 <- ggMarginal((cbind(train_data2,shaptable$data %>%  filter(feature%in%c("iso3") ))%>% 
+  ggplot()+geom_point(aes(x=feature_value,y=shap_value,color=Country.Code_label,size=dot_size,alpha=as.factor(alpha)))+scale_alpha_manual(values = c(0.4,1))+scale_size_manual(values=c(2,5))+ylab("SHAP values") + geom_smooth(aes(x=feature_value,y=shap_value))+theme(legend.position = "none")  +xlab("cNFC 3")), type="histogram")
+p8 <- ggMarginal((cbind(train_data2,shaptable$data %>%  filter(feature%in%c("iso8") ))%>% 
+  ggplot()+geom_point(aes(x=feature_value,y=shap_value,color=Country.Code_label,size=dot_size,alpha=as.factor(alpha)))+scale_alpha_manual(values = c(0.4,1))+scale_size_manual(values=c(2,5))+ylab("SHAP values") + geom_smooth(aes(x=feature_value,y=shap_value))+theme(legend.position = "none") +xlab("cNFC 8 ")), type="histogram")
+p4 <- ggMarginal((cbind(train_data2,shaptable$data %>%  filter(feature%in%c("iso4") ))%>% 
+  ggplot()+geom_point(aes(x=feature_value,y=shap_value,color=Country.Code_label,size=dot_size,alpha=as.factor(alpha)))+scale_alpha_manual(values = c(0.4,1))+scale_size_manual(values=c(2,5))+ylab("SHAP values") + geom_smooth(aes(x=feature_value,y=shap_value))+theme(legend.position = "none")  +xlab("cNFC 4")), type="histogram")
+p1 <- ggMarginal((cbind(train_data2,shaptable$data %>%  filter(feature%in%c("iso1") ))%>% 
+  ggplot()+geom_point(aes(x=feature_value,y=shap_value,color=Country.Code_label,size=dot_size,alpha=as.factor(alpha)))+scale_alpha_manual(values = c(0.4,1))+scale_size_manual(values=c(2,5))+ylab("SHAP values") + geom_smooth(aes(x=feature_value,y=shap_value))+theme(legend.position = "none") +xlab("cNFC 1")), type="histogram")
+pCases <- ggMarginal((cbind(train_data2,shaptable$data %>%  filter(feature%in%c("COVID-19 cases") ))%>% 
+ggplot()+geom_point(aes(x=`COVID-19 cases`,y=shap_value,color=Country.Code_label,size=dot_size,alpha=as.factor(alpha)))+scale_alpha_manual(values = c(0.4,1))+scale_size_manual(values=c(2,5))+ylab("SHAP values") +geom_smooth(aes(x=`COVID-19 cases`,y=shap_value))+theme(legend.position = "none") +xlab("COVID-19 cases")), type="histogram")
+
+
+
+
+
+Plots<-ggarrange(pCases,p1,p2,p3,p4,p8,ncol = 2,nrow = 3,labels = c("a","b","c","d","e","f"))
+
+# Plots %>% ggsave(file="../figures/04_figures/04_2412_discussion_new.png",width = 12,height = 8)
+
+#legndi %>% ggsave(file="../figures/04_figures/04_legend_discussion.png")
+
+
+legendA <- ggMarginal((cbind(train_data2,shaptable$data %>%  filter(feature%in%c("COVID-19 cases") )) %>% mutate(Countries=Country.Code_label,year=as.factor(year)) %>%  filter(!(Countries%in%"")) %>%  
+ggplot()+geom_point(aes(x=`COVID-19 cases`,y=shap_value,color=Countries))+scale_size_manual(values=c(0.5,3))+ylab("SHAP values") +theme(legend.position = "bottom") +xlab("COVID-19 cases")+scale_color_manual(values = col_pal[c(2:length(col_pal))])), type="histogram")
+legendA
+legendB <- ggMarginal((cbind(train_data2,shaptable$data %>%  filter(feature%in%c("COVID-19 cases") )) %>% mutate(Countries=Country.Code_label,Year=as.factor(year)) %>%  
+ggplot()+geom_point(aes(x=`COVID-19 cases`,y=shap_value,shape = Year))+ylab("SHAP values") +theme(legend.position = "right") +xlab("COVID-19 cases")), type="histogram")
+legend1 = get_plot_component(legendA, 'guide-box-bottom', return_all = TRUE)
+legend2 = get_plot_component(legendB, 'guide-box-bootm', return_all = TRUE)
+legend=plot_grid(legend1,legend2,align = "v", axis = "tb")
+legend_centered = plot_grid(
+  NULL, legend1, NULL, 
+  ncol = 3, 
+  rel_widths = c(1, 0.5, 1) # Adjust to center the legend
+)
+legend_centered2 = plot_grid(
+  NULL, legend2, NULL, 
+  ncol = 3, 
+  rel_widths = c(1, 0.5, 1) # Adjust to center the legend
+)
+legend #%>% ggsave(file="../figures/04_figures/04_legend_discussion.png",width = 12,height = 8)
+final_plot = plot_grid(
+  Plots, 
+  legend_centered, 
+  ncol = 1,          # Arrange in one column (vertical stacking)
+  rel_heights = c(1, 0.1),  # Adjust heights, give more space to panelA
+  align = "v"        # Align vertically
+)
+
+final_plot  %>%  ggsave(file="../figures/04_figures/04_2506_discussion_new.png",width = 8,height = 8)
+
+# final_plot %>%  ggsave(file="../figures/Lancet_submission/Results3.pdf",width = 8,height = 8)
+```
+### Supplement versions
+```{r}
+
+
+library(ggExtra)
+regionsMapper<-dimred_250 %>%  select(`Country Code`,`RegionSoviet`) %>%  unique
+train_data2<-train_data%>% inner_join( . ,excessCounrty_annual[,c("p_value_mort","year")] ) %>% inner_join( . ,regionsMapper,by=c(Country.Code="Country Code" ))   %>%
+    mutate(Country.Code_label=RegionSoviet) %>% 
+  mutate(dot_size = ifelse(Country.Code_label == "","a", "b"),alpha = "1")
+p2 <- ggMarginal((cbind(train_data2,shaptable$data %>%  filter(feature%in%c("iso2") ))%>% 
+  ggplot()+geom_point(aes(x=feature_value,y=shap_value,color=Country.Code_label,alpha=as.factor(alpha),size=as.factor(dot_size)))+scale_size_manual(values=c(1,3))+ylab("SHAP values") +scale_alpha_manual(values = c(1))+scale_size_manual(values=c(2,5))+ geom_smooth(aes(x=feature_value,y=shap_value))+theme(legend.position = "none") +xlab("cNFC 2")), type="histogram")
+p3 <- ggMarginal((cbind(train_data2,shaptable$data %>%  filter(feature%in%c("iso3") ))%>% 
+  ggplot()+geom_point(aes(x=feature_value,y=shap_value,color=Country.Code_label,size=dot_size,alpha=as.factor(alpha)))+scale_alpha_manual(values = c(1))+scale_size_manual(values=c(2,5))+ylab("SHAP values") + geom_smooth(aes(x=feature_value,y=shap_value))+theme(legend.position = "none")  +xlab("cNFC 3")), type="histogram")
+p8 <- ggMarginal((cbind(train_data2,shaptable$data %>%  filter(feature%in%c("iso8") ))%>% 
+  ggplot()+geom_point(aes(x=feature_value,y=shap_value,color=Country.Code_label,size=dot_size,alpha=as.factor(alpha)))+scale_alpha_manual(values = c(1))+scale_size_manual(values=c(2,5))+ylab("SHAP values") + geom_smooth(aes(x=feature_value,y=shap_value))+theme(legend.position = "none") +xlab("cNFC 8 ")), type="histogram")
+p4 <- ggMarginal((cbind(train_data2,shaptable$data %>%  filter(feature%in%c("iso4") ))%>% 
+  ggplot()+geom_point(aes(x=feature_value,y=shap_value,color=Country.Code_label,size=dot_size,alpha=as.factor(alpha)))+scale_alpha_manual(values = c(1))+scale_size_manual(values=c(2,5))+ylab("SHAP values") + geom_smooth(aes(x=feature_value,y=shap_value))+theme(legend.position = "none")  +xlab("cNFC 4")), type="histogram")
+p1 <- ggMarginal((cbind(train_data2,shaptable$data %>%  filter(feature%in%c("iso1") ))%>% 
+  ggplot()+geom_point(aes(x=feature_value,y=shap_value,color=Country.Code_label,size=dot_size,alpha=as.factor(alpha)))+scale_alpha_manual(values = c(1))+scale_size_manual(values=c(2,5))+ylab("SHAP values") + geom_smooth(aes(x=feature_value,y=shap_value))+theme(legend.position = "none") +xlab("cNFC 1")), type="histogram")
+pCases <- ggMarginal((cbind(train_data2,shaptable$data %>%  filter(feature%in%c("COVID-19 cases") ))%>% 
+ggplot()+geom_point(aes(x=`COVID-19 cases`,y=shap_value,color=Country.Code_label,size=dot_size,alpha=as.factor(alpha)))+scale_alpha_manual(values = c(1))+scale_size_manual(values=c(2,5))+ylab("SHAP values") +geom_smooth(aes(x=`COVID-19 cases`,y=shap_value))+theme(legend.position = "none") +xlab("COVID-19 cases")), type="histogram")
+
+pCases
+
+
+
+Plots<-ggarrange(pCases,p1,p2,p3,p4,p8,ncol = 2,nrow = 3,labels = c("a","b","c","d","e","f"))
+
+# Plots %>% ggsave(file="../figures/04_figures/04_2412_discussion_new.png",width = 12,height = 8)
+
+#legndi %>% ggsave(file="../figures/04_figures/04_legend_discussion.png")
+
+
+legendA <- ggMarginal((cbind(train_data2,shaptable$data %>%  filter(feature%in%c("COVID-19 cases") ))%>%
+ggplot()+geom_point(aes(x=`COVID-19 cases`,y=shap_value,color=Country.Code_label,size=dot_size,alpha=as.factor(alpha)))+scale_alpha_manual(values = c(0.4,1))+scale_size_manual(values=c(2,5))+ylab("SHAP values") +geom_smooth(aes(x=`COVID-19 cases`,y=shap_value))+xlab("COVID-19 cases")), type="histogram")
+
+
+
+legend1 = get_plot_component(legendA, 'guide-box-bottom', return_all = TRUE)
+legend2 = get_plot_component(legendB, 'guide-box-bootm', return_all = TRUE)
+legend=plot_grid(legend1,legend2,align = "v", axis = "tb")
+legend_centered = plot_grid(
+  NULL, legend1, NULL, 
+  ncol = 3, 
+  rel_widths = c(1, 0.5, 1) # Adjust to center the legend
+)
+legend_centered
+
+legend #%>% ggsave(file="../figures/04_figures/04_legend_discussion.png",width = 12,height = 8)
+final_plot = plot_grid(
+  Plots, 
+  legend_centered, 
+  ncol = 1,          # Arrange in one column (vertical stacking)
+  rel_heights = c(1, 0.1),  # Adjust heights, give more space to panelA
+  align = "v"        # Align vertically
+)
+final_plot
+ final_plot  %>%  ggsave(file="../figures/04_figures/04_2506_discussion_supplement.png",width = 8,height = 8)
+```
+
+
+```{r}
+summaryofindicator <- function(indicator,year=2020) {
+  dimred_250 %>% 
+    filter(year %in% c(2020)) %>% 
+    select(`Country Code`, indicator) %>% 
+    group_by(`Country Code`) %>% 
+    reframe(
+      meanoftis = mean(get(indicator), na.rm = TRUE),
+      # sd = sd(get(indicator), na.rm = TRUE)
+    ) %>% cbind( . ,name=wdi_series[wdi_series$`Indicator Code`%in% paste(indicator),`Indicator Name`])
+}
+
+# Example usage:
+
+
+```
+
+```{r}
+owid_biannual<-owid_data %>%  
+  mutate(year=year(date))  %>% 
+  filter(year%in%c(2020,2021)) %>% 
+  data.table() %>% select(-date) %>% 
+  filter(!is.na(continent)& continent!="") %>%   
+  group_by(iso_code,location) %>% 
+  reframe(
+            Stringency_index=mean(stringency_index,na.rm=T),
+            Stringency_index_var=var(stringency_index,na.rm=T),
+            # Average_hosp_admissions=sum(weekly_hosp_admissions,na.rm=T)/population,
+            # Average_ICU_admissions=sum(weekly_icu_admissions,na.rm=T)/population,
+            Covid_Cases_per_million=sum(new_cases_per_million,na.rm=T),
+            Owid_death_per_million =sum(new_deaths_per_million,na.rm=T),
+            Owid_Exmort =mean(excess_mortality,na.rm=T),
+            Vaccinations=sum(total_vaccinations_per_hundred,na.rm=T),
+            Available_Hospital_beds=mean(hospital_beds_per_thousand,na.rm=T),
+            Median_age=mean(median_age,na.rm=T),
+            aged_65_older=mean(aged_65_older,na.rm=T),
+            sum_tests_per_thousend=sum(total_tests_per_thousand,na.rm=T),
+            human_development_index=mean(human_development_index,na.rm=T),
+            handwashing_facilities=mean(handwashing_facilities,na.rm=T),
+            population_density=mean(population_density,na.rm=T),
+            diabetes_prevalence=mean(diabetes_prevalence,na.rm=T),
+            continent=continent,
+            cardiovasc_death_rate=mean(cardiovasc_death_rate,na.rm=T)
+            
+            )%>%  arrange(iso_code) %>%  unique %>% mutate(identifier=paste0(iso_code))
+```
+
+## We show that the differnces are real
+
+```{r}
+dimred_250
+options(scipen=999)
+errorsummary<-lm(`COVID-19 cases`+iso1+iso4~p_value_mort,Xgboostinput_iso)
+cbind(error=abs(errorsummary$residuals),Xgboostinput_iso) %>% arrange((error))
+```
+
+### Russia vs. Germany
+```{r}
+#CO2 emissions (kg per 2015 US$ of GDP)
+
+summaryofindicator("EN.ATM.CO2E.KD.GD") %>%  filter(`Country Code`%in% c("DEU","RUS"))
+# Labor force participation rate for ages 15-24, female (%) (modeled ILO estimate)
+
+summaryofindicator("SL.TLF.ACTI.1524.ZS") %>%  filter(`Country Code`%in% c("DEU","RUS"))
+
+#Employment to population ratio, ages 15-24, total (%) (modeled ILO estimate)
+
+
+summaryofindicator("SL.EMP.1524.SP.ZS") %>%  filter(`Country Code`%in% c("DEU","RUS"))
+
+summaryofindicator("SL.UEM.1524.ZS") %>%  filter(`Country Code`%in% c("DEU","RUS"))
+
+summaryofindicator("SP.POP.65UP.TO.ZS") %>%  filter(`Country Code`%in% c("DEU","RUS"))
+
+
+
+
+```
+```{r}
+require(dplyr)
+Xgboostinput_iso[Xgboostinput_iso$Country.Code%in%c("RUS","DEU")] %>% 
+  dplyr::select(Country.Code,`Covid cases per million`,p_value_mort)
+
+```
+
+
+```{r}
+
+dimred_250 %>% filter(`Country Code`%in%c("ZAF","USA","BRA","BOL"))  %>% ggplot(aes(y=`SP.POP.2529.FE.5Y`,color=`Country Code`)) +
+  geom_boxplot()
+```
+
+
+
+
+### Brazil vs. USA
+```{r}
+## Iso1 
+#Vulnerable employment, female (% of female employment) (modeled ILO estimate)
+summaryofindicator("SL.EMP.VULN.FE.ZS") %>%  filter(`Country Code`%in% c("BRA","USA"))
+#Current health expenditure per capita, PPP (current international $)
+summaryofindicator("SH.XPD.CHEX.PP.CD") %>%  filter(`Country Code`%in% c("BRA","USA"))
+
+## iso 8 differnces
+
+summaryofindicator("SL.UEM.TOTL.FE.NE.ZS") %>%  filter(`Country Code`%in% c("BRA","USA"))
+
+## iso 3differnces
+#Net ODA received (% of gross capital formation)
+summaryofindicator("DT.ODA.ODAT.GI.ZS",2020) %>%  filter(`Country Code`%in% c("BRA","USA"))
+#Population in urban agglomerations of more than 1 million (% of total population)
+summaryofindicator("EN.URB.MCTY.TL.ZS",2020) %>%  filter(`Country Code`%in% c("BRA","USA"))
+#Compensation of employees (% of expense)
+
+summaryofindicator("GC.XPN.COMP.ZS",2020) %>%  filter(`Country Code`%in% c("BRA","USA"))
+
+summaryofindicator("SL.TLF.CACT.FM.ZS",2020) %>%  filter(`Country Code`%in% c("BRA","USA"))
+
+```
+
+
+
+```{r}
+summaryofindicator_showcase <- function(indicator) {
+  library(dplyr)
+  library(tidyr)
+  this<-dataINf[dataINf$`Indicator Code`%in% indicator,]
+  maxcol<-colnames(this[, grepl("iso",colnames(this)),with = F])[max.col(this[, grepl("iso",colnames(this)),with = F])]
+
+  summary <- dimred_250 %>% 
+    filter(year %in% 2000:2020) %>% 
+    filter(`Country Code` %in% c("DEU", "USA", "BRA", "RUS")) %>%
+    group_by(`Country Code`) %>% 
+    summarise(
+      med = median(.data[[indicator]], na.rm = TRUE),
+      iqr = IQR(.data[[indicator]], na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate(value = paste0(round(med, 2), " (", round(iqr, 2), ")")) %>%
+    mutate(value = as.numeric(round(med, 2))) %>%
+    select(`Country Code`, value) %>%
+    pivot_wider(names_from = `Country Code`, values_from = value) %>%
+    mutate(indicator = wdi_series[wdi_series$`Indicator Code` == indicator, `Indicator Name`],Isocor=maxcol) %>%
+    select(indicator,Isocor,DEU, RUS, USA, BRA)
+
+  return(summary)
+}
+
+mytable<-rbind(iso1_example_Lifeexptancy<-summaryofindicator_showcase("SP.DYN.LE00.IN"),
+               
+iso1_example_labor<-summaryofindicator_showcase("NY.GDP.PCAP.PP.KD"),
+iso1_example_healthcare<-summaryofindicator_showcase("SH.MED.PHYS.ZS"),
+iso2_example_labor<-summaryofindicator_showcase("SL.TLF.ACTI.1524.ZS"),
+
+
+
+iso2_example_healthexpenditure<-summaryofindicator_showcase("SH.XPD.CHEX.PC.CD"),
+iso2_example_carobin<-summaryofindicator_showcase("NY.ADJ.DCO2.GN.ZS"),
+iso3_example_deathrate<-summaryofindicator_showcase("SP.DYN.CDRT.IN"),
+iso3_example_deathrate<-summaryofindicator_showcase("SL.TLF.TOTL.FE.ZS"),
+iso4_example_deathrate<-summaryofindicator_showcase("VC.IHR.PSRC.P5"),
+iso8_example_deathrate<-summaryofindicator_showcase("ST.INT.RCPT.XP.ZS"),
+iso8_example_deathrate<-summaryofindicator_showcase("SH.HIV.INCD.TL.P3"))
+
+log10(iso1_example_labor$DEU)
+#mytable %>% fwrite("../output/2506_Indicator_group_table.csv")
+```
+
+
+
+
+
+### South Korea and Thailand
+```{r}
+
+```
+
+```{r}
+table2019_pc<-dimred_250 %>% filter(year%in%2019)
+table2020_pc<-dimred_250 %>% filter(year%in%2020) 
+table2019_pc2<-table2019_pc %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_pc2<-table2020_pc %>% mutate(identifier=paste0(`Country Code`,"2021"))
+WDI_pc_2020_2021<-rbind(table2019_pc2,table2020_pc2) %>%  filter(!is.na(iso1))
+Xgboostinput<- dplyr::inner_join(WDI_pc_2020_2021, excessCounrty_annual2, by = "identifier")
+
+```
+```{r}
+cor(Xgboostinput$iso2,Xgboostinput$SH.XPD.CHEX.PC.CD,use = "complete.obs") 
+```
+
+# das ist ider SCHLUESSEL
+```{r}
+indicators<-colnames(Xgboostinput)[colnames(Xgboostinput)%in% wdi_series$`Indicator Code`]
+EmptyframeCOR<-data.frame(Indicatos=indicators,Longname=wdi_series[wdi_series$`Indicator Code`%in% indicators,`Indicator Name`],
+           "iso1"=NA,
+           "iso2"=NA,
+           "iso3"=NA,
+           "iso4"=NA,
+           "iso8"=NA,"N"=NA
+           )
+for(i in c("iso1","iso2","iso3","iso4","iso8")){
+  for(j in 1:length(indicators)){
+    if(i=="iso1"){
+        this<-Xgboostinput[,c(indicators[j],i),with=F] %>% complete.cases() %>% sum
+        this
+       EmptyframeCOR[EmptyframeCOR$Indicatos%in%indicators[j],"N"]<-this
+    }
+    suppressMessages(try(EmptyframeCOR[EmptyframeCOR$Indicatos%in%indicators[j],i]<-unlist(cor(use = "complete.obs", Xgboostinput[,indicators[j],with=F],Xgboostinput[,i,with = F]))))
+  }
+}
+EmptyframeCOR %>%  write_delim(file = "../output/values.csv", delim = ";")
+plot(abs(EmptyframeCOR$iso2),EmptyframedCOR$iso2)
+```
+```{r}
+indicators<-colnames(Xgboostinput)[colnames(Xgboostinput)%in% wdi_series$`Indicator Code`]
+EmptyframedCOR<-data.frame(Indicatos=indicators,Longname=wdi_series[wdi_series$`Indicator Code`%in% indicators,`Indicator Name`],
+           "iso1"=NA,
+           "iso2"=NA,
+           "iso3"=NA,
+           "iso4"=NA,
+           "iso8"=NA
+           )
+for(i in c("iso1","iso2","iso3","iso4","iso8")){
+  for(j in 1:length(indicators)){
+    suppressMessages(try(EmptyframedCOR[EmptyframedCOR$Indicatos%in%indicators[j],i]<-unlist(dcor(Xgboostinput[,indicators[j],with=F],Xgboostinput[,i,with = F]))))
+  }
+}
+
+```
+
+```{r}
+plot(Xgboostinput$iso4,Xgboostinput$TM.VAL.MRCH.WR.ZS)
+```
+
+
+### Paraguay and Tunisia
+```{r}
+dimred
+#Iso1
+#Current health expenditure per capita, PPP (current international $)
+summaryofindicator("SH.XPD.CHEX.PC.CD") %>%  filter(`Country Code`%in% c("RUS","DEU","PRY","TUN"))
+#Iso2 Emissions
+summaryofindicator("EN.ATM.CO2E.KD.GD") %>%  filter(`Country Code`%in% c("DEU","RUS","PRY","TUN"))
+#Iso3 
+summaryofindicator("DT.ODA.ODAT.GI.ZS",2020) %>%  filter(`Country Code`%in% c("BRA","USA","PRY","TUN"))
+#iso4
+#Merchandise imports from economies in the Arab World (% of total merchandise imports)
+summaryofindicator("TM.VAL.MRCH.AL.ZS",2020) %>%  filter(`Country Code`%in% c("BRA","USA","PRY","TUN"))
+```
+
+
+```{r}
+table2019_pc<-dimred_250 %>% filter(year%in%2019)
+table2020_pc<-dimred_250 %>% filter(year%in%2020)
+table2019_pc2<-table2019_pc %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_pc2<-table2020_pc %>% mutate(identifier=paste0(`Country Code`,"2021"))
+WDI_pc_2020_2021<-rbind(table2019_pc2,table2020_pc2) %>%  filter(!is.na(iso1))
+Xgboostinput<- dplyr::inner_join(WDI_pc_2020_2021, excessCounrty_annual2, by = "identifier")
+Xgboostinput<-Xgboostinput %>% arrange(desc(iso2))
+# compareiso4<-dimred_250 %>%  filter(year%in% c(2020)) %>%   %>% fwrite("../output/datacompareiso4.csv")
+# compareiso4$iso4
+```
+
+
+
+
+
+
+
+# Informal sector database
+```{r}
+informalsectordb<-read_xlsx("../data/informal-economy-database.xlsx",sheet = 2)
+informalsectordb %>% select(Code,`2020`) %>% inner_join(Xgboostinput_complete_iso , . ,by=c("Country Code"="Code"))-> oasd
+oasd %>%inner_join(  .  , dimred2021_knn250_withscors2 ,by=c("Country Code"="Country Code"))-> oasd2
+oasd2 %>%  filter((incomegroup%in%"UMI")) %>% 
+                    ggplot(aes(x=iso3,y=`2020`))+geom_point()
+```
+
+15 33 und 14 15
+
+```{r}
+dimred_250 %>% filter(`Country Code`%in%c("RUS","ZAF","USA","BOL"),year%in%c(2010:2021)) %>% ggplot(aes(y=`SL.UEM.TOTL.ZS`,x=`Country Code`,color=`Country Code`)) +
+  geom_point()
+wdi_data_transformed_allindicators <- fread("../data/01_data/wdi_data_transformed_allindicators.csv")
+wdi_data_transformed_allindicators %>% filter(`Country Code`%in%c("RUS","ZAF","USA","BOL"),year%in%c(2010:2021)) %>% ggplot(aes(y=`SP.POP.2529.FE.5Y`,x=`Country Code`,color=`Country Code`)) +
+  geom_point()
+wdi_data_transformed_allindicators %>% filter(`Country Code`%in%c("RUS","ZAF","BOL"),year%in%c(2010:2021)) %>% ggplot(aes(y=`SH.XPD.CHEX.PC.CD`,x=`Country Code`,color=`Country Code`)) +
+  geom_point()
+
+TM.VAL.MRCH.R2.ZS
+```
+
+
+```{r}
+wdi_data_transformed_allindicators %>% filter(`Country Code`%in%c("RUS","DEU","BRA","USA"),year%in%c(2000:2021)) %>% ggplot(aes(y=`SL.TLF.ACTI.1524.FE.ZS`,x=`Country Code`,color=`Country Code`)) +
+  geom_boxplot()+ scale_color_viridis_d()
+
+wdi_data_transformed_allindicators %>% filter(`Country Code`%in%c("RUS","DEU","BRA","USA"),year%in%c(2000:2021)) %>% ggplot(aes(y=`SP.DYN.CDRT.IN`,x=`Country Code`,color=`Country Code`)) +
+  geom_boxplot()+ scale_color_viridis_d()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+require(openxlsx)
+dataINf <- fread("../output/Correlationtable.csv",sep=";")
+```
+
+
+```{r}
+colnames(dataINf) <-colnames(dataINf) %>% str_replace_all("iso","cNFC ")
+#fwrite(dataINf,"../output/2410_Correlationtable.csv",sep=";")
+colnames(Xgboostinput_iso) <-colnames(Xgboostinput_iso) %>% str_replace_all("iso","cNFC ")
+fwrite(Xgboostinput_iso[,c(1,2,3,4,5,9)],"../output/2410_Countries.csv",sep=";")
+```
+
+
+```{r}
+excessCounrty_annual2
+# dataINf %>% write.xlsx("../output/Correlationtable.xlsx")
+dimred_250%>% ggplot(aes(x=`Income Group`,y=log(`SH.HIV.INCD.YG.P3`)))+geom_boxplot()
+alpenwurst<-dimred_250 %>%  select(`Short Name`,SH.XPD.CHEX.PC.CD,`Country Code`,`Income Group`)
+dimred_250%>% ggplot(aes(x=`iso8`,y=(`SH.HIV.INCD.YG.P3`)))+geom_point()
+cor(dimred_250$iso1,dimred_250$NV.IND.EMPL.KD,use = "complete.obs")
+```
+
+```{r}
+dimred_250%>% ggplot(aes(y=`iso8`,x=RegionSoviet))+geom_boxplot()
+```
+
+```{r}
+aov(pscore_mean~incomegroup+iso4,oasd2) %>% summary
+```
+
+
+
+```{r}
+xgboost::xgb.ggplot.shap.summary(data = as.matrix(train_data %>% 
+  dplyr::select(features)),
+  model = finalmodel_wdi_iso$finalModel) +scale_color_viridis("Feature Value")+ theme_bw() + xlab("Features")+ylab("Shapley value")+theme(legend.position = "left")
+
+xgboost::xgb.plot.shap(
+  data = as.matrix(train_data %>% 
+  dplyr::select(features)),
+  model = finalmodel_wdi_iso$finalModel,
+  top_n = 9,
+  n_col = 
+)
+theworst<-min(Xgboostinput_filtered$p_value_mort[order(Xgboostinput_filtered$p_value_mort,decreasing = T)][1:20])
+thebest<-max(Xgboostinput_filtered$p_value_mort[order(Xgboostinput_filtered$p_value_mort,decreasing = F)][1:20])
+
+
+
+Xgboostinput_iso %>% 
+  arrange(desc(iso2)) %>% 
+  mutate(typle=case_when(p_value_mort>theworst~"High Mort",
+                         p_value_mort<theworst~"Low mort",
+                         
+                         
+                         ))
+  ggplot(aes(x=iso2)) + geom_density()
+
+```
+
+
+```{r}
+options(scipen =999)
+lm(p_value_mort~`COVID-19 cases`+iso1+iso2+iso3+iso4+iso8+iso10,Xgboostinput_iso) %>% summary
+```
+
+
+## combine
+
+```{r}
+plot_iso_shap<-shapplotresults1(top_n = 10,data = as.matrix(train_data %>% 
+     dplyr::select(features_iso)),
+   model = finalmodel_wdi_iso$finalModel )+theme_bw()
+plot_iso_shap
+plot_iso_shap$data$shap_value %>% abs %>% sum()
+plot_pca_shap<-shapplotresults1(top_n = 10,data = as.matrix(train_data_pca %>% 
+     dplyr::select(features_pca)),
+   model = finalmodel_wdi_pca$finalModel )+theme_bw()
+
+plot_pca_shap$data$shap_value %>% abs %>% sum()
+plot_imputed_shap<-shapplotresults1(top_n = 100,data = as.matrix(train_data_imputed %>% 
+      dplyr::select(features_imputed)),
+    model = finalmodel_wdi_imputed$finalModel )+theme_bw()
+plot_imputed_shap$data$shap_value %>% abs %>% sum()
+```
+```{r}
+source('../libraries/00_toolbox.R')
+plot_iso_shap
+plot_pca_shap
+plot_imputed_shap
+
+```
+
+
+can we justify to scale the colors
+
+# Results 4 isomap features
+```{r}
+
+ulri<-readRDS("../output/01_Corrtable_new_isomap.RDS")
+cor_var_iso_cons<-ulri %>% data.frame()
+
+who<-wdi_series[match(rownames(cor_var_iso_cons),wdi_series$`Indicator Code`),c("Indicator Code","Topic","Indicator Name")]
+
+topicsofIndicators<-str_split_fixed(who$Topic,":" ,n=3)
+wdi_group<-cbind("Indicator Code"=who$`Indicator Code`,
+                 "Indicator Name"=who$`Indicator Name`,
+                 topicsofIndicators  %>%  data.frame() %>% set_colnames( . ,c("Topic 1","Topic 2","Topic 3")))
+dataINf<-cbind(wdi_group,cor_var_iso_cons)
+dimred_250 %>% filter(year%in% c(2010:2020)) %>% 
+  ggplot(aes(x=iso2,fill=RegionSoviet))+geom_boxplot()
+
+
+dimred_250 %>% filter(year%in% 2019) %>% group_by(RegionSoviet) %>% 
+    reframe(median=median(FS.AST.PRVT.GD.ZS,na.rm=T),
+            IQR=IQR(FS.AST.PRVT.GD.ZS,na.rm=T))
+
+
+```
+
+
+
+```{r}
+dimred_250 %>% filter(year%in% 2019) %>% group_by(RegionSoviet) %>% 
+    reframe(median=median(SH.XPD.CHEX.PC.CD,na.rm=T),
+            IQR=IQR(SH.XPD.CHEX.PC.CD,na.rm=T))
+
+
+dimred_250 %>% filter(year%in% 2019) %>% group_by(RegionSoviet) %>% 
+    reframe(median=median(SH.HIV.1524.MA.ZS,na.rm=T),
+            IQR=IQR(SH.HIV.1524.MA.ZS,na.rm=T))
+
+
+dimred_250%>% filter(year%in% c(2010:2020)) %>% 
+  ggplot(aes(x=iso8,fill=RegionSoviet))+geom_boxplot()
+```
+
+## Descriptive analzysis
+
+
+
+```{r}
+frameIso<-cbind(wdi_group,cor_var_iso_cons) %>% group_by(`Topic 1`,`Topic 2`) %>% 
+  reframe(N=length(iso2),iso2=round(mean(iso2),digits = 2),iso4=round(mean(iso4),digits = 2),iso8=round(mean(iso8),digits = 2),iso3=round(mean(iso3),digits = 2),iso1=round(mean(iso1),digits = 2)) %>% 
+  arrange(desc(`Topic 1`),desc(`Topic 2`)) %>% 
+  gt::gt() %>%
+  gt_color_rows(iso2:iso1, palette = "Purples")
+frameIso
+cor_var_iso_cons$iso1 %>%  length()
+# %>%
+#   gt_plt_dist(iso4) %>%
+# gt_plt_dist(iso8) %>%
+# gt_plt_dist(iso3) %>%
+# gt_plt_dist(iso1)
+cbind(wdi_group,cor_var_iso_cons) %>% group_by(`Topic 1`,`Topic 2`) %>% 
+  reframe(N=length(iso2),iso2=round(mean(iso2),digits = 2),iso4=round(mean(iso4),digits = 2),iso8=round(mean(iso8),digits = 2),iso3=round(mean(iso3),digits = 2),iso1=round(mean(iso1),digits = 2)) 
+
+wdi_group$Topic<-wdi_group$`Topic 1`
+wdi_group$Subtopic<-wdi_group$`Topic 2`
+frameIso<-cbind(wdi_group,cor_var_iso_cons) %>% group_by(`Topic`,`Subtopic`) %>% 
+  reframe(N=length(iso2),
+          `cNFC 1`=round(mean(iso1),digits = 2),
+          `cNFC 2`=round(median(iso2),digits = 2),
+          `cNFC 3`=round(mean(iso3),digits = 2),
+          `cNFC 4`=round(mean(iso4),digits = 2),
+          `cNFC 8`=round(mean(iso8),digits = 2)) %>% 
+  arrange(desc(`Topic`),desc(`Subtopic`)) %>% 
+  gt::gt() %>%
+  gt_color_rows(-c(`Topic`,`Subtopic`,N), palette = "ggsci::deep_purple_material") 
+frameIso %>% gtsave( . ,"../figures/04_figures/tab_2.html")
+
+frameIso
+```
+
+
+```{r}
+ggsci
+frameIso <- cbind(wdi_group,cor_var_iso_cons) %>% group_by(`Topic 1`,`Topic 2`) %>% 
+  summarise(
+    N = n(),
+    iso2_median = median(iso2),
+    iso2_iqr = IQR(iso2),
+    iso4_median = median(iso4),
+    iso4_iqr = IQR(iso4),
+    iso8_median = median(iso8),
+    iso8_iqr = IQR(iso8),
+    iso3_median = median(iso3),
+    iso3_iqr = IQR(iso3),
+    iso1_median = median(iso1),
+    iso1_iqr = IQR(iso1)
+  ) %>%
+  ungroup() %>%
+  arrange(desc(`Topic 1`), desc(`Topic 2`))
+
+# Create the table with color coding
+frameIso <- frameIso %>%
+  mutate(
+    `Isomap 2` = paste0(round(iso2_median, 2), " (", round(iso2_iqr, 2), ")"),
+    `Isomap 4` = paste0(round(iso4_median, 2), " (", round(iso4_iqr, 2), ")"),
+    `Isomap 8` = paste0(round(iso8_median, 2), " (", round(iso8_iqr, 2), ")"),
+    `Isomap 3` = paste0(round(iso3_median, 2), " (", round(iso3_iqr, 2), ")"),
+    `Isomap 1` = paste0(round(iso1_median, 2), " (", round(iso1_iqr, 2), ")")
+  )
+
+# Create the table with color coding
+gt_table <- frameIso %>%
+  gt() %>%
+  gt_color_rows(c(iso2_median, iso4_median, iso8_median, iso3_median, iso1_median), palette = "Purples") %>%
+  cols_hide(columns = c(iso2_iqr, iso4_iqr, iso8_iqr, iso3_iqr, iso1_iqr)) %>%
+  fmt_number(columns = c(iso2_median, iso4_median, iso8_median, iso3_median, iso1_median), decimals = 2) %>%
+  cols_label(
+    iso2_median = "Isomap 2",
+    iso4_median = "Isomap 4",
+    iso8_median = "Isomap 8",
+    iso3_median = "Isomap 3",
+    iso1_median = "Isomap 1"
+  ) %>%
+  text_transform(
+    locations = cells_body(columns = c(iso2_median)),
+    fn = function(x) {
+      paste0(x, " (", round(frameIso$iso2_iqr, 2), ")")
+    }
+  ) %>%
+  text_transform(
+    locations = cells_body(columns = c(iso4_median)),
+    fn = function(x) {
+      paste0(x, " (", round(frameIso$iso4_iqr, 2), ")")
+    }
+  ) %>%
+  text_transform(
+    locations = cells_body(columns = c(iso8_median)),
+    fn = function(x) {
+      paste0(x, " (", round(frameIso$iso8_iqr, 2), ")")
+    }
+  ) %>%
+  text_transform(
+    locations = cells_body(columns = c(iso3_median)),
+    fn = function(x) {
+      paste0(x, " (", round(frameIso$iso3_iqr, 2), ")")
+    }
+  ) %>%
+  text_transform(
+    locations = cells_body(columns = c(iso1_median)),
+    fn = function(x) {
+      paste0(x, " (", round(frameIso$iso1_iqr, 2), ")")
+    }
+  ) %>%
+  cols_hide(columns = c(iso2_iqr,"Isomap 2", iso4_iqr, iso8_iqr, iso3_iqr, iso1_iqr,"Isomap 3","Isomap 4","Isomap 8","Isomap 1")) 
+
+gt_table
+
+
+```
+
+
+
+
+```{r}
+frameIso<-cbind(wdi_group,cor_var_iso_cons) %>% group_by(`Topic 1`,`Topic 2`) %>% 
+  reframe(N=length(iso2),
+          iso2=sum(iso2>as.numeric(quantile(iso2)[4])),
+          iso4=sum(iso4>as.numeric(quantile(iso4)[4])),
+          iso8=sum(iso8>as.numeric(quantile(iso8)[4])),
+          iso3=sum(iso3>as.numeric(quantile(iso3)[4])),
+          iso1=sum(iso1>as.numeric(quantile(iso1)[4]))) %>% 
+  arrange(desc(iso2))
+frameIso
+```
+
+
+```{r}
+
+frameIso%>%
+  gt() %>% 
+  gt_theme_538() %>% 
+  tab_header(title = "Table styled like the FiveThirtyEight")
+```
+
+# Discussion Final model comperisment shows that all approaches show similar aspects
+```{r}
+library(caret)
+
+# Define a list of models to explore
+models <- c("lm", "rpart", "rf", "svmRadial", "knn", "xgbTree")
+
+# TrainControl for cross-validation
+control <- trainControl(method = "cv", number = 10, allowParallel = TRUE)
+
+# Initialize a list to store results
+results <- list()
+
+# Loop through each model and train it
+for (model in models) {
+  set.seed(123)
+  trained_model <- caret::train(
+    x = train_data %>% dplyr::select(any_of(features)),
+    y = train_data %>% pull(Label),
+    method = model,
+    trControl = control
+  )
+  
+  # Store the model and results
+  results[[model]] <- trained_model
+  print(paste("Model:", model, " - Accuracy:", trained_model$results$Accuracy[1]))
+}
+
+# Compare all models based on cross-validation results
+resamples <- resamples(results)
+summary(resamples)
+
+# Plot model performances
+bwplot(resamples)
+
+
+```
+
+```{r}
+# Extract feature importance from a Random Forest model
+rf_importance <- varImp(results[["rf"]], scale = TRUE)
+print(rf_importance)
+
+# Extract feature importance from an XGBoost model
+xgb_importance <- varImp(results[["xgbTree"]], scale = TRUE)
+print(xgb_importance)
+results$lm %>%  summary
+```
+#  Supplement Result 3. Circular plots
+
+## input
+
+
+
+
+### test this data could be inconsistent the approach its a rerun
+```{r}
+# wdi_data_cons_gf<-fread("../data/01_data/01_wdi_gapfilled.csv")
+# dimred_pca <- function (x) {
+#   xe <- dimRed::embed(x, "PCA", ndim = ncol(x))
+#   xd <- dimRed::getData(dimRed::getDimRedData(xe))
+#   x_cor <- cor(x, xd[, 1:20])
+# 
+#   list(cor = x_cor, dim_red = xe,pca=xe)
+# }
+
+# cortable<-dimred_pca(wdi_data_cons_df[,colnames(wdi_data_cons_df)%in% wdi_series$`Indicator Code`,with=F] %>% select(-1,-2))$cor
+# 
+# cortable[,"PC1"]<- -cortable[,"PC1"]
+# cortable[,"PC5"]<- -cortable[,"PC5"]
+# cortable[,"PC14"]<- -cortable[,"PC14"]
+# cortable[,"PC6"]<- -cortable[,"PC6"]
+# 
+# 
+# pcacorr<-cortable %>% data.frame()
+
+```
+
+
+
+
+
+
+#### setup top 5
+```{r}
+cor_var_iso_cons_load <- loading_df %>% data.frame()
+cor_var_iso_cons_par <- cortable %>% data.frame()
+listCor<-c()
+# for(i in 1:26){
+#   a<-(cor(cor_var_iso_cons_load[,i],cor_var_iso_cons_par[,i]))
+#   plot(cor_var_iso_cons_load[,i],cor_var_iso_cons_par[,i])
+#   listCor<-append(listCor,a)
+# }
+
+```
+Alles gleich
+wir nehmen correlation
+
+```{r}
+cor_var_iso_cons<-cor_var_iso_cons_par
+colnames(cor_var_iso_cons)<-paste0("PCA_",seq(1:20))
+#fwrite(SHAP_MAT,"../data/09_finalmodel_shapvalues.csv")
+SHAP_PC<-shaptable_pca$data %>%  filter(grepl("PC",feature)) 
+
+SHAP_PC_feature<- SHAP_PC$feature[1:6] %>% str_replace("_normal_","A_")
+
+cor_var_PCA_cons<-cor_var_iso_cons[,match(SHAP_PC_feature,colnames(cor_var_iso_cons))] 
+
+rownames(cor_var_PCA_cons)<- rownames(cor_var_iso_cons)
+
+jo<- shaptable_pca$data
+conrtibution_pc<-jo %>%  group_by(feature) %>% 
+  reframe(value=sum(abs(shap_value))) %>% 
+   filter(grepl("PC",feature)) %>% 
+  arrange(desc(value)) %>% dplyr::slice(1:6) %>% 
+  reframe(proportion=round((value/sum(value))*100)) 
+
+
+# nolint start
+# used_var_names_max_cor_pca <- c(
+#   cor_var_PCA_cons[,1 ] %>% order(decreasing = TRUE) %>% { .[1:24] } %>% { rownames(cor_var_PCA_cons)[.] },
+#   cor_var_PCA_cons[,2] %>% order(decreasing = TRUE) %>% { .[1:18] } %>% { rownames(cor_var_PCA_cons)[.] },
+#   cor_var_PCA_cons[,3] %>% order(decreasing = TRUE) %>% { .[1:14] } %>% { rownames(cor_var_PCA_cons)[.] },
+#   cor_var_PCA_cons[, 4] %>% order(decreasing = TRUE) %>% { .[1:14] } %>% { rownames(cor_var_PCA_cons)[.] },
+#   cor_var_PCA_cons[, 5] %>% order(decreasing = TRUE) %>% { .[1:10]  } %>% { rownames(cor_var_PCA_cons)[.] }
+# ) %>% unique %>% sort
+
+
+dim1<-  abs(cor_var_PCA_cons[,1 ]) %>% order(decreasing = TRUE) %>% { .[1:conrtibution_pc$proportion[1]]+1 } %>% { rownames(cor_var_PCA_cons)[.] }
+dim2<-  abs(cor_var_PCA_cons[,2]) %>% order(decreasing = TRUE)  %>% { .[1:conrtibution_pc$proportion[2]] }  %>% { rownames(cor_var_PCA_cons)[.] }
+dim3<-  abs(cor_var_PCA_cons[,3]) %>% order(decreasing = TRUE)  %>% { .[1:conrtibution_pc$proportion[3]] }  %>% { rownames(cor_var_PCA_cons)[.] }
+dim4<-  abs(cor_var_PCA_cons[, 4]) %>% order(decreasing = TRUE)  %>% { .[1:conrtibution_pc$proportion[4]] }  %>% { rownames(cor_var_PCA_cons)[.] }
+dim5<-  abs(cor_var_PCA_cons[, 5]) %>% order(decreasing = TRUE)  %>% { .[1:conrtibution_pc$proportion[5]] }  %>% { rownames(cor_var_PCA_cons)[.] }
+dim6<-  abs(cor_var_PCA_cons[, 6]) %>% order(decreasing = TRUE) %>% { .[1:conrtibution_pc$proportion[6]] }  %>% { rownames(cor_var_PCA_cons)[.] }
+# dim7<-  abs(cor_var_PCA_cons[, 7]) %>% order(decreasing = TRUE)  %>% { .[1:conrtibution_pc$proportion[7]] }  %>% { rownames(cor_var_PCA_cons)[.] }
+used_var_names_max_dcor <- c(dim1,dim2,dim3,dim4,dim5,dim6) %>% unique %>% sort
+used_var_names_max_dcor_pca<-used_var_names_max_dcor 
+
+who<-wdi_series[wdi_series$`Indicator Code`%in% used_var_names_max_dcor,"Topic"]
+topicsofIndicators<-str_split_fixed(who$Topic,":" ,n=2)
+topicsofIndicators[,1]%>% as.factor() %>%  table %>% data.frame() %>%  arrange(desc(Freq))
+```
+### iso conttrib
+```{r}
+ulri<-readRDS("../output/01_Corrtable_new_isomap.RDS")
+cor_var_iso_cons<-ulri %>% data.frame()
+
+#fwrite(SHAP_MAT,"../data/09_finalmodel_shapvalues.csv")
+
+SHAP_ISO<-shaptable$data %>%  filter(grepl("iso",feature)) 
+
+SHAP_ISO_feature<- SHAP_ISO$feature[1:5] %>%  as.character()
+cor_var_iso_cons<-cor_var_iso_cons[,match(SHAP_ISO_feature,colnames(cor_var_iso_cons))] 
+jo<- shaptable$data
+conrtibution_iso<-jo %>%  group_by(feature) %>% 
+  reframe(value=sum(abs(shap_value))) %>% 
+  filter(grepl("iso",feature)) %>% 
+  arrange(desc(value)) %>% dplyr::slice(1:5) %>%
+  reframe(proportion=round((value/sum(value))*100))
+
+
+
+dim1<-  abs(cor_var_iso_cons[,1 ]) %>% order(decreasing = TRUE) %>% { .[1:conrtibution_iso$proportion[1]]+1 } %>% { rownames(cor_var_iso_cons)[.] }
+dim2<-  abs(cor_var_iso_cons[,2]) %>% order(decreasing = TRUE)  %>% { .[1:conrtibution_iso$proportion[2]] }  %>% { rownames(cor_var_iso_cons)[.] }
+dim3<-  abs(cor_var_iso_cons[,3]) %>% order(decreasing = TRUE)  %>% { .[1:conrtibution_iso$proportion[3]] }  %>% { rownames(cor_var_iso_cons)[.] }
+dim4<-  abs(cor_var_iso_cons[, 4]) %>% order(decreasing = TRUE)  %>% { .[1:conrtibution_iso$proportion[4]] }  %>% { rownames(cor_var_iso_cons)[.] }
+dim5<-  abs(cor_var_iso_cons[, 5]) %>% order(decreasing = TRUE)  %>% { .[1:conrtibution_iso$proportion[5]] }  %>% { rownames(cor_var_iso_cons)[.] }
+used_var_names_max_dcor_iso <- c(dim1,dim2,dim3,dim4,dim5) %>% unique %>% sort
+who<-wdi_series[wdi_series$`Indicator Code`%in% used_var_names_max_dcor_iso,"Topic"]
+topicsofIndicators<-str_split_fixed(who$Topic,":" ,n=2)
+a<-topicsofIndicators[,1]%>% as.factor() %>%  table %>% data.frame() %>%  arrange(desc(Freq))
+```
+
+
+# Important topics
+```{r}
+
+
+# list_imputed<-(plot_imputed_shap$data$feature %>%  unique )
+list_iso<-used_var_names_max_dcor_iso %>% as.character() 
+# list_pca<-used_var_names_max_dcor_pca %>% as.character()
+
+# who<-wdi_series[wdi_series$`Indicator Code`%in% list_imputed,"Topic"]
+topicsofIndicators<-str_split_fixed(who$Topic,":" ,n=2)
+topics_imputed<-topicsofIndicators[,2] %>% data.frame("Topics"= . ) %>% group_by(Topics) %>% reframe(Freq=length(Topics))
+
+who<-wdi_series[wdi_series$`Indicator Code`%in% list_iso,"Topic"]
+topicsofIndicators<-str_split_fixed(who$Topic,":" ,n=2)
+topics_iso<-topicsofIndicators[,2] %>% data.frame("Topics"= . ) %>% group_by(Topics) %>% reframe(Freq=length(Topics))
+# who<-wdi_series[wdi_series$`Indicator Code`%in% list_pca,"Topic"]
+topicsofIndicators<-str_split_fixed(who$Topic,":" ,n=2)
+# topics_pc<-topicsofIndicators[,2] %>% data.frame("Topics"= . ) %>% group_by(Topics) %>% reframe(Freq=length(Topics))
+# who<-wdi_series[]
+topicsofIndicators<-str_split_fixed(who$Topic,":" ,n=2)
+Groups<-topicsofIndicators[,2] %>% data.frame("Topics"= . ) %>% group_by(Topics) %>% reframe(Freq=length(Topics))
+# 
+# tableEMD<-merge(Groups,topics_pc,by="Topics",all.x=T,suffixes = c("","_pca")) %>% 
+#   merge( . ,topics_iso,by="Topics",all.x=T,suffixes = c("","_iso")) %>% 
+#   merge( . ,topics_imputed,by="Topics",all.x=T,suffixes = c("","_imputed")) %>% arrange(desc(Freq_iso),desc(Freq_pca))
+
+# Find the intersection between the vectors
+# 
+# list_venn <- list(Isomap = list_iso%>% as.character(),
+#                   PCA = list_pca%>% as.character(),
+#                   Imputed = list_imputed %>% as.character())
+
+# ggvenn(list_venn, c("Isomap", "PCA", "Imputed")) 
+who_iso<-wdi_series[wdi_series$`Indicator Code`%in% list_iso,c("Topic","Indicator Name")]
+# 
+# who_pca<-wdi_series[wdi_series$`Indicator Code`%in% list_pca,c("Topic","Indicator Name")]
+```
+
+
+#### loading
+
+
+
+```{r}
+DATA_DIR<-"../data/01_data/"
+relative_indicators_path<-file.path(DATA_DIR,"01_relative_indicators_2023_06.R")
+
+RELATIVE_INDICATORS_FILE_NAME<-"01_relative_indicators_2023_06.R"
+source(relative_indicators_path)
+source("../libraries/01_lib_WDI_dimred.R")
+load("../../02_exmort_international/data/wdi_series")
+wdi_explained<-wdi_series
+compressedNames <- fread("../data/04_data/indiactors.csv")
+subsetwdi<-wdi_explained[wdi_explained$`Indicator Code`%in% used_var_names_max_dcor_iso,]
+var_names         = used_var_names_max_dcor_iso
+
+```
+
+
+```{r}
+expand_multiplier = 1 / 10
+text_size         = 5
+# manual_label_modifier<-fread("../data/updated_indicator_compressed_names.csv")
+
+local_wdi_series  = wdi_series[,]
+
+
+#wdi_explained[wdi_explained$`Series Code`%in% used_var_names_max_dcor,] %>%  select("Topic","Indicator Name","Short definition" ) %>% fwrite("../output/listofimportantindicatores.csv")
+
+```
+
+#### modifiy the compressed names
+```{r}
+compressedNames <- fread("../data/04_data/indiactors.csv")
+
+missingIndicators <- wdi_explained %>%
+  filter(`Indicator Code` %in% used_var_names_max_dcor_iso) %>%
+  select(`Indicator Code`,`Indicator Name`) %>%
+  rename(`Indicator Code` = `Indicator Code`) %>%
+  merge(compressedNames[,c("Indicator Code","Compressed Name")], by = "Indicator Code", all.x = TRUE) %>%
+  filter(is.na(`Compressed Name`))
+
+missingIndicators
+
+# # 
+# missingIndicators %>% fwrite("../data/04_data/01_abbrevationmaker.csv")
+# ind<-fread("../data/04_data/indicator_compressed_names.csv")
+#ind %>% arrange(`Indicator Code`) %>% fwrite("../data/1indicator_compressed_names.csv")
+#rbind(compressedNames,addthis) %>% fwrite("../data/indicator_compressed_names.csv")
+```
+
+### dcpr estimation
+```{r}
+isomapCor<-readRDS("../output/01_Corrtable_isomap.RDS")
+isomapCor2<-isomapCor %>% data.frame() %>% rownames_to_column("indicator") %>% 
+  merge( . ,wdi_explained,by.x = "indicator",by.y="Indicator Code") 
+```
+
+
+
+### plot function
+```{r}
+label_modifier    = manual_label_modifier
+
+#label_modifier    = short_name_label_modifier,
+## .overwrite = TRUE, # nolint: commented_code_linter.
+.width  = 15
+.height = 15
+
+# component_common <- "Dimension"
+# component_names <- paste(SHAP_PC$feature)
+component_common <- "Dimension"
+component_names <- paste(component_common, 1:5)
+xy_expand <- function(xy, expand) xy * (1 + expand * expand_multiplier)
+# Does not work
+local_wdi_series<-local_wdi_series[grepl(":",local_wdi_series$Topic),]
+
+local_wdi_series <- wdi_series_split_topic(local_wdi_series)
+
+wdi_series_used_important <- local_wdi_series[`Indicator Code` %in% var_names]
+var_names<-var_names[var_names%in% wdi_series_used_important$`Indicator Code`]
+
+stopifnot(length(var_names) == nrow(wdi_series_used_important))
+
+
+
+dcor_var_iso_cons_subset<-dcor_var_iso_cons[rownames(dcor_var_iso_cons)%in% var_names,]
+dcor_var_iso_cons<-dcor_var_iso_cons[rownames(dcor_var_iso_cons)%in% var_names,]
+
+
+
+local_wdi_series<-local_wdi_series[local_wdi_series$`Indicator Code`%in% var_names,]
+
+
+dcor_subset<-dcor_var_iso_cons_subset
+## local_wdi_series$`Indicator Code`
+edges_level_01 <- local_wdi_series %>% select(`Indicator Code`, Topic1) %>%
+  unique %>% rename( from = Topic1, to = `Indicator Code`)
+edges_level_12 <- local_wdi_series %>% select(Topic1, Topic2)           %>%
+  unique %>% rename( from = Topic2, to = Topic1          )
+edges_level_23 <- local_wdi_series %>% select(Topic2, Topic3)           %>%
+  unique %>% rename( from = Topic3, to = Topic2          )
+edges_level_34 <- local_wdi_series %>% select(Topic3, Topic4)           %>%
+  unique %>% rename( from = Topic4, to = Topic3          )
+edges_level_45 <- local_wdi_series %>% select(Topic4, Topic5)           %>%
+  unique %>% rename( from = Topic5, to = Topic4          )
+## create the actual igraph object
+
+rbind(edges_level_01, edges_level_12, edges_level_23, edges_level_34,
+      edges_level_45) %>%
+unique %>%
+filter(to != from) ->listi
+hier_graph <-listi %>% data.frame() %>%  { .[rev(seq_len(ncol(.)))] } %>% graph_from_data_frame
+  ## graph_from_data_frame does not care about column names,
+  ## only about positions
+  # %>%
+  #graph_from_data_frame
+
+## additional data:
+
+cor_var_iso_cons %>%   data.frame()-> colormaker
+colormaker$indicator<-rownames(colormaker) 
+cor_var_iso_cons$Series.Code<-rownames(cor_var_iso_cons) 
+graph_idxs <- match(var_names, V(hier_graph)$name)
+dcor_subset %>% data.frame()%>% rownames_to_column(var="indicator")-> subsetvalue
+colormaker
+c(dim1,dim2,dim3,dim4,dim5) %>%  unique() %>%  length()
+```
+
+
+```{r}
+subsetvalue %>% mutate(color_vector=case_when(
+  # indicator%in% dim1~"PCA_1",
+  # indicator%in% dim2~"PCA_9",
+  # indicator%in% dim3~"PCA_5",
+  # indicator%in% dim4~"PCA_4",
+  # indicator%in% dim5~"PCA_14" )) %>%
+    indicator%in% dim1~colormaker[colormaker$indicator%in%indicator,"iso1"],
+   indicator%in% dim2~colormaker[colormaker$Series.Code%in%indicator,"iso2"],
+   indicator%in% dim3~colormaker[colormaker$Series.Code%in%indicator,"iso3"],
+   indicator%in% dim4~colormaker[colormaker$Series.Code%in%indicator,"iso4"],
+ indicator%in% dim5~colormaker[colormaker$Series.Code%in%indicator,"iso8"])) %>% 
+    # indicator%in% dim6~colormaker[colormaker$Series.Code%in%indicator,"PCA_12"] %>% 
+ # indicator%in% dim7~colormaker[colormaker$Series.Code%in%indicator,"PCA_2"])) %>%
+#     indicator%in% dim1~colormaker[colormaker$indicator%in%indicator,"PCA_1"],
+#   indicator%in% dim2~colormaker[colormaker$Series.Code%in%indicator,"PCA_9"],
+#   indicator%in% dim3~colormaker[colormaker$Series.Code%in%indicator,"PCA_5"],
+#   indicator%in% dim4~colormaker[colormaker$Series.Code%in%indicator,"PCA_4"],
+# indicator%in% dim5~colormaker[colormaker$Series.Code%in%indicator,"PCA_14"])) %>%
+  mutate(color_vector_sign=if_else(color_vector>0,1,0))  -> value_color
+
+
+
+hier_graph <- set_vertex_attr(hier_graph, "which_corr", graph_idxs,value_color$color_vector)
+hier_graph <- set_vertex_attr(hier_graph, "which_corr_sign", graph_idxs,value_color$color_vector_sign)
+                              #dcor_subset %>% apply(1, which.max))
+hier_graph <- set_vertex_attr(hier_graph, "which_max_iso", graph_idxs,
+                              dcor_subset %>% apply(1, which.max))
+hier_graph <- set_vertex_attr(hier_graph, "dcor_max", graph_idxs,
+                              dcor_subset %>% apply(1, max))
+hier_graph <- set_vertex_attr(hier_graph, "dcor1", graph_idxs,
+                              0.5)
+hier_graph <- set_vertex_attr(hier_graph, "dcor2", graph_idxs,
+                              0.5)
+hier_graph <- set_vertex_attr(hier_graph, "dcor3", graph_idxs,
+                              0.5)
+hier_graph <- set_vertex_attr(hier_graph, "dcor4", graph_idxs,
+                              0.5)
+hier_graph <- set_vertex_attr(hier_graph, "dcor5", graph_idxs,
+                              0.5)
+
+# 
+
+hier_graph <-
+  set_vertex_attr(hier_graph, "Indicator.Code", graph_idxs,
+                  local_wdi_series$`Indicator Code`[
+                               match(var_names, local_wdi_series$`Indicator Code`)])
+
+
+
+# thisPeople<-fread("../data/indicator_compressed_names.csv")
+# wdi_names_prepared<-wdi_series_used_important[,c("Indicator Code","Indicator Name")]
+# 
+# 
+# merge(wdi_names_prepared,thisPeople,by="Indicator Code",all.x = T)->wdi_names_prepared2
+
+# wdi_names_prepared2 %>% select(`Indicator Code`,`Indicator Name`,`Compressed Name`)%>%  filter(is.na(`Compressed Name`)) %>% fwrite("../output/preparethenameschatgpt.csv")
+# 
+# wdi_series_used[,c("Indicator Code","Compressed Name")] #%>% fwrite("../data/indicator_compressed_names.csv")
+# # # chatgpt shortened the names
+# wdi_series_used
+# wdi_series_used2<-fread("../data/indicator_compressed_names.csv")
+# shortnames<-fread("../data/05_abbrevationmaker.csv",sep=";")
+# rbind(wdi_series_used2[!(wdi_series_used2$`Indicator Code`%in% shortnames$`Indicator Code`)],shortnames) %>%  fwrite("../output/05_indicator_compressed_names.csv")
+# 
+wdi_series_used<-fread("../data/indicator_compressed_names.csv")
+
+wdi_var_hierarchy_graph <-hier_graph
+axis_cons <- lapply(1:5, inner_connections_by_axis,
+                       dcor_var_iso_cons       = dcor_var_iso_cons,
+                       wdi_var_hierarchy_graph = wdi_var_hierarchy_graph,
+                       var_names               = var_names)
+
+
+expand_multiplier = 1/2
+text_size         = 5
+label_modifier    = manual_label_modifier
+#label_modifier    = short_name_label_modifier
+## .overwrite = TRUE, # nolint: commented_code_linter.
+.width  = 50
+.height = 50
+
+
+wdi_var_hierarchy_graph %>%
+ggraph(layout = "dendrogram", circular = TRUE) +
+    # geom_node_point(aes(
+    #              filter = (name %in% dim7 &which_corr_sign %in% 1)),
+    #          group = 1,
+    #          fill = NA,
+    #          colour = col_pal[7],size=3,shape=17) +
+  # geom_node_point(aes(
+  #                filter = (name %in% dim7 &which_corr_sign %in% 0)),
+  #            group = 1,
+  #            fill = NA,
+  #            colour = col_pal[7],size=3,shape=19) +
+  #     geom_node_point(aes(
+  #                filter = (name %in% dim6 &which_corr_sign %in% 1)),
+  #            group = 1,
+  #            fill = NA,
+  #            colour = col_pal[6],size=3,shape=17) +
+  # geom_node_point(aes(
+  #                filter = (name %in% dim6 &which_corr_sign %in% 0)),
+  #            group = 1,
+  #            fill = NA,
+  #            colour = col_pal[6],size=3,shape=19) +
+  
+  
+  
+  geom_node_point(aes(
+                 filter = (name %in% dim5 &which_corr_sign %in% 1)),
+             group = 1,
+             fill = NA,
+             colour = col_pal[5],size=3,shape=17) +
+  geom_node_point(aes(
+                 filter = (name %in% dim5 &which_corr_sign %in% 0)),
+             group = 1,
+             fill = NA,
+             colour = col_pal[5],size=3,shape=19) +
+
+  geom_node_point(aes(
+                 filter = (name %in% dim4 &which_corr_sign %in% 1)),
+             group = 1,
+             fill = NA,
+             colour = col_pal[4],size=3,shape=17) +
+  geom_node_point(aes(
+                 filter = (name %in% dim4 &which_corr_sign %in% 0)),
+             group = 1,
+             fill = NA,
+             colour = col_pal[4],size=3,shape=19) +
+
+    geom_node_point(aes(
+                 filter = (name %in% dim3 &which_corr_sign %in% 1)),
+             group = 1,
+             fill = NA,
+             colour = col_pal[3],size=3,shape=17) +
+  geom_node_point(aes(
+                 filter = (name %in% dim3 &which_corr_sign %in% 0)),
+             group = 1,
+             fill = NA,
+             colour = col_pal[3],size=3,shape=19) +
+
+    geom_node_point(aes(
+                 filter = (name %in% dim2 &which_corr_sign %in% 1)),
+             group = 1,
+             fill = NA,
+             colour = col_pal[2],size=3,shape=17) +
+  geom_node_point(aes(
+                 filter = (name %in% dim2 &which_corr_sign %in% 0)),
+             group = 1,
+             fill = NA,
+             colour = col_pal[2],size=3,shape=19) +
+
+    geom_node_point(aes(
+                 filter = (name %in% dim1 &which_corr_sign %in% 1)),
+             group = 1,
+             fill = NA,
+             colour = "#FFFF33",size=3,shape=17) +
+  geom_node_point(aes(
+                 filter = (name %in% dim1 &which_corr_sign %in% 0)),
+             group = 1,
+             fill = NA,
+             colour = "#FFFF33",size=3,shape=19) +
+  # geom_node_point(aes(
+  #                filter = name %in% dim5),
+  #            group = 1,
+  #            fill = NA,
+  #            colour = col_pal[5],size=3,shape=15) +
+  # geom_node_point(aes(
+  #                filter = name %in% dim4),
+  #            group = 1,
+  #            fill = NA,
+  #            colour = col_pal[4],size=3) +
+  # geom_node_point(aes(
+  #                filter = name %in% dim3),
+  #            group = 1,
+  #            fill = NA,
+  #            colour = col_pal[3],size=3,shape=19) +
+  # geom_node_point(aes(
+  #                filter = name %in% dim2),
+  #            group = 1,
+  #            fill = NA,
+  #            colour = col_pal[2],size=3) +
+  # geom_node_point(aes(
+  #                filter = name %in% dim1),
+  #            group = 1,
+  #            fill = NA,
+  #            colour = col_pal[1],size=3) +
+# geom_node_point(aes(filter = leaf, color = as.numeric(which_max_iso)),
+#                 size = 2)+
+geom_node_text(aes(filter = leaf,
+                   label  = label_modifier(as.character(Indicator.Code)),
+                   # color  = as.numeric(which_corr),
+                   color  = as.factor(which_corr_sign),
+                   x      = x * (0.5 + 1.2 * expand_multiplier),
+                   y      = y * (0.5 + 1.2 * expand_multiplier),
+                   hjust  = if_else(x > 0, 0, 1),
+                   angle  = atan(y / x) / 2 / pi * 360),
+               show.legend = T,
+               size        = text_size) +
+geom_conn_bundle(data = get_con(axis_cons[[1]][1, ], axis_cons[[1]][2, ]),
+                 edge_colour ="#FFFF33", edge_alpha = 0.1) +
+geom_conn_bundle(data = get_con(axis_cons[[2]][1, ], axis_cons[[2]][2, ]),
+                 edge_colour = col_pal[2], edge_alpha = 0.1) +
+geom_conn_bundle(data = get_con(axis_cons[[3]][1, ], axis_cons[[3]][2, ]),
+                 edge_colour = col_pal[3], edge_alpha = 0.1) +
+geom_conn_bundle(data = get_con(axis_cons[[4]][1, ], axis_cons[[4]][2, ]),
+                 edge_colour = col_pal[4], edge_alpha = 0.1) +
+geom_conn_bundle(data = get_con(axis_cons[[5]][1, ], axis_cons[[5]][2, ]),
+                 edge_colour = col_pal[5], edge_alpha = 0.1) +
+# geom_conn_bundle(data = get_con(axis_cons[[6]][1, ], axis_cons[[6]][2, ]),
+#                  edge_colour = col_pal[6], edge_alpha = 0.1) +
+  # geom_conn_bundle(data = get_con(axis_cons[[7]][1, ], axis_cons[[7]][2, ]),
+  #                edge_colour = col_pal[7], edge_alpha = 0.1) +
+
+  geom_edge_diagonal() +
+  scale_color_manual(values = c("black","black"))+
+  
+  
+  # scale_color_gradient2(
+  #   low ="red",  
+  #   mid = "grey45",  # Midpoint color
+  #    # high = viridis(2, begin = 0.5, end = 1),  # Viridis red
+  #   high = "navyblue",
+  #   midpoint = 0,
+  #   limits = c(-1, 1),
+  #   breaks = seq(-1, 1, by = 0.2),
+  #   labels = scales::format_format(scale = 2)
+  # ) +
+  # ggplot2::scale_colour_viridis_c(limits = c(-1, 
+  #   1), option = "plasma", direction = -1)+
+
+# scale_color_manual(limits = component_names,
+#                    labels = component_names,
+#                    values = col_pal) +
+guides(colour = guide_legend(title = component_common,
+                             override.aes = list(size = 5))) +
+theme_void() +
+theme(legend.title = element_blank(),
+       # legend.position = c(0.9, 0.1),
+      legend.position = 'sad',
+      legend.justification = c(0.9, 0.1)) +
+expand_limits(x = c(-2.7, 2.7), y = c(-2.7, 2.7))-> mycircle
+mycircle
+
+#ggsave(mycircle,file="../figures/04_figures/dimensions_new.pdf",device = "pdf",height = 12,width = 12)
+#mycircle%>% ggsave(file = paste0(FIGURE_DIR,"/04_circle.png"),device = "png",height = 12,width = 12)
+
+
+SHAP_PCA<-SHAP_ISO[1:5,]
+
+# SHAP_PCA$shapeit<-c("Positive","Negative","Positive","Positive","Positive")
+
+SHAP_PCA$shapeit <-SHAP_PCA$feature 
+SHAP_PCA$shapeit <-str_replace_all(SHAP_PCA$shapeit,"A_","_")
+
+
+SHAP_PCA$shapeit <-factor(SHAP_PCA$shapeit,levels =(c("iso1","iso2","iso3","iso4","iso8") ))
+SHAP_PCA$shapeit<-str_replace_all(SHAP_PCA$shapeit,"iso","cNFC") 
+legendplease<-SHAP_PCA %>% mutate(feature=factor(shapeit,c("cNFC1","cNFC2","cNFC3","cNFC4","cNFC8")))%>%  ggplot(aes(x=feature,y=shap_value,color=shapeit))+geom_point()+scale_color_manual("Dimensions",values=(c("#4DAF4A", "#FFFF33" ,"#984EA3","#377EB8" ,"#FF7F00")))+theme_bw()
+      
+legend <- cowplot::get_legend(legendplease)
+# 
+# Iamlegend<-as_ggplot(legend)
+# Iamlegend
+# Iamlegend %>% ggsave(filename = paste0(FIGURE_DIR,"/04_dimensions.png"),device = "png")
+# shapeIT<-data.frame(Shape=c("Positive","Negative"),b=c(1,2))
+# shapeIT$shapeit <-factor(shapeIT$Shape,levels = c("Positive","Negative"))
+# 
+# type2<-shapeIT %>%  ggplot(aes(x=Shape,y=b,color=shapeit,shape=shapeit))+geom_point() +scale_shape_manual("Coefficient (Sign)",values = c(17,19))+scale_color_manual("Coefficient (Sign)",values = c("black","grey50"))+theme(legend.position = "right")
+# 
+# type2 <- cowplot::get_legend(type2)
+# type2<-as_ggplot(type2)
+
+
+#type2 %>% ggsave(filename = paste0(FIGURE_DIR,"/04_sign.png"),device = "png")
+
+mycircle+ inset_element(Iamlegend, left = 1, bottom = 0, right = 0.8, top = 0.3) 
+
+ggsave(filename = paste0("../figures/04_Connbundle_complete.png"),device = "png",height = 12,width = 12)
+
+
+ggsave(filename = paste0("../figures/Supplement_circle.pdf"),device = "pdf",height = 12,width = 12)
+```
+
+# ISOmap
+
+```{r}
+wdi_series <- fread(wdi_series_path) %>%
+  setnames("Series Code", "Indicator Code")
+table2019_wdi<-(dimred_250 %>% filter(year%in%2019))
+table2020_wdi<-(dimred_250 %>% filter(year%in%2020))
+#Only countries that have data for both years and have no NA
+table2019_wdi2<-table2019_wdi %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_wdi2<-table2020_wdi %>% mutate(identifier=paste0(`Country Code`,"2021"))
+WDI_2020_2021A<-rbind(table2019_wdi2,table2020_wdi2)
+WDI_2020_2021B<-WDI_2020_2021A 
+WDI_2020_2021_int<-WDI_2020_2021B %>% group_by(`Country Code`) %>%  summarise(yearsperCountry=length(`Country Code`)) %>%  filter(yearsperCountry>1)
+WDI_2020_2021E<-WDI_2020_2021B %>%  filter(`Country Code`%in% WDI_2020_2021_int$`Country Code`)
+wdi_data_input<-WDI_2020_2021E
+colnames(wdi_data_input)%in% wdi_series$`Indicator Code` %>%  sum()
+wdi_data_input$`Country Code` %>% unique %>%  length() 
+Xgboostinput<- dplyr::inner_join(wdi_data_input, excessCounrty_annual2, by = "identifier")
+
+```
+
+
+
+
+
+```{r}
+worldmap<-ggplot() +
+  geom_sf(data = world_data, aes(fill = `Excess Mortality`), color = "white", lwd = 0.1) +
+  theme_classic()+ scale_fill_viridis_b(n.breaks = 7,)+theme(legend.position = "bottom",)
+
+colorVALUE<-col_pal
+
+#ggsave(file="../figures/04_figures/04_iso4andiso2.png",device = "png")
+dplot1<-ggplot(dimred_250,aes(x=iso1,y=iso2,color=RegionSoviet))+geom_point()+scale_color_manual(values = colorVALUE)+theme(legend.position = "asd")
+dplot2<-ggplot(dimred_250,aes(x=iso2,y=iso4,color=RegionSoviet))+geom_point()+scale_color_manual(values = colorVALUE)+theme(legend.position = "as")
+dplot3<-ggplot(dimred_250,aes(x=iso1,y=iso3,color=RegionSoviet))+geom_point()+scale_color_manual(values = colorVALUE)+theme(legend.position = "asd")
+dplot4<-ggplot(dimred_250,aes(x=iso3,y=iso4,color=RegionSoviet))+geom_point()+scale_color_manual(values = colorVALUE)+theme(legend.position = "asd")
+#ggsave(file="../figures/04_figures/04_iso4andiso2.png",device = "png")
+aelement<-plot_grid(plot_grid(dplot1,dplot2,ncol = 2,rel_widths = c(1,1)))
+
+legend<-ggplot(dimred_250,aes(x=iso2,y=iso4,color=RegionSoviet))+geom_point()+scale_color_manual("Regions",values = colorVALUE)+theme_bw()+theme(legend.position = "bottom")
+legend <- cowplot::get_legend(legend)
+Iamlegend<-as_ggplot(legend)
+belement<-plot_grid(plot_grid(dplot3,dplot4,ncol = 2,rel_widths = c(1,1)),Iamlegend,ncol=1,rel_heights =   c(1,0.2))
+plot_grid(aelement,worldmap,belement,ncol = 1,rel_heights = c(1,1,1)) #%>%
+#ggsave(file="../figures/04_figures/04_isomappositionlegend.png",device = "png",width = 12,height = 16)
+```
+# Residuals analysis
+```{r}
+set.seed(1)
+df_scaled_withlabels %>% ggplot(aes(iso2))+geom_histogram()
+df_scaled_withlabels %>% ggplot(aes(iso1))+geom_histogram()
+
+```
+
+
+```{r}
+df_scaled_withlabels<-cbind(Xgboostinput_iso[,1],Xgboostinput_iso[,-1])
+colnames(df_scaled_withlabels)<-colnames(Xgboostinput_iso) 
+
+
+Xgboostinput_filtered<-df_scaled_withlabels%>%  filter(!(Country.Code%in% "PER"))
+set.seed(topruns$SeedNum[1])
+features_iso<-Xgboostinput_filtered %>%  select(-p_value_mort,-Country.Code) %>%  colnames()
+features_iso<-features_iso
+
+wdi_imputed_shaptable<-data.frame()
+wdi_imputed_bootstrap<-data.frame()
+
+
+
+# Split test training
+  countries<-Xgboostinput_filtered$Country.Code %>%  unique
+  test_proportion <- 1
+  train_countries <- sample(countries, size = length(countries) * test_proportion)
+  train_data <- Xgboostinput_filtered %>% filter(Country.Code%in% train_countries)
+  train_data$group <- as.numeric(factor(train_data$Country.Code))
+  # Set up trainControl to perform group-wise cross-validation
+  folds<-createFolds(train_data$group, k = 5, list = TRUE)
+ custom_control <- trainControl(
+      index = folds,
+      method = "repeatedcv",
+      number = 10,
+      repeats = 5, # Number of repetitions
+      verboseIter = TRUE
+    )
+    param_grid <- expand.grid(
+      nrounds = c(100, 200, 300),  # Number of boosting rounds
+      max_depth = c(3, 4, 5),     # Maximum tree depth
+      eta = c(0.01, 0.1, 0.3),    # Learning rate
+      gamma = c(0, 1, 10),       # L2 regularization
+      colsample_bytree = c( 0.9,1),
+      subsample = c(0.7, 0.8, 0.9),  # Subsample ratio
+      min_child_weight = c(1, 5, 10)  # Minimum child weight
+    )
+registerDoMC(40)
+    
+  # Test different parameters
+  xgb_caret_wdi_raw <- caret::train(
+    x = train_data %>% dplyr::select(features_iso),
+    y = train_data %>% pull(Label),
+    method = "xgbTree",trControl = custom_control,tuneGrid = param_grid,tuneLength = 1000,
+    verbosity = 0
+  )
+
+  finalmodel_wdi_iso <- caret::train(
+    x = train_data %>% dplyr::select(features_iso),
+    y = train_data %>% pull(Label),
+    method = "xgbTree",
+    verbosity = 0,trControl = custom_control,
+    tuneGrid = xgb_caret_wdi_raw$bestTune
+  )
+  
+  finalmodel_wdi_iso
+  # predictedValue_iso<-postResample(
+  #   predict(finalmodel_wdi_iso, 
+  #           test_data %>% dplyr::select(features_iso)),  
+  #   test_data %>% pull(Label)
+  # )
+  # 
+  # train_data_iso<-train_data
+  # shaptable <- xgb.plot.shap.summary(data = as.matrix(train_data %>% select(features_iso)), model = finalmodel_wdi_iso$finalModel, top_n =20)
+# Predict and calculate residuals for the training data
+train_predictions <- predict(finalmodel_wdi_iso, train_data %>% select(features_iso))
+train_residuals <- train_data$p_value_mort - train_predictions
+
+train_data_iso <- train_data %>%
+  mutate(predictions = train_predictions, residuals = train_residuals)
+
+plot(train_data_iso$predictions,train_data_iso$p_value_mort)
+
+df_scaled_withlabels<-cbind(Xgboostinput_iso[,1],Xgboostinput_iso[,-1])
+colnames(df_scaled_withlabels)<-colnames(Xgboostinput_iso) 
+
+
+Xgboostinput_filtered<-df_scaled_withlabels%>%  filter(!(Country.Code%in% "PER"))
+set.seed(topruns$SeedNum[1])
+features_iso<-Xgboostinput_filtered%>%  select(-p_value_mort,-Country.Code) %>%  colnames()
+features_iso<-c("COVID-19 cases","Vaccinations")
+
+wdi_imputed_shaptable<-data.frame()
+wdi_imputed_bootstrap<-data.frame()
+
+
+
+# Split test training
+  countries<-Xgboostinput_filtered$Country.Code %>%  unique
+  test_proportion <- 1
+  train_countries <- sample(countries, size = length(countries) * test_proportion)
+  train_data <- Xgboostinput_filtered %>% filter(Country.Code%in% train_countries)
+  train_data$group <- as.numeric(factor(train_data$Country.Code))
+  # Set up trainControl to perform group-wise cross-validation
+  folds<-createFolds(train_data$group, k = 5, list = TRUE)
+ custom_control <- trainControl(
+      index = folds,
+      method = "repeatedcv",
+      number = 10,
+      repeats = 5, # Number of repetitions
+      verboseIter = TRUE
+    )
+    param_grid <- expand.grid(
+      nrounds = c(100, 200, 300),  # Number of boosting rounds
+      max_depth = c(3, 4, 5),     # Maximum tree depth
+      eta = c(0.01, 0.1, 0.3),    # Learning rate
+      gamma = c(0, 1, 10),       # L2 regularization
+      colsample_bytree = c( 0.9,1),
+      subsample = c(0.7, 0.8, 0.9),  # Subsample ratio
+      min_child_weight = c(1, 5, 10)  # Minimum child weight
+    )
+registerDoMC(40)
+    
+  # Test different parameters
+xgb_caret_wdi_raw <- caret::train(
+  x = train_data %>% dplyr::select(features_iso),
+  y = train_data %>% pull(Label),
+  method = "xgbTree",tuneLength = 1,
+  verbosity = 0
+)
+
+finalmodel_wdi_iso <- caret::train(
+  x = train_data %>% dplyr::select(features_iso),
+  y = train_data %>% pull(Label),
+  method = "xgbTree",
+  verbosity = 0,trControl = custom_control,
+  tuneGrid = xgb_caret_wdi_raw$bestTune
+)
+  
+finalmodel_wdi_iso
+  # predictedValue_iso<-postResample(
+  #   predict(finalmodel_wdi_iso, 
+  #           test_data %>% dplyr::select(features_iso)),  
+  #   test_data %>% pull(Label)
+  # )
+  # 
+  # train_data_iso<-train_data
+  # shaptable <- xgb.plot.shap.summary(data = as.matrix(train_data %>% select(features_iso)), model = finalmodel_wdi_iso$finalModel, top_n =20)
+# Predict and calculate residuals for the training data
+train_predictions <- predict(finalmodel_wdi_iso, train_data %>% select(features_iso))
+train_residuals <- train_data$p_value_mort - train_predictions
+
+train_data_epimodel <- train_data %>%
+  mutate(predictions = train_predictions, residuals = train_residuals)
+
+
+plot(train_data_epimodel$residuals,train_data_iso$residuals)
+```
+
+
+
+# supplement
+## Shapley shape plots
+```{r}
+# Open a graphics device
+png("../figures/04_figures/shap.png", width = 800, height = 600, res = 180)# You can replace png with jpeg, pdf, etc.
+a<-xgboost::xgb.plot.shap(
+  data = as.matrix(train_data_pca %>% 
+  dplyr::select(features_pca)),
+  model = finalmodel_wdi_pca$finalModel,
+  top_n = 9,
+  n_col = 3
+)
+
+# Close the device to save the file
+dev.off()
+
+
+```
+## pdp plots
+```{r}
+          pdp_all <- names(df_standardized)[!grepl("impact|grouped_region", names(df_standardized))] %>%
+            map_dfr(function(current_covariable){ # current_covariable <- sel_vars[2]
+              doMC::registerDoMC(n_threads)
+              pdp_single <-
+                pdp::partial(finalmodel,
+                             parallel = T,
+                             pred.grid = train_df %>% dplyr::select(any_of(current_covariable)),
+                             pred.var = c(current_covariable))%>%
+                gather(-yhat, key = key, value = value)%>%
+                mutate(df_index = as.numeric(trainIndex))
+            })
+        }
+        
+        if(pdp_twoway == T){
+          pdp_doubles <- names(df_standardized)[!grepl("impact|grouped_region", names(df_standardized))] %>%
+            map_dfr(function(current_covariable){ 
+              covariables[covariables != current_covariable]%>%
+                map_dfr(function(var2){
+                  pdp::partial(finalmodel,
+                               parallel = T,
+                               pred.grid = train_df %>% dplyr::select(any_of(c(current_covariable, var2))),
+                               pred.var = c(current_covariable, var2)) %>%
+                    mutate(combo = str_c(current_covariable, ":", var2))
+```
+
+## Waterfall plots
+```{r}
+
+```

@@ -1,0 +1,974 @@
+---
+title: "09_Paper_outline"
+author: "Kolja Nenoff"
+date: "2024-02-06"
+output: html_document
+---
+
+
+#load
+
+
+
+```{r}
+rm(list = ls())
+# devtools::install_github("BlakeRMills/MetBrewer")
+libraries <- c("magrittr", "ggplot2", "data.table","ggpmisc", "parallel","ggcorrplot","MetBrewer","grid","gridExtra","ggpubr","cowplot","colorspace","RColorBrewer","readxl")
+for (lib in libraries) {
+  if (!require(lib, character.only = TRUE)) {
+    install.packages(lib)
+    library(lib, character.only = TRUE)
+  }
+}
+
+```
+
+
+```{r}
+#Theme settings
+## plot theme
+# color_seven<- ggokabeito::palette_okabe_ito()
+col_pal<- brewer.pal(n = 8, name = "Dark2")
+options(
+  # set default colors in ggplot2 to colorblind-friendly
+  # Okabe-Ito and Viridis palettes
+  ggplot2.discrete.colour = "dark2",
+  ggplot2.discrete.fill = "dark2",
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis",
+  # set theme font and size
+  book.base_family = "sans",
+  book.base_size = 14
+)
+F
+# Gradient for 0 to 100 viridis_b
+#Cassatt1 or OKeeffe1 Colorblindfrinedly gradient form blue to red
+#Kandinsky four colors 
+#Veronese 7 colors
+## set default theme
+theme_set(
+  theme_bw(
+    base_size = getOption("book.base_size"),
+    base_family = getOption("book.base_family")
+  ) %+replace%
+    theme(
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom"
+    )
+)
+```
+
+
+
+
+```{r}
+#Cluster 
+CLUSTER <- rep("localhost", 40)
+Sys.setenv(OPENBLAS_NUM_THREADS = 40)
+#Dir path
+DATA_DIR <- "../data/05_data"
+FIGURE_DIR <- "../figures/05_figures"
+LIB_DIR<-"../libraries"
+WDI_DIR <- "../data/231103_WDI"
+DIMRED_DIR<-"../data/01_data"
+EXMORT_DIR <- "../data/230225_WHO_Excess_Mort/2022-03-25_covid-19_gem"
+OWID_DIR<-"../data/231103_OWID_COVID"
+OUTPUT_DIR<- "../output"
+#file path
+ghsi_path<-file.path(DATA_DIR,"2021-GHS-Index-April-2022.csv")
+dimred_path<-file.path(DIMRED_DIR,"01_wdi_data_cons_df_250.csv")
+exmort_path <- file.path(EXMORT_DIR, "WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx")
+toolbox_path <- file.path(LIB_DIR, "00_toolbox.R") # Source helper functions
+pc26_model_path<-file.path(OUTPUT_DIR,"03_Xgboost_pca_models")
+iso10_model_path<-file.path(OUTPUT_DIR,"03_Xgboost_iso10_models")
+# iso5_model_path<-file.path(OUTPUT_DIR,"03_Xgboost_iso_models")
+## Datasets for final analysis
+pca26_final_df_path<-paste0("../data/03_data/XboostDfPCA.RDS")
+iso10_final_df_path<-paste0("../data/03_data/XboostDfiso.RDS")
+#Save
+pathGHSI<-file.path(OUTPUT_DIR,"GHSI_randomgrid_scaled.RDS")
+```
+
+```{r}
+dimred_data<-fread(dimred_path) 
+ghsi_rawData<-fread(ghsi_path)
+ExcessMortbyCountry<-read_excel(exmort_path,sheet = 2)
+```
+# preprocess
+```{r}
+excessCounrty_annual<-ExcessMortbyCountry %>% group_by(country,iso3,year) %>% 
+  reframe(p_value_mort=sum(excess.mean)/sum(expected.mean)*100)
+excessCounrty_annual2 <- dplyr::mutate(excessCounrty_annual, identifier = paste0(iso3, year)) %>% select(-iso3)
+```
+
+
+
+
+
+```{r}
+ghsi_rawData<-ghsi_rawData %>% 
+  rename(year=Year) %>% 
+  mutate(Country=str_squish(Country)) %>% 
+  mutate(Country=case_when( Country %in%"Antigua & Barbuda"~"Antigua and Barbuda",
+                            Country %in%"Bolivia"~"Bolivia (Plurinational State of)",
+                            Country %in%"Bosnia and Hercegovina"~"Bosnia and Herzegovina",
+                            Country %in%"Brunei"~"Brunei Darussalam",
+                            Country %in%"Congo (Brazzaville)"~"Congo",
+                            Country %in%"Congo (Democratic Republic)"~"Congo (Democratic Republic of the)",
+                            Country %in%"Cook Islands"~"Not included",
+                            Country %in%"Côte d'Ivoire"~"C������te d'Ivoire",
+                            Country %in%"Iran"~"Iran (Islamic Republic of)",
+                            Country %in%"Kiribati"~"Not included",
+                            Country %in%"Kyrgyz Republic"	~"Kyrgyzstan",
+                            Country %in%"Laos"~	"Lao People's Democratic Republic",
+                            Country %in%"Moldova"~"Moldova (Republic of)",				
+                            Country %in%"Russia"~"Russian Federation",
+                            Country %in%"South Korea"	~"Korea (Republic of)",
+                            Country %in%"St Lucia"~"Saint Lucia",
+                            Country %in%"St Vincent & The Grenadines"	~"Saint Vincent and the Grenadines",
+                            Country %in% "Syria"~"Syrian Arab Republic",
+                            Country %in% "São Tomé and Príncipe"~"Sao Tome and Principe",
+                            Country %in%"Tanzania"~"Tanzania (United Republic of)",
+                            Country %in%"United States of America"~"United States",
+				                    Country %in%"Venezuela"	~"Venezuela (Bolivarian Republic of)",
+			                     Country %in%"Vietnam"	~"Viet Nam",
+                            Country %in%c("Andorra","Liechtenstein","Marshall Islands","Micronesia, Federated States of","eSwatini", 
+                                          "Monaco","Nauru","Niue","North Korea","St Kitts & Nevis",
+                                          "North Macedonia","Somalia","Palau","San Marino","Tuvalu","Turkey")~"Not included",
+                           
+                           TRUE~Country
+                           )) %>% filter(year%in% c(2019,2021))
+```
+
+
+```{r}
+dimred_data_Countries<-dimred_data %>% select(Country,`Country Code`) %>%  unique %>% filter(!is.na(Country),Country !="") 
+
+dimred_data_Countries[which(grepl("Ivoire",dimred_data_Countries$Country)),"Country"] <-"Côte d'Ivoire"
+ghsi_rawData[which(grepl("Ivoire",ghsi_rawData$Country)),"Country"]<-"Côte d'Ivoire"
+```
+
+
+
+
+
+
+
+
+```{r}
+ghsi_rawData_iso<-merge(ghsi_rawData, dimred_data_Countries,"Country")
+#ghsi_rawData_iso %>%  filter(is.na(`Country Code`)) %>%  select(Country)
+lm(pscore,ghsi_rawData_iso$)
+
+ghsi_rawData_iso$Country<-NULL
+ghsi_rawData_iso$`OVERALL SCORE`<-NULL
+```
+
+
+
+# Seeds
+
+
+
+#GHSI run
+
+
+### Preprocessing
+```{r}
+
+table2019_dimred<-(dimred_250 %>% filter(year%in%2019) %>% select(`Country Code`,iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,iso9,iso10,`Income Group`,RegionSoviet))
+table2020_dimred<-(dimred_250 %>% filter(year%in%2021) %>% select(`Country Code`,iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,iso9,iso10,`Income Group`,RegionSoviet))
+table2019_dimred<-table2019_dimred %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_dimred<-table2020_dimred %>% mutate(identifier=paste0(`Country Code`,"2021"))
+
+table2019_ghsi<-(ghsi_rawData_iso %>% filter(year%in%2019))
+table2020_ghsi<-(ghsi_rawData_iso %>% filter(year%in%2021))
+table2019_ghsi2<-table2019_ghsi %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_ghsi2<-table2020_ghsi %>% mutate(identifier=paste0(`Country Code`,"2021"))
+dimred_2020_2021<-rbind(table2019_dimred,table2020_dimred)
+GHSI_imputed_2020_2021<-rbind(table2019_ghsi2,table2020_ghsi2)
+
+
+Xgboostinput_ghsi<- dplyr::inner_join(GHSI_imputed_2020_2021 %>% select(Country,`OVERALL SCORE`,identifier), excessCounrty_annual2, by = "identifier")
+xgboostINPUT<-dplyr::inner_join(Xgboostinput_ghsi, dimred_2020_2021, by = "identifier")
+xgboostINPUT
+o0kay<-lm(p_value_mort~`OVERALL SCORE`+iso1+iso2+iso3+iso4+iso4+iso5+iso6+iso7+iso8+iso10+iso9,xgboostINPUT)
+estra<-lm(p_value_mort~`OVERALL SCORE`+iso1+iso2+iso3+iso4+iso4+iso5+iso6+iso7+iso8+`Income Group`+RegionSoviet,xgboostINPUT)
+o0kay %>%  summary()
+thislinear<-data.frame(exmort=o0kay$model$p_value_mort,fitted=o0kay$fitted.values,incomegroup=estra$model$`Income Group`,Regions=estra$model$RegionSoviet)
+thislinear %>% fwrite("../data/05_data/thislinearresults.csv")
+```
+```{r}
+dimred2021_knn250_withscors4<-inner_join(dimred2021_knn250_withscors2,dimred_250 %>% filter(year%in%2020) %>% select(`Country Code`,RegionSoviet,iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,iso9,iso10),by="Country Code")
+dimred2021_knn250_withscors4
+```
+
+
+#### Pscore mean
+```{r}
+?stat_fit_glance
+table2019_dimred<-(dimred_250 %>% filter(year%in%2019) %>% select(`Country Code`,iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,`Income Group`,RegionSoviet))
+table2019_dimred<-table2019_dimred %>% mutate(identifier=paste0(`Country Code`,"2020"))
+
+table2019_ghsi<-(ghsi_rawData_iso %>% filter(year%in%2019))
+table2019_ghsi2<-table2019_ghsi %>% mutate(identifier=paste0(`Country Code`,"2020"))
+
+
+dimred_2020_2021<-rbind(table2019_dimred)
+GHSI_imputed_2020_2021<-rbind(table2019_ghsi2)
+excessCounrty_annual2<-excessCounrty_annual2 %>%group_by(country) %>%  reframe(p_value_mort=mean(p_value_mort))
+
+Xgboostinput_ghsi<- dplyr::inner_join(GHSI_imputed_2020_2021 %>% select(Country,`OVERALL SCORE`,identifier), excessCounrty_annual2, by=c("Country"="country"))
+xgboostINPUT<-dplyr::inner_join(Xgboostinput_ghsi, dimred_2020_2021,  by=c("identifier"="identifier"))
+
+o0kay<-lm(p_value_mort~`OVERALL SCORE`+iso1+iso2+iso3+iso4+iso4+iso5+iso6+iso7+iso8,xgboostINPUT)
+estra<-lm(p_value_mort~`OVERALL SCORE`+iso1+iso2+iso3+iso4+iso4+iso5+iso6+iso7+iso8+`Income Group`+RegionSoviet,xgboostINPUT)
+
+thislinear<-data.frame(exmort=o0kay$model$p_value_mort,fitted=o0kay$fitted.values,incomegroup=estra$model$`Income Group`,Regions=estra$model$RegionSoviet)
+thislinear %>% fwrite("../data/05_data/thislinearresults.csv")
+```
+
+
+### XGBOOST
+
+```{r}
+pathWDI_iso10<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_iso10.RDS")
+wdi_iso10Data<-readRDS(pathWDI_iso10)
+run<-wdi_iso10Data$Xgboost_summary$run
+
+```
+
+
+```{r}
+source(toolbox_path)
+Label<-"p_value_mort"
+features<-colnames(Xgboostinput_ghsi)[grepl("^[1-6]",colnames(Xgboostinput_ghsi))]
+Xgboostinput_filtered<-Xgboostinput_ghsi %>%  select(any_of(c(features,Label)))  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_ghsi$`Country Code`, . ) 
+features<-colnames(Xgboostinput_filtered)[grepl("^X[1-6]",colnames(Xgboostinput_filtered))]
+
+ghsi_summary_Data<-createXgboostData(numberofruns = run[1:100],Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label )
+
+# 
+ghsi_summary_Data %>% saveRDS(pathGHSI)
+
+
+```
+```{r}
+plot(ghsi_summary_Data$Xgboost_summary$Rsquared,
+wdi_iso10Data$Xgboost_summary$Rsquared[1:100])
+ghsi_summary_Data$Feature_summary %>% filter(importance>90)
+```
+
+
+
+#GHSI  and Iso  run
+
+
+### Preprocessing
+```{r}
+table2019_ghsi<-(ghsi_rawData_iso %>% filter(year%in%2019))
+table2020_ghsi<-(ghsi_rawData_iso %>% filter(year%in%2021))
+table2019_ghsi2<-table2019_ghsi %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_ghsi2<-table2020_ghsi %>% mutate(identifier=paste0(`Country Code`,"2021"))
+GHSI_imputed_2020_2021<-rbind(table2019_ghsi2,table2020_ghsi2)
+```
+
+```{r}
+table2019_iso<-dimred_data %>% filter(year%in%2019)
+table2020_iso<-dimred_data %>% filter(year%in%2020) 
+
+table2019_iso2<-table2019_iso %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_iso2<-table2020_iso %>% mutate(identifier=paste0(`Country Code`,"2021"))
+
+WDI_iso_2020_2021<-rbind(table2019_iso2,table2020_iso2) %>%  filter(!is.na(iso1)) %>%  select(identifier,iso1,iso2,iso3,iso4,iso5,iso6,iso7,iso8,iso9,iso10)
+
+```
+
+```{r}
+Xgboostinput_ghsi<- dplyr::inner_join(GHSI_imputed_2020_2021, excessCounrty_annual2, by = "identifier")
+Xgboostinput_ghsi_iso<-dplyr::inner_join(Xgboostinput_ghsi, WDI_iso_2020_2021, by = "identifier")
+
+```
+
+
+### XGBOOST
+
+```{r}
+pathWDI_iso10<-file.path(OUTPUT_DIR,"WDI_randomgrid_scaled_iso10.RDS")
+wdi_iso10Data<-readRDS(pathWDI_iso10)
+run<-wdi_iso10Data$Xgboost_summary$run
+
+```
+
+
+```{r}
+source(toolbox_path)
+Label<-"p_value_mort"
+features<-colnames(Xgboostinput_ghsi_iso)[grepl("^[1-6]|iso",colnames(Xgboostinput_ghsi_iso))]
+Xgboostinput_ghsi_iso<-Xgboostinput_ghsi_iso %>% filter(!(`Country Code`%in% "PER"))
+Xgboostinput_filtered<-Xgboostinput_ghsi_iso %>%  select(any_of(c(features,Label)))  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_ghsi_iso$`Country Code`, . ) 
+features<-colnames(Xgboostinput_filtered)[grepl("^X[1-6]|iso",colnames(Xgboostinput_filtered))]
+
+ghsi_iso_summary_Data<-createXgboostData_tuned(numberofruns = run[1:10],Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label )
+
+# 
+# ghsi_summary_Data %>% saveRDS(pasadas)
+ghsi_iso_summary_Data$Feature_summary %>%  filter(importance >90)
+ghsi_summary_Data$Xgboost_summary$Rsquared[1:10]  %>%  summary
+```
+```{r}
+plot(ghsi_summary_Data$Xgboost_summary$Rsquared,
+wdi_iso10Data$Xgboost_summary$Rsquared[1:100])
+ghsi_summary_Data$Feature_summary %>% filter(importance>90)
+```
+
+
+
+#GHSI  and PCA  run
+
+
+### Preprocessing
+```{r}
+table2019_ghsi<-(ghsi_rawData_iso %>% filter(year%in%2019))
+table2020_ghsi<-(ghsi_rawData_iso %>% filter(year%in%2021))
+table2019_ghsi2<-table2019_ghsi %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_ghsi2<-table2020_ghsi %>% mutate(identifier=paste0(`Country Code`,"2021"))
+GHSI_imputed_2020_2021<-rbind(table2019_ghsi2,table2020_ghsi2)
+```
+
+```{r}
+table2019_pc<-dimred_data%>% filter(year%in%2019)
+table2020_pc<-dimred_data %>% filter(year%in%2020) 
+table2019_pc2<-table2019_pc %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_pc2<-table2020_pc %>% mutate(identifier=paste0(`Country Code`,"2021"))
+WDI_pc_2020_2021<-rbind(table2019_pc2,table2020_pc2) %>%  filter(!is.na(iso1))
+Label<-"p_value_mort"
+features_pca<-paste0("PCA_",seq(1:26))
+WDI_pc_2020_2021<-WDI_pc_2020_2021 %>%  select(identifier,features_pca)
+```
+
+```{r}
+Xgboostinput_ghsi<- dplyr::inner_join(GHSI_imputed_2020_2021, excessCounrty_annual2, by = "identifier")
+Xgboostinput_ghsi_pc<-dplyr::inner_join(Xgboostinput_ghsi, WDI_pc_2020_2021, by = "identifier")
+
+```
+
+
+### XGBOOST
+
+
+```{r}
+source(toolbox_path)
+Label<-"p_value_mort"
+features<-colnames(Xgboostinput_ghsi_pc)[grepl("^[1-6]|PC",colnames(Xgboostinput_ghsi_pc))]
+Xgboostinput_ghsi_pc<-Xgboostinput_ghsi_pc %>% filter(!(`Country Code`%in% "PER"))
+Xgboostinput_filtered<-Xgboostinput_ghsi_pc %>%  select(any_of(c(features,Label)))  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_ghsi_pc$`Country Code`, . ) 
+features<-colnames(Xgboostinput_filtered)[grepl("^X[1-6]|PC",colnames(Xgboostinput_filtered))]
+
+ghsi_iso_summary_Data_noperu<-createXgboostData_tuned(numberofruns = run[1:10],Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label )
+ghsi_iso_summary_Data_noperu$Xgboost_summary$Rsquared %>%  summary
+# 
+# ghsi_summary_Data %>% saveRDS(pasadas)
+ghsi_iso_summary_Data$Xgboost_summary$Rsquared %>%  summary()
+ghsi_iso_summary_Data_noperu$Feature_summary %>%  filter(importance >90)
+ghsi_summary_Data$Xgboost_summary$Rsquared[1:10]  %>%  summary
+```
+ 0.1099  0.1799  0.2700  0.2721  0.3068  0.5313 
+```{r}
+plot(ghsi_summary_Data$Xgboost_summary$Rsquared,
+wdi_iso10Data$Xgboost_summary$Rsquared[1:100])
+ghsi_summary_Data$Feature_summary %>% filter(importance>90)
+```
+
+# GHSI and WDI raw run
+```{r}
+wdi_series_path <- file.path(WDI_DIR, "WDISeries.csv")
+wdi_series <- fread(wdi_series_path) %>%
+  setnames("Series Code", "Indicator Code")
+table2019_wdi<-(dimred_data %>% filter(year%in%2019))
+table2020_wdi<-(dimred_data %>% filter(year%in%2020))
+#Only countries that have data for both years and have no NA
+table2019_wdi2<-table2019_wdi %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_wdi2<-table2020_wdi %>% mutate(identifier=paste0(`Country Code`,"2021"))
+WDI_2020_2021A<-rbind(table2019_wdi2,table2020_wdi2)
+WDI_2020_2021B<-WDI_2020_2021A %>% select(`Country Code`,`Income Group`,identifier,any_of(wdi_series$`Indicator Code`))
+WDI_2020_2021C<-WDI_2020_2021B[,apply(WDI_2020_2021B,2,function(x)!(sum(is.na(x))>0)),with = F]
+WDI_2020_2021D<-WDI_2020_2021C %>%  drop_na()
+WDI_2020_2021_int<-WDI_2020_2021D %>% group_by(`Country Code`) %>%  summarise(yearsperCountry=length(`Country Code`)) %>%  filter(yearsperCountry>1)
+WDI_2020_2021E<-WDI_2020_2021D %>%  filter(`Country Code`%in% WDI_2020_2021_int$`Country Code`)
+wdi_data_input<-WDI_2020_2021E
+colnames(wdi_data_input)%in% wdi_series$`Indicator Code` %>%  sum()
+wdi_data_input$`Country Code` %>% unique %>%  length() 
+Xgboostinput<- dplyr::inner_join(wdi_data_input, excessCounrty_annual2, by = "identifier")
+
+
+```
+
+
+```{r}
+
+Xgboostinput_ghsi_wdiraw<-dplyr::inner_join(Xgboostinput_ghsi, Xgboostinput, by = "identifier")
+
+```
+
+
+### XGBOOST
+
+
+```{r}
+featureWDI<-colnames(Xgboostinput)[colnames(Xgboostinput)%in% wdi_series$`Indicator Code`]
+source(toolbox_path)
+Label<-"p_value_mort.x"
+features_ghsi<-colnames(Xgboostinput_ghsi_wdiraw)[grepl("^[1-6]",colnames(Xgboostinput_ghsi_wdiraw))]
+features<-c(features_ghsi,featureWDI)
+Xgboostinput_ghsi_wdiraw<-Xgboostinput_ghsi_wdiraw %>% filter(!(`Country Code.x`%in% "PER"))
+Xgboostinput_filtered<-Xgboostinput_ghsi_wdiraw %>%  select(any_of(c(features,Label)))  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_ghsi_wdiraw$`Country Code.x`, . ) 
+features_ghsi<-colnames(Xgboostinput_filtered)[grepl("^X[1-6]",colnames(Xgboostinput_filtered))]
+features<-c(features_ghsi,featureWDI)
+
+
+#
+```
+
+
+```{r}
+ghsi_wdi_raw_summary_Data_noperu<-createXgboostData_tuned(numberofruns = run[1:1000],Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label )
+ghsi_iso_summary_Data_noperu$Xgboost_summary$Rsquared %>%  summary
+ghsi_wdi_raw_summary_Data_noperu #%>% saveRDS("../output/ghsi_wdi_raw_tuned.RDS")
+
+ghsi_wdi_raw_summary_Data_noperu$Xgboost_summary$Rsquared %>%  summary()
+ghsi_wdi_raw_summary_Data_noperu$Feature_summary %>%  filter(importance >90)
+ghsi_wdi_raw_summary_Data_noperu$Xgboost_summary$Rsquared[1:10]  %>%  summary
+```
+
+
+```{r}
+bestrun<-ghsi_wdi_raw_summary_Data_noperu$Xgboost_summary %>% arrange(desc(Rsquared)) 
+```
+
+# runi
+
+
+```{r}
+Xgboostinput_ghsi_pc<-dplyr::inner_join(Xgboostinput_ghsi, WDI_pc_2020_2021, by = "identifier")
+Label<-"p_value_mort"
+features<-colnames(Xgboostinput_ghsi_pc)[grepl("^[1-6]|PC",colnames(Xgboostinput_ghsi_pc))]
+```
+
+```{r}
+Xgboostinput_filtered<-Xgboostinput_ghsi_pc %>%  select(any_of(c(features,Label)))  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_ghsi_pc$`Country Code`, . ) 
+set.seed(bestrun$run[1])
+features<-colnames(Xgboostinput_filtered)[grepl("^X[1-6]|PC",colnames(Xgboostinput_filtered))]
+wdi_imputed_shaptable<-data.frame()
+wdi_imputed_bootstrap<-data.frame()
+registerDoMC(40)
+
+  
+  # Split test training
+  countries<-Xgboostinput_filtered$Country.Code %>%  unique
+  test_proportion <- 0.8
+  train_countries <- sample(countries, size = length(countries) * test_proportion)
+  train_data <- Xgboostinput_filtered %>% filter(Country.Code%in% train_countries)
+  test_data <- Xgboostinput_filtered %>% filter(!(Country.Code%in% train_countries))
+  train_data$group <- as.numeric(factor(train_data$Country.Code))
+  # Set up trainControl to perform group-wise cross-validation
+  folds<-createFolds(train_data$group, k = 5, list = TRUE)
+  custom_control <- trainControl(
+    index = folds,
+    method = "repeatedcv",
+    number = 10,
+    repeats = 5, # Number of repetitions
+    verboseIter = TRUE
+  )
+param_grid <- expand.grid(
+  nrounds = c(100),  # Number of boosting rounds
+  max_depth = c(3, 4),     # Maximum tree depth
+  eta = c(0.01, 0.1),    # Learning rate
+  gamma = c(0, 1, 10),       # L2 regularization
+ colsample_bytree = c( 0.9,1),
+  subsample = c(0.7, 0.8, 0.9),  # Subsample ratio
+  min_child_weight = c(1, 5, 10)  # Minimum child weight
+)
+  # Test different parameters
+  xgb_caret_wdi_raw <- caret::train(
+    x = train_data %>% dplyr::select(features),
+    y = train_data %>% pull(Label),
+    method = "xgbTree",trControl = custom_control,tuneGrid = param_grid,tuneLength = 1000,
+    verbosity = 0
+  )
+  train_data_pca<-train_data
+  finalmodel_wdi_pca <- caret::train(
+    x = train_data %>% dplyr::select(features),
+    y = train_data %>% pull(Label),
+    method = "xgbTree",
+    verbosity = 0,trControl = custom_control,
+    tuneGrid = xgb_caret_wdi_raw$bestTune
+  )
+  
+  predictedValue_pca<-postResample(
+    predict(finalmodel_wdi_pca, 
+            test_data %>% dplyr::select(features)),  
+    test_data %>% pull(Label)
+  )
+  
+  
+  shaptable_pca <- xgb.plot.shap.summary(data = as.matrix(train_data_pca %>% select(features)), model = finalmodel_wdi_pca$finalModel, top_n =20)
+  
+  predictedValue_pca
+  # shaptable$data %>% group_by(feature) %>% summarise(numberobservations=length(shap_value),Shap_value_mean=mean(abs(shap_value))) %>%  arrange(desc(Shap_value_mean))->shaptable_data
+  # 
+  # imp<-varImp(finalmodel_wdi_pca)$importance %>%
+  #   mutate(feature = rownames(varImp(finalmodel_wdi_raw)$importance))%>%
+  #   rename(importance = Overall)%>%
+  #   filter(importance > 0)
+
+  
+shaptable_pca
+### plot
+```
+```{r}
+pcacorr<-cortable %>% data.frame() 
+pcacorr$`Indicator Code`<-rownames(pcacorr)
+pcaCORR<-merge(pcacorr,wdi_series[,c(1:3)],by = "Indicator Code")
+
+```
+
+# final model with PCA
+
+## dimre ghsi
+```{r}
+quality_iso <- function(x, y,
+                        dfun = dist,
+                        dmax = ncol(getData(getDimRedData(y)))) {
+  knn <- dimRed::getPars(y)$knn
+  y_data <- dimRed::getData(dimRed::getDimRedData(y))
+  ## as.vector(NULL) is NULL
+  d_geo <- as.vector(dimRed::getOtherData(y)$dgeo)
+  if (is.null(d_geo)) {
+    d_geo <- as.vector(as.dist(igraph::distances(dimRed:::makeKNNgraph(
+      x = x, k = knn
+    ))))
+  }
+
+  on.exit(cat("\n"))
+  sapply(seq_len(dmax), function (i) {
+    cat("\r", i, "/", dmax)
+    1 - ( cor(d_geo, as.vector(dfun(y_data[, 1:i, drop = FALSE]))) ^ 2 )
+  })
+}
+dimred_pca <- function (x) {
+  xe <- dimRed::embed(x, "PCA", ndim = ncol(x)) 
+  xd <- dimRed::getData(dimRed::getDimRedData(xe))
+  x_cor <- cor(x, xd[, 1:5])
+
+  list(cor = x_cor, dim_red = xe)
+}
+quality_pca <- function(x, y,
+                        dfun = dist,
+                        dmax = ncol(dimRed::getData(dimRed::getDimRedData(y)))) {
+  y_data <- dimRed::getData(dimRed::getDimRedData(y))
+  d_data <- as.vector(dfun(x))
+
+  on.exit(cat("\n"))
+  sapply(seq_len(dmax), function (i) {
+    cat("\r", i, "/", dmax)
+    1 - ( cor(d_data, as.vector(dfun(y_data[, 1:i, drop = FALSE]))) ^ 2 )
+  })
+}
+
+dimred_iso <- function (x, knn = get_knn(x)) {
+  for (i in 0:5) {
+    xe <- try(dimRed::embed(x, "Isomap", ndim = min(ncol(x), 40),
+                            knn = knn + 5 * i, get_geod = TRUE))
+    if (!inherits(xe, "try-error")) break
+  }
+  xd <- dimRed::getData(dimRed::getDimRedData(xe))
+  geod <- dimRed::getOtherData(xe)$geod
+  x_cor <- cor(x, xd[, 1:5])
+
+  list(cor = x_cor, dim_red = xe, d_geo = geod)
+}
+require(dimRed)
+ghsi_dimred<-Xgboostinput_ghsi %>%  select(starts_with(c("1","2","3","4","5","6"))) %>% scale() %>%  data.frame()
+vector<-apply(ghsi_dimred, 2 ,function(x)any(is.na(x)))
+ghsi_dimred2<-ghsi_dimred[,names(which(vector==F))]
+
+pca<-dimred_pca(ghsi_dimred2)
+iso_run<-dimred_iso(ghsi_dimred2)
+
+qual_pca <- try( quality_pca(ghsi_dimred2, pca$dim_red, dmax = 30) )
+qual_iso <- try( quality_iso(ghsi_dimred2, iso_run$dim_red, dmax = 30) )
+iso1<-1-qual_iso
+pca1<-1-qual_pca
+iso1
+compontents<-pca$dim_red@data@data %>% data.frame()
+cool<-cbind("Country.Code"=Xgboostinput_ghsi$`Country Code`,"p_value_mort"=Xgboostinput_ghsi$p_value_mort,compontents[,1:6])
+pca$cor %>% data.frame()->corr_ghsi
+```
+
+
+```{r}
+
+modelpca26<-readRDS(pc26_model_path)
+topruns<-modelpca26$Xgboost_summary %>% arrange(desc(Rsquared))
+
+
+
+```
+
+
+
+```{r}
+Xgboostinput_complete_pca <-readRDS(pca26_final_df_path)
+
+Xgboostinput_complete_pca$PCA_1 <- -Xgboostinput_complete_pca$PCA_1
+Xgboostinput_complete_pca$PCA_5 <- -Xgboostinput_complete_pca$PCA_5
+Xgboostinput_complete_pca$PCA_14 <- -Xgboostinput_complete_pca$PCA_14
+Xgboostinput_complete_pca$PCA_6 <- -Xgboostinput_complete_pca$PCA_6
+Xgboostinput_complete_pca$PCA_23 <- -Xgboostinput_complete_pca$PCA_23
+
+Xgboostinput_pc<-Xgboostinput_complete_pca%>% rename("Country.Code"=`Country Code`,
+                                                     "Diabetes (%)" =`Diabetetes (%)`,
+                                                     "COVID-19 cases"=`Covid cases per million`,
+                                                     "Comorbity"=`Comorbidity index` )
+
+Xgboostinput_ghsi$year.x<-NULL
+
+
+
+Xgboostinput_pc_ghsi<-merge(Xgboostinput_pc,cool %>% data.frame(),by.x = c("Country.Code","p_value_mort"),by.y = c("Country.Code","p_value_mort"))
+features_pca<-Xgboostinput_pc %>%  select(-p_value_mort,-Country.Code) %>%  colnames()
+features_ghsi<-colnames(Xgboostinput_pc_ghsi)[grepl("^PC[1-6]",colnames(Xgboostinput_pc_ghsi))]
+
+
+```
+
+
+```{r}
+Label<-"p_value_mort"
+features<-c(features_pca,features_ghsi)
+```
+
+
+
+
+## run model
+```{r}
+Label<-"p_value_mort"
+features<-c(features_pca,features_ghsi)
+Xgboostinput_filtered1<-Xgboostinput_pc_ghsi
+Xgboostinput_filtered2<-Xgboostinput_filtered1 %>% filter(!(`Country.Code`%in% "PER"))
+Xgboostinput_filtered3<-Xgboostinput_filtered2 %>%  select(any_of(c(features,Label)))  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame()%>% 
+  cbind("Country.Code"=Xgboostinput_filtered2$Country.Code, . ) 
+
+features<-colnames(Xgboostinput_filtered3)[!(colnames(Xgboostinput_filtered3)%in% c("Country.Code","p_value_mort"))]
+ghsi_pca_ghsi_summary_Data_noperu<-createXgboostData_tuned(numberofruns = run[1:1000],Xgboostinput_filtered =Xgboostinput_filtered3,features = features,Label = Label )
+
+ghsi_pca_ghsi_summary_Data_noperu #%>% saveRDS("../output/05_xgboost_finalghsiModel.RDS")
+ghsi_pca_ghsi_summary_Data_noperu$Xgboost_summary %>%  arrange(desc(Rsquared))
+```
+
+
+```{r}
+Xgboostinput_filtered<-Xgboostinput_filtered3
+set.seed(779)
+
+wdi_imputed_shaptable<-data.frame()
+wdi_imputed_bootstrap<-data.frame()
+registerDoMC(40)
+
+  
+  # Split test training
+  countries<-Xgboostinput_filtered$Country.Code %>%  unique
+  test_proportion <- 0.8
+  train_countries <- sample(countries, size = length(countries) * test_proportion)
+  train_data <- Xgboostinput_filtered %>% filter(Country.Code%in% train_countries)
+  test_data <- Xgboostinput_filtered %>% filter(!(Country.Code%in% train_countries))
+  train_data$group <- as.numeric(factor(train_data$Country.Code))
+  # Set up trainControl to perform group-wise cross-validation
+  folds<-createFolds(train_data$group, k = 5, list = TRUE)
+  custom_control <- trainControl(
+    index = folds,
+    method = "repeatedcv",
+    number = 10,
+    repeats = 5, # Number of repetitions
+    verboseIter = TRUE
+  )
+param_grid <- expand.grid(
+  nrounds = c(100),  # Number of boosting rounds
+  max_depth = c(3, 4),     # Maximum tree depth
+  eta = c(0.01, 0.1),    # Learning rate
+  gamma = c(0, 1, 10),       # L2 regularization
+ colsample_bytree = c( 0.9,1),
+  subsample = c(0.7, 0.8, 0.9),  # Subsample ratio
+  min_child_weight = c(1, 5, 10)  # Minimum child weight
+)
+  # Test different parameters
+  xgb_caret_wdi_raw <- caret::train(
+    x = train_data %>% dplyr::select(features),
+    y = train_data %>% pull(Label),
+    method = "xgbTree",trControl = custom_control,tuneGrid = param_grid,tuneLength = 1000,
+    verbosity = 0
+  )
+  train_data_pca<-train_data
+  finalmodel_wdi_pca <- caret::train(
+    x = train_data %>% dplyr::select(features),
+    y = train_data %>% pull(Label),
+    method = "xgbTree",
+    verbosity = 0,trControl = custom_control,
+    tuneGrid = xgb_caret_wdi_raw$bestTune
+  )
+  
+  predictedValue_pca<-postResample(
+    predict(finalmodel_wdi_pca, 
+            test_data %>% dplyr::select(features)),  
+    test_data %>% pull(Label)
+  )
+  
+  
+  shaptable_pca <- xgb.plot.shap.summary(data = as.matrix(train_data_pca %>% select(features)), model = finalmodel_wdi_pca$finalModel, top_n =20)
+  
+  predictedValue_pca
+  # shaptable$data %>% group_by(feature) %>% summarise(numberobservations=length(shap_value),Shap_value_mean=mean(abs(shap_value))) %>%  arrange(desc(Shap_value_mean))->shaptable_data
+  # 
+  # imp<-varImp(finalmodel_wdi_pca)$importance %>%
+  #   mutate(feature = rownames(varImp(finalmodel_wdi_raw)$importance))%>%
+  #   rename(importance = Overall)%>%
+  #   filter(importance > 0)
+
+  
+shaptable_pca+ theme_bw()
+ggsave("../figures/ghsitest.png",device = "png",width = 8,height = 9)
+### plot
+ghsi_rawData %>%  dim
+```
+
+# final model with ISO
+
+## dimre ghsi
+```{r}
+quality_iso <- function(x, y,
+                        dfun = dist,
+                        dmax = ncol(getData(getDimRedData(y)))) {
+  knn <- dimRed::getPars(y)$knn
+  y_data <- dimRed::getData(dimRed::getDimRedData(y))
+  ## as.vector(NULL) is NULL
+  d_geo <- as.vector(dimRed::getOtherData(y)$dgeo)
+  if (is.null(d_geo)) {
+    d_geo <- as.vector(as.dist(igraph::distances(dimRed:::makeKNNgraph(
+      x = x, k = knn
+    ))))
+  }
+
+  on.exit(cat("\n"))
+  sapply(seq_len(dmax), function (i) {
+    cat("\r", i, "/", dmax)
+    1 - ( cor(d_geo, as.vector(dfun(y_data[, 1:i, drop = FALSE]))) ^ 2 )
+  })
+}
+dimred_pca <- function (x) {
+  xe <- dimRed::embed(x, "PCA", ndim = ncol(x)) 
+  xd <- dimRed::getData(dimRed::getDimRedData(xe))
+  x_cor <- cor(x, xd[, 1:5])
+
+  list(cor = x_cor, dim_red = xe)
+}
+quality_pca <- function(x, y,
+                        dfun = dist,
+                        dmax = ncol(dimRed::getData(dimRed::getDimRedData(y)))) {
+  y_data <- dimRed::getData(dimRed::getDimRedData(y))
+  d_data <- as.vector(dfun(x))
+
+  on.exit(cat("\n"))
+  sapply(seq_len(dmax), function (i) {
+    cat("\r", i, "/", dmax)
+    1 - ( cor(d_data, as.vector(dfun(y_data[, 1:i, drop = FALSE]))) ^ 2 )
+  })
+}
+
+dimred_iso <- function (x, knn = get_knn(x)) {
+  for (i in 0:5) {
+    xe <- try(dimRed::embed(x, "Isomap", ndim = min(ncol(x), 40),
+                            knn = knn + 5 * i, get_geod = TRUE))
+    if (!inherits(xe, "try-error")) break
+  }
+  xd <- dimRed::getData(dimRed::getDimRedData(xe))
+  geod <- dimRed::getOtherData(xe)$geod
+  x_cor <- cor(x, xd[, 1:5])
+
+  list(cor = x_cor, dim_red = xe, d_geo = geod)
+}
+require(dimRed)
+ghsi_dimred<-Xgboostinput_ghsi %>%  select(starts_with(c("1","2","3","4","5","6"))) %>% scale() %>%  data.frame()
+vector<-apply(ghsi_dimred, 2 ,function(x)any(is.na(x)))
+ghsi_dimred2<-ghsi_dimred[,names(which(vector==F))]
+
+pca<-dimred_pca(ghsi_dimred2)
+iso_run<-dimred_iso(ghsi_dimred2)
+
+qual_pca <- try( quality_pca(ghsi_dimred2, pca$dim_red, dmax = 30) )
+qual_iso <- try( quality_iso(ghsi_dimred2, iso_run$dim_red, dmax = 30) )
+iso1<-1-qual_iso
+pca1<-1-qual_pca
+iso1
+compontents<-pca$dim_red@data@data %>% data.frame()
+cool<-cbind("Country.Code"=Xgboostinput_ghsi$`Country Code`,"p_value_mort"=Xgboostinput_ghsi$p_value_mort,compontents[,1:6])
+pca$cor %>% data.frame()->corr_ghsi
+```
+
+
+```{r}
+
+modeliso10<-readRDS(iso10_model_path)
+topruns<-modeliso10$Xgboost_summary %>% arrange(desc(Rsquared))
+
+
+
+```
+
+
+
+```{r}
+Xgboostinput_complete_iso <-readRDS(iso10_final_df_path)
+
+
+
+Xgboostinput_iso<-Xgboostinput_complete_iso%>% rename("Country.Code"=`Country Code`,
+                                                     "Diabetes (%)" =`Diabetetes (%)`,
+                                                     "COVID-19 cases"=`Covid cases per million`,
+                                                     "Comorbity"=`Comorbidity index` )
+
+Xgboostinput_ghsi$year.x<-NULL
+
+
+
+Xgboostinput_iso_ghsi<-merge(Xgboostinput_iso,cool %>% data.frame(),by.x = c("Country.Code","p_value_mort"),by.y = c("Country.Code","p_value_mort"))
+features_iso<-Xgboostinput_iso %>%  select(-p_value_mort,-Country.Code) %>%  colnames()
+features_ghsi<-colnames(Xgboostinput_pc_ghsi)[grepl("^PC[1-6]",colnames(Xgboostinput_pc_ghsi))]
+features_iso
+features_ghsi
+```
+
+
+```{r}
+Label<-"p_value_mort"
+features<-c(features_iso,features_ghsi)
+```
+
+
+
+
+## run model
+```{r}
+Label<-"p_value_mort"
+features<-c(features_iso,features_ghsi)
+Xgboostinput_filtered1<-Xgboostinput_iso_ghsi
+Xgboostinput_filtered2<-Xgboostinput_filtered1 %>% filter(!(`Country.Code`%in% "PER"))
+Xgboostinput_filtered3<-Xgboostinput_filtered2 %>%  select(any_of(c(features,Label)))  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame()%>% 
+  cbind("Country.Code"=Xgboostinput_filtered2$Country.Code, . ) 
+
+features<-colnames(Xgboostinput_filtered3)[!(colnames(Xgboostinput_filtered3)%in% c("Country.Code","p_value_mort"))]
+ghsi_iso_ghsi_summary_Data_noperu<-createXgboostData_tuned(numberofruns = topruns$run,Xgboostinput_filtered =Xgboostinput_filtered3,features = features,Label = Label )
+
+#ghsi_iso_ghsi_summary_Data_noperu %>% saveRDS("../output/05_xgboost_withISO_finalghsiModel.RDS")
+ghsi_iso_ghsi_summary_Data_noperu$Xgboost_summary %>%  arrange(desc(Rsquared))
+```
+
+
+```{r}
+Xgboostinput_filtered<-Xgboostinput_filtered3
+set.seed(334)
+# features<-colnames(Xgboostinput_filtered3)[!(colnames(Xgboostinput_filtered3)%in% c("Country.Code","p_value_mort"))]
+features<-colnames(Xgboostinput_filtered3)[!(colnames(Xgboostinput_filtered3)%in% c("Country.Code","p_value_mort","iso6","iso7","iso8","iso9","iso10"))]
+
+features<-c(as.character(shaptable_pca$data$feature[2:10]) ,"iso1")
+wdi_imputed_shaptable<-data.frame()
+wdi_imputed_bootstrap<-data.frame()
+registerDoMC(40)
+
+  
+  # Split test training
+  countries<-Xgboostinput_filtered$Country.Code %>%  unique
+  test_proportion <- 0.8
+  train_countries <- sample(countries, size = length(countries) * test_proportion)
+  train_data <- Xgboostinput_filtered %>% filter(Country.Code%in% train_countries)
+  test_data <- Xgboostinput_filtered %>% filter(!(Country.Code%in% train_countries))
+  train_data$group <- as.numeric(factor(train_data$Country.Code))
+  # Set up trainControl to perform group-wise cross-validation
+  folds<-createFolds(train_data$group, k = 5, list = TRUE)
+  custom_control <- trainControl(
+    index = folds,
+    method = "repeatedcv",
+    number = 10,
+    repeats = 5, # Number of repetitions
+    verboseIter = TRUE
+  )
+param_grid <- expand.grid(
+  nrounds = c(100),  # Number of boosting rounds
+  max_depth = c(3, 4),     # Maximum tree depth
+  eta = c(0.01, 0.1),    # Learning rate
+  gamma = c(0, 1, 10),       # L2 regularization
+ colsample_bytree = c( 0.9,1),
+  subsample = c(0.7, 0.8, 0.9),  # Subsample ratio
+  min_child_weight = c(1, 5, 10)  # Minimum child weight
+)
+
+  # Test different parameters
+  xgb_caret_wdi_raw <- caret::train(
+    x = train_data %>% dplyr::select(features),
+    y = train_data %>% pull(Label),
+    method = "xgbTree",trControl = custom_control,tuneGrid = param_grid,tuneLength = 1000,
+    verbosity = 0
+  )
+  train_data_pca<-train_data
+  finalmodel_wdi_pca <- caret::train(
+    x = train_data %>% dplyr::select(features),
+    y = train_data %>% pull(Label),
+    method = "xgbTree",
+    verbosity = 0,trControl = custom_control,
+    tuneGrid = xgb_caret_wdi_raw$bestTune
+  )
+  
+  predictedValue_pca<-postResample(
+    predict(finalmodel_wdi_pca, 
+            test_data %>% dplyr::select(features)),  
+    test_data %>% pull(Label)
+  )
+  
+  
+  shaptable_pca <- xgb.plot.shap.summary(data = as.matrix(train_data_pca %>% select(features)), model = finalmodel_wdi_pca$finalModel, top_n =20)
+  
+  predictedValue_pca
+  # shaptable$data %>% group_by(feature) %>% summarise(numberobservations=length(shap_value),Shap_value_mean=mean(abs(shap_value))) %>%  arrange(desc(Shap_value_mean))->shaptable_data
+  # 
+  # imp<-varImp(finalmodel_wdi_pca)$importance %>%
+  #   mutate(feature = rownames(varImp(finalmodel_wdi_raw)$importance))%>%
+  #   rename(importance = Overall)%>%
+  #   filter(importance > 0)
+
+  
+shaptable_pca+ theme_bw()
+#ggsave("../figures/ghsitest.png",device = "png",width = 8,height = 9)
+### plot
+
+ghsi_rawData %>%  dim
+```

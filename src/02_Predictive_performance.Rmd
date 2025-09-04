@@ -1,0 +1,619 @@
+---
+title: "02_Predictive_performance"
+author: "Kolja Nenoff"
+date: "2023-11-03"
+output: html_document
+---
+
+
+#Load
+
+
+
+```{r}
+# Libraries
+rm(list = ls())
+libraries <- c("magrittr", "tidyverse", "data.table", "parallel","readxl","caret","doMC","xgboost")
+
+for (lib in libraries) {
+  if (!require(lib, character.only = TRUE)) {
+    install.packages(lib)
+    library(lib, character.only = TRUE)
+  }
+}
+#Theme settings
+## plot theme
+options(
+  # set default colors in ggplot2 to colorblind-friendly
+  # Okabe-Ito and Viridis palettes
+  ggplot2.discrete.colour = ggokabeito::palette_okabe_ito(),
+  ggplot2.discrete.fill = ggokabeito::palette_okabe_ito(),
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis",
+  # set theme font and size
+  book.base_family = "sans",
+  book.base_size = 14
+)
+## set default theme
+theme_set(
+  theme_minimal(
+    base_size = getOption("book.base_size"),
+    base_family = getOption("book.base_family")
+  ) %+replace%
+    theme(
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom"
+    )
+)
+
+#Dir path
+DATA_DIR <- "../data/02_data"
+FIGURE_DIR <- "../figures/02_figures"
+LIB_DIR<-"../libraries"
+WDI_DIR <- "../data/231103_WDI"
+DIMRED_DIR<-"../data/01_data"
+EXMORT_DIR <- "../data/230225_WHO_Excess_Mort/2022-03-25_covid-19_gem"
+OUTPUT_DIR<- "../output"
+
+# File path
+exmort_path <- file.path(EXMORT_DIR, "WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx")
+dimred_path<-file.path(DIMRED_DIR,"01_wdi_data_cons_df_250.csv")
+wdi_series_path <- file.path(WDI_DIR, "WDISeries.csv")
+wdi_gf_path<-file.path(DIMRED_DIR, "01_wdi_gapfilled.csv")
+toolbox_path <- file.path(LIB_DIR, "00_toolbox.R") # Source helper functions
+wdi_income_path<-file.path(WDI_DIR, "CLASS.xlsx")
+pathWDI_pc10<-file.path(OUTPUT_DIR,"2410_WDI_randomgrid_scaled_pc10.RDS")
+pathWDI_pc20<-file.path(OUTPUT_DIR,"2410_WDI_randomgrid_scaled_pc20.RDS")
+pathWDI_pc34<-file.path(OUTPUT_DIR,"2410_WDI_scaled_pc34.RDS")
+pathWDI_pc40<-file.path(OUTPUT_DIR,"2410_WDI_scaled_pc40.RDS")
+pathWDI_imputed<-file.path(OUTPUT_DIR,"2410_WDI_randomgrid_scaled_imputed.RDS")
+pathWDI_raw<-file.path(OUTPUT_DIR,"2410_WDI_scaled_randomgrid_raw.RDS")
+pathWDI_iso40<-file.path(OUTPUT_DIR,"2410_WDI_randomgrid_scaled_iso40.RDS")
+pathWDI_iso10<-file.path(OUTPUT_DIR,"2410_WDI_randomgrid_scaled_iso10.RDS")
+pathWDI_iso7<-file.path(OUTPUT_DIR,"2410_WDI_randomgrid_scaled_iso7.RDS")
+pathWDI_iso5<-file.path(OUTPUT_DIR,"2410_WDI_randomgrid_scaled_iso5.RDS")
+pathWDI10_e_isomap<-file.path(OUTPUT_DIR,"2410_WDI_randomgrid_scaled_ensemble_isomap10.RDS")
+pathWDI20ppcaPCA<-file.path(OUTPUT_DIR,"2410_WDI_randomgrid_scaled_ppca_pca20.RDS")
+
+```
+
+
+
+# Data prep
+
+Excess Mortality loaded and transformed into annual p score mortality rate.
+
+
+```{r,data}
+
+source(toolbox_path)
+#Excess Mort
+ExcessMortbyCountry<-read_excel(exmort_path,sheet = 2)
+excessCounrty_annual<-ExcessMortbyCountry %>% group_by(country,iso3,year) %>% 
+  reframe(p_value_mort=sum(excess.mean)/sum(expected.mean)*100)
+excessCounrty_annual2 <- dplyr::mutate(excessCounrty_annual, identifier = paste0(iso3, year)) %>% select(-iso3)
+#WDI explained
+wdi_series <- fread(wdi_series_path) %>%
+  setnames("Series Code", "Indicator Code")
+#Dimred Data
+dimred_250<-fread(dimred_path) %>% mutate(identifier=paste0(`Country Code`,year))
+this<-dimred_250 %>% select(any_of(wdi_series$`Indicator Code`))
+sum(is.na(this)==T)/sum(is.na(this)==F)
+
+#Gap filled data
+
+wdi_gf <- fread(wdi_gf_path) 
+```
+## filter countries
+Peru out and others
+```{r}
+thiscountries<-readRDS("../data/countriesIncluded.RDS")
+countriesIncluded<-thiscountries %>% unique
+countriesIncluded<-countriesIncluded[!(countriesIncluded%in% "PER")]
+dimred_250<-dimred_250[dimred_250$`Country Code`%in% countriesIncluded,]
+wdi_gf<-wdi_gf[wdi_gf$`Country Code`%in% countriesIncluded,]
+countriesIncluded %>%  unique() %>%  length()
+```
+## Cluster
+```{r}
+blas_set_num_threads(1)
+omp_set_num_threads(1)
+```
+
+# Seeds
+```{r,data}
+
+run <- sample(1:1000, 1000)
+
+```
+
+Performance for predicting annual Excess Mort.
+
+P_Score_ExMort[2020]~DATASET[2019]
+P_Score_ExMort[2021]~DATASET[2020]
+
+We apply XgBoost and control for the countries in cross validation. 
+Test/Training %.
+
+
+
+WDI raw vs. WDI Gapfilled vs. PCA vs. Dimred
+# 1 Get best tuning
+## WDI Raw
+
+
+### Preprocessing
+```{r}
+wdi_series <- fread(wdi_series_path) %>%
+  setnames("Series Code", "Indicator Code")
+
+
+
+table2019_wdi<-(dimred_250 %>% filter(year%in%2019))
+table2020_wdi<-(dimred_250 %>% filter(year%in%2020))
+#Only countries that have data for both years and have no NA
+table2019_wdi2<-table2019_wdi %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_wdi2<-table2020_wdi %>% mutate(identifier=paste0(`Country Code`,"2021"))
+WDI_2020_2021A<-rbind(table2019_wdi2,table2020_wdi2)
+WDI_2020_2021B<-WDI_2020_2021A %>% select(`Country Code`,`Income Group`,identifier,any_of(wdi_series$`Indicator Code`))
+WDI_2020_2021C<-WDI_2020_2021B[,apply(WDI_2020_2021B,2,function(x)!(sum(is.na(x))>0)),with = F]
+WDI_2020_2021D<-WDI_2020_2021C %>%  drop_na()
+WDI_2020_2021_int<-WDI_2020_2021D %>% group_by(`Country Code`) %>%  summarise(yearsperCountry=length(`Country Code`)) %>%  filter(yearsperCountry>1)
+WDI_2020_2021E<-WDI_2020_2021D %>%  filter(`Country Code`%in% WDI_2020_2021_int$`Country Code`)
+wdi_data_input<-WDI_2020_2021E
+colnames(wdi_data_input)%in% wdi_series$`Indicator Code` %>%  sum()
+wdi_data_input$`Country Code` %>% unique %>%  length() 
+Xgboostinput<- dplyr::inner_join(wdi_data_input, excessCounrty_annual2, by = "identifier")
+
+print("Indicators in the without gaps")
+colnames(wdi_data_input)%in% wdi_series$`Indicator Code` %>%  sum()
+print("For N countries:")
+wdi_data_input$`Country Code` %>% unique %>%  length() 
+not_included_countries<-wdi_data_input$`Country Code`[!(WDI_2020_2021E$`Country Code`%in% wdi_data_input$`Country Code`)] %>%  unique
+print("Countries from the data that have available Mortality data:")
+```
+
+
+### XGBOOST
+
+
+
+
+```{r}
+Xgboostinput_raw<-Xgboostinput
+Label<-"p_value_mort"
+features<-colnames(Xgboostinput)[colnames(Xgboostinput) %in% wdi_series$`Indicator Code`]
+Xgboostinput_filtered<-Xgboostinput_raw %>%  select(features,Label)  %>% data.frame()%>% 
+  drop_na()  %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput$`Country Code`, . ) 
+
+wdi_rawData<-createXgboostData_tuned(numberofruns = run[1:1000],Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label )
+
+wdi_rawData$Xgboost_summary$Rsquared %>% summary
+# 
+# wdi_rawData %>% saveRDS(pathWDI_raw)
+```
+
+
+
+
+## WDI Imputed
+
+
+### Preprocessing
+```{r}
+
+table2019_wdiImputed<-(wdi_gf %>% filter(year%in%2019))
+table2020_wdiImputed<-(wdi_gf %>% filter(year%in%2020))
+table2019_wdiImputed2<-table2019_wdiImputed %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_wdiImputed2<-table2020_wdiImputed %>% mutate(identifier=paste0(`Country Code`,"2021"))
+WDI_imputed_2020_2021<-rbind(table2019_wdiImputed2,table2020_wdiImputed2)
+Xgboostinput_imputed<- dplyr::inner_join(WDI_imputed_2020_2021, excessCounrty_annual2, by = "identifier")
+
+print("Indicators in the without gaps")
+colnames(WDI_imputed_2020_2021)%in% wdi_series$`Indicator Code` %>%  sum()
+print("For N countries:")
+wdi_data_input$`Country Code` %>% unique %>%  length() 
+not_included_countries<-WDI_imputed_2020_2021$`Country Code`[!(WDI_2020_2021E$`Country Code`%in% wdi_data_input$`Country Code`)] %>%  unique
+print("Countries from the data that have available Mortality data:")
+
+```
+
+
+### XGBOOST
+
+
+```{r}
+Label<-"p_value_mort"
+
+features<-colnames(Xgboostinput_imputed)[colnames(Xgboostinput_imputed) %in% wdi_series$`Indicator Code`]
+Xgboostinput_filtered<-Xgboostinput_imputed %>%  select(features,Label)  %>% data.frame()%>% 
+  drop_na()%>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_imputed$`Country Code`, . ) 
+wdi_imputedData<-createXgboostData_tuned(numberofruns = run,Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label )
+# 
+wdi_imputedData %>% saveRDS(pathWDI_imputed)
+```
+## PCA
+### Preprocessing
+```{r}
+table2019_pc<-dimred_250 %>% filter(year%in%2019)
+table2020_pc<-dimred_250 %>% filter(year%in%2020) 
+table2019_pc2<-table2019_pc %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_pc2<-table2020_pc %>% mutate(identifier=paste0(`Country Code`,"2021"))
+WDI_pc_2020_2021<-rbind(table2019_pc2,table2020_pc2) %>%  filter(!is.na(iso1))
+Xgboostinput<- dplyr::inner_join(WDI_pc_2020_2021, excessCounrty_annual2, by = "identifier")
+print("Indicators in the without gaps")
+colnames(WDI_pc_2020_2021)%in% wdi_series$`Indicator Code` %>%  sum()
+print("For N countries:")
+WDI_pc_2020_2021$`Country Code` %>% unique %>%  length() 
+not_included_countries<-WDI_pc_2020_2021$`Country Code`[!(WDI_pc_2020_2021$`Country Code`%in% wdi_data_input$`Country Code`)] %>%  unique
+```
+
+
+
+### XGBOOST PCA 40
+```{r}
+Xgboostinput_pc<-Xgboostinput
+Label<-"p_value_mort"
+features<-paste0("PC_normal_",seq(1:40))
+Xgboostinput_filtered<-Xgboostinput_pc %>%  select(features,Label)  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_pc$`Country Code`, . ) 
+
+wdi_pc40Data<-createXgboostData_tuned(numberofruns = run,Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label)
+# wdi_pc40Data %>% saveRDS(pathWDI_pc40)
+
+### SAVE
+# 
+# wdi_pc40Data %>% saveRDS(pathWDI_pc40)
+
+```
+
+```{r}
+wdi_rawData$Xgboost_summary$run[1:10]
+wdi_imputedData$Xgboost_summary$run[1:10]
+wdi_pc40Data$Xgboost_summary$run[1:10]
+wdi_pc34Data$Xgboost_summary$run[1:10]
+```
+
+
+
+### XGBOOST PCA 34
+```{r}
+Xgboostinput_pc<-Xgboostinput
+
+Label<-"p_value_mort"
+features<-paste0("PC_normal_",seq(1:34))
+Xgboostinput_filtered<-Xgboostinput_pc %>%  select(features,Label)  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_pc$`Country Code`, . ) 
+
+wdi_pc34Data<-createXgboostData_tuned(numberofruns = run,Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label)
+
+# wdi_pc34Data %>% saveRDS(pathWDI_pc34)
+wdi_pc34Data$Xgboost_summary$Rsquared %>%  summary()
+
+```
+
+### XGBOOST PCA 20
+```{r}
+Xgboostinput_pc<-Xgboostinput
+
+Label<-"p_value_mort"
+features<-paste0("PC_normal_",seq(1:20))
+Xgboostinput_filtered<-Xgboostinput_pc %>%  select(features,Label)  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_pc$`Country Code`, . ) 
+
+wdi_pc20Data<-createXgboostData_tuned(numberofruns = run,Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label)
+
+### SAVE
+
+# wdi_pc20Data %>% saveRDS(pathWDI_pc20)
+
+```
+
+### XGBOOST PCA 10
+```{r}
+
+### PCA run 10
+Xgboostinput_pc<-Xgboostinput
+Label<-"p_value_mort"
+features<-paste0("PC_normal_",seq(1:10))
+Xgboostinput_filtered<-Xgboostinput_pc %>%  select(features,Label)  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_pc$`Country Code`, . ) 
+
+wdi_pc10Data<-createXgboostData_tuned(numberofruns = run,Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label)
+
+### SAVE
+# 
+# wdi_pc10Data %>% saveRDS(pathWDI_pc10)
+
+```
+
+
+
+## ISO casual
+
+### Preprocessing
+
+
+
+```{r}
+table2019_iso<-dimred_250 %>% filter(year%in%2019)
+table2020_iso<-dimred_250 %>% filter(year%in%2020) 
+
+table2019_iso2<-table2019_iso %>% mutate(identifier=paste0(`Country Code`,"2020"))
+table2020_iso2<-table2020_iso %>% mutate(identifier=paste0(`Country Code`,"2021"))
+
+WDI_iso_2020_2021<-rbind(table2019_iso2,table2020_iso2) %>%  filter(!is.na(iso1))
+
+
+Xgboostinput<- dplyr::inner_join(WDI_iso_2020_2021, excessCounrty_annual2, by = "identifier")
+
+print("Indicators in the without gaps")
+colnames(WDI_iso_2020_2021)%in% wdi_series$`Indicator Code` %>%  sum()
+print("For N countries:")
+WDI_iso_2020_2021$`Country Code` %>% unique %>%  length() 
+not_included_countries<-WDI_iso_2020_2021$`Country Code`[!(WDI_iso_2020_2021$`Country Code`%in% wdi_data_input$`Country Code`)] %>%  unique
+```
+
+
+
+### ISO 40
+```{r}
+Xgboostinput_iso<-Xgboostinput
+Label<-"p_value_mort"
+
+features<-colnames(Xgboostinput)[grepl("^ISO_normal_",colnames(Xgboostinput))]
+Xgboostinput_filtered<-Xgboostinput_iso %>%  select(features,Label)  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_iso$`Country Code`, . ) 
+
+wdi_iso40Data<-createXgboostData_tuned(numberofruns = run,Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label)
+
+
+#wdi_iso40Data %>% saveRDS(pathWDI_iso40)
+
+```
+### ISO 10
+
+```{r}
+Xgboostinput_iso<-Xgboostinput
+Label<-"p_value_mort"
+
+features<-paste0("ISO_normal_",seq(1:10))
+Xgboostinput_filtered<-Xgboostinput_iso %>%  select(features,Label)  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_iso$`Country Code`, . ) 
+
+wdi_iso10Data<-createXgboostData_tuned(numberofruns = run[1:1000],Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label)
+wdi_iso10Data$Xgboost_summary$Rsquared %>% median()
+# wdi_iso10Data %>% saveRDS("../output/02_xboostruniso10_random_30T.RDS")
+#wdi_iso10Data$Xgboost_summary$Rsquared %>%  summary()
+wdi_iso10Data$Xgboost_summary$overfitt %>% summary()
+wdi_iso10Data
+```
+
+### ISO 7 
+```{r}
+Xgboostinput_iso<-Xgboostinput
+Label<-"p_value_mort"
+
+features<-paste0("ISO_normal_",seq(1:7))
+Xgboostinput_filtered<-Xgboostinput_iso %>%  select(features,Label)  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_iso$`Country Code`, . ) 
+
+wdi_iso7Data<-createXgboostData_tuned(numberofruns = run[1:1000],Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label)
+# wdi_iso7Data %>% saveRDS(pathWDI_iso7)
+wdi_iso7Data$Xgboost_summary$Rsquared %>%  summary()
+```
+
+
+
+### ISO 5
+```{r}
+### iso normal 5 dimensions
+Xgboostinput_iso<-Xgboostinput
+Label<-"p_value_mort"
+features<-paste0("ISO_normal_",seq(1:5))
+Xgboostinput_filtered<-Xgboostinput_iso %>%  select(features,Label)  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_iso$`Country Code`, . ) 
+
+wdi_iso5Data<-createXgboostData_tuned(numberofruns = run,Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label)
+### SAVE
+# wdi_iso5Data %>% saveRDS(pathWDI_iso5)
+
+```
+
+## extra
+```{r}
+# wi_rawData<-readRDS(pathWDI_raw)
+run<-wi_rawData$Xgboost_summary$run
+```
+
+### E-Isomap run
+```{r}
+### iso ensemble 10 dimensions
+Xgboostinput_iso<-Xgboostinput
+Label<-"p_value_mort"
+features<-paste0("iso",seq(1:10))
+Xgboostinput_filtered<-Xgboostinput_iso %>%  select(features,Label)  %>% data.frame()%>% 
+  drop_na() %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_iso$`Country Code`, . ) 
+
+wdi_ensemble_iso10Data<-createXgboostData_tuned(numberofruns = run[1:1],Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label)
+### SAVE
+
+wdi_ensemble_iso10Data
+# wdi_ensemble_iso10Data %>% saveRDS(pathWDI10_e_isomap)
+
+
+```
+## iso 6
+
+```{r}
+### iso ensemble 10 dimensions
+Xgboostinput_iso<-Xgboostinput_complete_iso
+Label<-"p_value_mort"
+features<-paste0("iso",seq(1:6))
+Xgboostinput_filtered<-Xgboostinput_iso %>%  select(features,Label)  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_iso$`Country Code`, . ) 
+
+wdi_ensemble_iso10Data<-createXgboostData_tuned(numberofruns = run,Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label)
+#wdi_ensemble_iso10Data %>% saveRDS("../output/WDI_randomgrid_scaled_ensemble_isomap6.RDS")
+
+### SAVE
+```
+
+
+```{r}
+
+```
+
+
+### PPCA ppca 20 dimensions
+
+```{r}
+Xgboostinput_iso<-Xgboostinput
+Label<-"p_value_mort"
+features<-paste0("PC",seq(1:20))
+Xgboostinput_filtered<-Xgboostinput_iso %>%  select(features,Label)  %>% data.frame()%>% 
+  drop_na() %>% scale() %>% 
+  data.frame() %>% 
+  cbind("Country.Code"=Xgboostinput_iso$`Country Code`, . ) 
+
+wdi_ppca_pca20Data<-createXgboostData_tuned(numberofruns = run,Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label)
+### SAVE
+#pathWDI20ppcaPCA
+wdi_ppca_pca20Data %>% saveRDS(pathWDI20ppcaPCA)
+
+```
+
+
+
+
+# summary statistics
+## Rsquared
+
+```{r,raw}
+print("baseline")
+wdi_rawData<-readRDS(pathWDI_raw)
+wdi_rawData$Xgboost_summary$RMSE %>% summary
+print("Imputed")
+wdi_imputedData<-readRDS(pathWDI_imputed)
+wdi_imputedData$Xgboost_summary$RMSE %>% summary
+print("PCA40")
+wdi_pc40Data<-readRDS(pathWDI_pc40)
+wdi_pc40Data$Xgboost_summary$RMSE %>%  summary
+
+print("PCA34")
+wdi_pc34Data<-readRDS(pathWDI_pc34)
+wdi_pc34Data$Xgboost_summary$RMSE %>%  summary
+print("PCA20")
+wdi_pc20Data<-readRDS(pathWDI_pc20)
+wdi_pc20Data$Xgboost_summary$RMSE %>%  summary
+print("PCA10")
+wdi_pc10Data<-readRDS(pathWDI_pc10)
+wdi_pc10Data$Xgboost_summary$RMSE %>%  summary
+print("iso40")
+wdi_iso40Data<-readRDS(pathWDI_iso40)
+wdi_iso40Data$Xgboost_summary$RMSE %>%  summary()
+print("iso10")
+wdi_iso10Data<-readRDS(pathWDI_iso10)
+wdi_iso10Data$Xgboost_summary$RMSE %>%  summary()
+print("iso7")
+wdi_iso7Data<-readRDS(pathWDI_iso7)
+wdi_iso7Data$Xgboost_summary$RMSE %>%  summary()
+print("iso5")
+wdi_iso5Data<-readRDS(pathWDI_iso5)
+wdi_iso5Data$Xgboost_summary$RMSE %>%  summary()
+print("e-iso 10")
+wdi_e_iso10Data<-readRDS(pathWDI10_e_isomap)
+wdi_e_iso10Data$Xgboost_summary$RMSE %>%  summary()
+print("e-iso 6")
+wdi_e_iso6Data<-readRDS("../output/WDI_randomgrid_scaled_ensemble_isomap6.RDS")
+wdi_e_iso6Data$Xgboost_summary$RMSE %>%  summary()
+print("ppca PCA 20")
+
+wdi_ppcaPCA20<-readRDS(pathWDI20ppcaPCA)
+wdi_ppcaPCA20$Xgboost_summary$RMSE %>%  summary()
+
+
+
+
+wdi_e_iso6Data$Xgboost_summary$Rsquared %>%  summary()
+Xgboostinput_complete_iso$p_value_mort %>%  summary
+```
+
+
+```{r,raw}
+performance_df<-rbind(wdi_rawData$Xgboost_summary %>% mutate(ident="WDI (Baseline)"),
+                      wdi_imputedData$Xgboost_summary%>% mutate(ident="WDI (imputed)"),
+                      wdi_pc40Data$Xgboost_summary%>% mutate(ident="PC 40"),
+                      wdi_pc34Data$Xgboost_summary%>% mutate(ident="PC 34"),
+                      wdi_pc20Data$Xgboost_summary%>% mutate(ident="PC 20"),
+                      wdi_pc10Data$Xgboost_summary%>% mutate(ident="PC 10"),
+                      wdi_iso40Data$Xgboost_summary%>% mutate(ident="isomap 30"),
+                      wdi_iso10Data$Xgboost_summary%>% mutate(ident="isomap 10"),
+                      wdi_iso7Data$Xgboost_summary%>% mutate(ident="isomap 7"),
+                      wdi_iso5Data$Xgboost_summary%>% mutate(ident="isomap 5"),
+                      wdi_e_iso10Data$Xgboost_summary%>% mutate(ident="e-isomap 10"),
+                      wdi_ppca_pca20Data$Xgboost_summary%>% mutate(ident="ppca PCA 20")
+                      )
+
+performance_df %>%  ggplot(aes(x=Rsquared,color=ident))+geom_density()
+performance_df %>%  ggplot(aes(x=RMSE,color=ident))+geom_density()
+
+wdi_iso5Data$Xgboost_summary$Rsquared %>%  ggdensity()
+```
+
+
+```{r,raw}
+RMSE_decision<-performance_df %>%  ggplot(aes(x=RMSE,color=ident))+geom_histogram(aes(fill=ident),alpha=0.7,bins = 60)+geom_vline(xintercept = median(wdi_rawData$Xgboost_summary$RMSE))
+
+R2_decision<-performance_df %>%  ggplot(aes(x=Rsquared,color=ident))+geom_histogram(aes(fill=ident),alpha=0.7,bins = 60)+
+                                          geom_vline(xintercept = median(wdi_rawData$Xgboost_summary$Rsquared))
+
+legend <- get_legend(
+  # create some space to the left of the legend
+  RMSE_decision + theme(legend.box.margin = margin(0, 0, 0, 12))
+)
+
+prow <- plot_grid(
+  RMSE_decision + theme(legend.position="none"),
+  R2_decision + theme(legend.position="none"),
+  labels = c("A", "B"),
+  ncol = 2
+)
+
+plot_performance<-plot_grid(prow, legend,ncol = 1, rel_heights = c(1, .1))
+plot_performance
+
+#ggsave(plot_performance,file = "../figures/02_figures/02_performanceplots.png",device = "png",width = 9,height = 5)
+R2_decision
+
+```
+```{r}
+wdi_rawData$Xgboost_summary$RMSE %>% sd
+wdi_imputedData$Xgboost_summary$RMSE %>% sd
+wdi_pc26Data$Xgboost_summary$RMSE %>%  sd
+wdi_iso5Data$Xgboost_summary$RMSE %>%  sd
+```
