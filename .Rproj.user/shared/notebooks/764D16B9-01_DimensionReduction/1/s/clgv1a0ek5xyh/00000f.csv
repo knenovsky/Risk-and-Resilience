@@ -1,0 +1,11 @@
+"0","all_cors <- assemble_correlations_m(qual_comp_res)"
+"0",""
+"0","qual_comp_res_stats(qual_comp_res)"
+"2","errors at indices (should be empty): 
+"
+"2","year range: 1998 2021
+"
+"2","number of variables: 503
+"
+"2","number of countries: 180
+"

@@ -1,0 +1,1 @@
+{"frames":[{"func":"detach(\"package:MASS\", unload = TRUE)","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0},{"func":"stop(\"invalid 'name' argument\")","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0}],"message":"Error in detach(\"package:MASS\", unload = TRUE) : invalid 'name' argument\n"}

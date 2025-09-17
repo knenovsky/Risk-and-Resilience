@@ -1,0 +1,2 @@
+"0","RELATIVE_INDICATORS<-get_relative_indicators() "
+"0","RELATIVE_INDICATORS<-RELATIVE_INDICATORS[(RELATIVE_INDICATORS%in% na_fractions_1$Variable)]"

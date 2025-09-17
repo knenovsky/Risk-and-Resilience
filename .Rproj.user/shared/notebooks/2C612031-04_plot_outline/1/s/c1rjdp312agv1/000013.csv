@@ -1,0 +1,4 @@
+"0",""
+"0","#Employment to population ratio, ages 15-24, male (%) (modeled ILO estimate)"
+"0","dimred_250 %>% filter(year%in%c(2000:2023),`Country Code`%in%c(""RUS"",""DEU"")) %>% ggplot(aes(y=`SL.TLF.ACTI.ZS`,x=`Country Code`)) +"
+"0","  geom_violin()"

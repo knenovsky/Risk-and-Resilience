@@ -1,0 +1,4 @@
+"0","# Labor force participation rate for ages 15-24, female (%) (modeled ILO estimate)"
+"0",""
+"0","dimred_250 %>% filter(`Country Code`%in%c(""RUS"",""DEU"")) %>% ggplot(aes(y=`SL.TLF.ACTI.1524.FE.ZS`,color=`Country Code`)) +"
+"0","  geom_boxplot()"

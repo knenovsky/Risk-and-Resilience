@@ -1,0 +1,5 @@
+"0","cowplot::plot_grid(Element_one,cowplot::plot_grid(R2_decision,isoforcePLot,ncol = 1,rel_heights =   c(1.1,2),labels = c("""", ""D"")),labels = c("" "", ""C""),rel_heights =   c(1.1,2),ncol = 2) #%>%  ggsave(file=""../figures/04_figures/04_isoResultsTEST.png"",device = ""png"",width = 10,height = 6)
+"
+"2","Warning:"
+"2"," [38;5;236mRemoved 4 rows containing missing values or values outside the scale range (`geom_text()`).[39m
+"

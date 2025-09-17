@@ -1,0 +1,4 @@
+"0",""
+"0","# Primary education, duration (years)"
+"0","dimred_250 %>% filter(`Country Code`%in%c(""RUS"",""DEU"")) %>% ggplot(aes(y=`SE.PRM.DURS`,color=`Country Code`)) +"
+"0","  geom_boxplot()"

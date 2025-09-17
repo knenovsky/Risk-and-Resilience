@@ -1,0 +1,1143 @@
+"0","for (lib in libraries) {
+  if (!require(lib, character.only = TRUE)) {
+    install.packages(lib)
+    library(lib, character.only = TRUE)
+  }
+}
+"
+"2","Loading required package: ggpmisc
+"
+"2","Warning in library(package, lib.loc = lib.loc, character.only = TRUE, logical.return = TRUE,  :"
+"2","
+ "
+"2"," there is no package called ‘ggpmisc’
+"
+"2","Installing package into ‘/net/home/knenoff/R/04_Rlibrary’
+(as ‘lib’ is unspecified)
+"
+"2","also installing the dependencies ‘xts’, ‘mvtnorm’, ‘TH.data’, ‘sandwich’, ‘ggpp’, ‘confintr’, ‘lmodel2’, ‘splus2R’, ‘multcomp’, ‘multcompView’
+
+"
+"2","trying URL 'https://cloud.r-project.org/src/contrib/xts_0.14.0.tar.gz'
+"
+"2","Content type 'application/x-gzip'"
+"2"," length 485151 bytes (473 KB)
+"
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","
+"
+"2","downloaded 473 KB
+
+"
+"2","trying URL 'https://cloud.r-project.org/src/contrib/mvtnorm_1.2-6.tar.gz'
+"
+"2","Content type 'application/x-gzip'"
+"2"," length 695507 bytes (679 KB)
+"
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","
+"
+"2","downloaded 679 KB
+
+"
+"2","trying URL 'https://cloud.r-project.org/src/contrib/TH.data_1.1-2.tar.gz'
+"
+"2","Content type 'application/x-gzip'"
+"2"," length 8631337 bytes (8.2 MB)
+"
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","
+"
+"2","downloaded 8.2 MB
+
+"
+"2","trying URL 'https://cloud.r-project.org/src/contrib/sandwich_3.1-0.tar.gz'
+"
+"2","Content type 'application/x-gzip'"
+"2"," length 1401761 bytes (1.3 MB)
+"
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","
+"
+"2","downloaded 1.3 MB
+
+"
+"2","trying URL 'https://cloud.r-project.org/src/contrib/ggpp_0.5.8-1.tar.gz'
+"
+"2","Content type 'application/x-gzip'"
+"2"," length 2438202 bytes (2.3 MB)
+"
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","
+"
+"2","downloaded 2.3 MB
+
+"
+"2","trying URL 'https://cloud.r-project.org/src/contrib/confintr_1.0.2.tar.gz'
+"
+"2","Content type 'application/x-gzip'"
+"2"," length 68819 bytes (67 KB)
+"
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","
+"
+"2","downloaded 67 KB
+
+"
+"2","trying URL 'https://cloud.r-project.org/src/contrib/lmodel2_1.7-3.tar.gz'
+"
+"2","Content type 'application/x-gzip'"
+"2"," length 317733 bytes (310 KB)
+"
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","
+"
+"2","downloaded 310 KB
+
+"
+"2","trying URL 'https://cloud.r-project.org/src/contrib/splus2R_1.3-5.tar.gz'
+"
+"2","Content type 'application/x-gzip'"
+"2"," length 35927 bytes (35 KB)
+"
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","
+"
+"2","downloaded 35 KB
+
+"
+"2","trying URL 'https://cloud.r-project.org/src/contrib/multcomp_1.4-26.tar.gz'
+"
+"2","Content type 'application/x-gzip'"
+"2"," length 597674 bytes (583 KB)
+"
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","
+"
+"2","downloaded 583 KB
+
+"
+"2","trying URL 'https://cloud.r-project.org/src/contrib/multcompView_0.1-10.tar.gz'
+"
+"2","Content type 'application/x-gzip'"
+"2"," length 35884 bytes (35 KB)
+"
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","
+"
+"2","downloaded 35 KB
+
+"
+"2","trying URL 'https://cloud.r-project.org/src/contrib/ggpmisc_0.6.0.tar.gz'
+"
+"2","Content type 'application/x-gzip'"
+"2"," length 1395901 bytes (1.3 MB)
+"
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","="
+"2","
+"
+"2","downloaded 1.3 MB
+
+"
+"2","* installing *source* package ‘xts’ ...
+"
+"2","** package ‘xts’ successfully unpacked and MD5 sums checked
+"
+"2","** using staged installation
+"
+"2","** libs
+"
+"2","using C compiler: ‘gcc (Ubuntu 13.2.0-23ubuntu4) 13.2.0’
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c add_class.c -o add_class.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c any.c -o any.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c attr.c -o attr.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c binsearch.c -o binsearch.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c coredata.c -o coredata.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c dimnames.c -o dimnames.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c endpoints.c -o endpoints.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c extract_col.c -o extract_col.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c init.c -o init.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c isOrdered.c -o isOrdered.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c isXts.c -o isXts.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c lag.c -o lag.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c merge.c -o merge.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c na.c -o na.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c period_apply.c -o period_apply.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c period_arithmetic.c -o period_arithmetic.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c period_quantile.c -o period_quantile.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c rbind.c -o rbind.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c rollfun.c -o rollfun.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c runSum.c -o runSum.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c startofyear.c -o startofyear.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c subset.c -o subset.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c subset.old.c -o subset.old.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c toperiod.c -o toperiod.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c totalcols.c -o totalcols.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c tryXts.c -o tryXts.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG -I../inst/include -I'/net/home/knenoff/R/04_Rlibrary/zoo/include'     -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c unique.time.c -o unique.time.o
+"
+"1","gcc -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -flto=auto -ffat-lto-objects -Wl,-z,relro -o xts.so add_class.o any.o attr.o binsearch.o coredata.o dimnames.o endpoints.o extract_col.o init.o isOrdered.o isXts.o lag.o merge.o na.o period_apply.o period_arithmetic.o period_quantile.o rbind.o rollfun.o runSum.o startofyear.o subset.o subset.old.o toperiod.o totalcols.o tryXts.o unique.time.o -L/usr/lib/R/lib -lR
+"
+"2","installing to /net/home/knenoff/R/04_Rlibrary/00LOCK-xts/00new/xts/libs
+"
+"2","** R
+"
+"2","** data
+"
+"2","** inst
+"
+"2","** byte-compile and prepare package for lazy loading
+"
+"2","** help
+"
+"2","*** installing help indices
+"
+"2","** building package indices
+"
+"2","** installing vignettes
+"
+"2","** testing if installed package can be loaded from temporary location
+"
+"2","** checking absolute paths in shared objects and dynamic libraries
+"
+"2","** testing if installed package can be loaded from final location
+"
+"2","** testing if installed package keeps a record of temporary installation path
+"
+"2","* DONE (xts)
+"
+"2","* installing *source* package ‘mvtnorm’ ...
+"
+"2","** package ‘mvtnorm’ successfully unpacked and MD5 sums checked
+"
+"2","** using staged installation
+"
+"2","** libs
+"
+"2","using C compiler: ‘gcc (Ubuntu 13.2.0-23ubuntu4) 13.2.0’
+"
+"2","using Fortran compiler: ‘GNU Fortran (Ubuntu 13.2.0-23ubuntu4) 13.2.0’
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG      -fvisibility=hidden -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c C_FORTRAN_interface.c -o C_FORTRAN_interface.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG      -fvisibility=hidden -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c lpmvnorm.c -o lpmvnorm.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG      -fvisibility=hidden -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c ltMatrices.c -o ltMatrices.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG      -fvisibility=hidden -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c miwa.c -o miwa.o
+"
+"1","gfortran  -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0  -c mvt.f -o mvt.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG      -fvisibility=hidden -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c mvtnorm-init.c -o mvtnorm-init.o
+"
+"1","gfortran  -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0  -c tvpack.f -o tvpack.o
+"
+"1","gcc -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -flto=auto -ffat-lto-objects -Wl,-z,relro -o mvtnorm.so C_FORTRAN_interface.o lpmvnorm.o ltMatrices.o miwa.o mvt.o mvtnorm-init.o tvpack.o -llapack -lblas -lgfortran -lm -lquadmath -lgfortran -lm -lquadmath -L/usr/lib/R/lib -lR
+"
+"2","installing to /net/home/knenoff/R/04_Rlibrary/00LOCK-mvtnorm/00new/mvtnorm/libs
+"
+"2","** R
+"
+"2","** inst
+"
+"2","** byte-compile and prepare package for lazy loading
+"
+"2","** help
+"
+"2","*** installing help indices
+"
+"2","** building package indices
+"
+"2","** installing vignettes
+"
+"2","** testing if installed package can be loaded from temporary location
+"
+"2","** checking absolute paths in shared objects and dynamic libraries
+"
+"2","** testing if installed package can be loaded from final location
+"
+"2","** testing if installed package keeps a record of temporary installation path
+"
+"2","* DONE (mvtnorm)
+"
+"2","* installing *source* package ‘TH.data’ ...
+"
+"2","** package ‘TH.data’ successfully unpacked and MD5 sums checked
+"
+"2","** using staged installation
+"
+"2","** data
+"
+"2","*** moving datasets to lazyload DB
+"
+"2","** demo
+"
+"2","** inst
+"
+"2","** help
+"
+"2","*** installing help indices
+"
+"2","** building package indices
+"
+"2","** installing vignettes
+"
+"2","** testing if installed package can be loaded from temporary location
+"
+"2","** testing if installed package can be loaded from final location
+"
+"2","** testing if installed package keeps a record of temporary installation path
+"
+"2","* DONE (TH.data)
+"
+"2","* installing *source* package ‘sandwich’ ...
+"
+"2","** package ‘sandwich’ successfully unpacked and MD5 sums checked
+"
+"2","** using staged installation
+"
+"2","** R
+"
+"2","** data
+"
+"2","** inst
+"
+"2","** byte-compile and prepare package for lazy loading
+"
+"2","** help
+"
+"2","*** installing help indices
+"
+"2","*** copying figures
+"
+"2","** building package indices
+"
+"2","** installing vignettes
+"
+"2","** testing if installed package can be loaded from temporary location
+"
+"2","** testing if installed package can be loaded from final location
+"
+"2","** testing if installed package keeps a record of temporary installation path
+"
+"2","* DONE (sandwich)
+"
+"2","* installing *source* package ‘confintr’ ...
+"
+"2","** package ‘confintr’ successfully unpacked and MD5 sums checked
+"
+"2","** using staged installation
+"
+"2","** R
+"
+"2","** inst
+"
+"2","** byte-compile and prepare package for lazy loading
+"
+"2","** help
+"
+"2","*** installing help indices
+"
+"2","*** copying figures
+"
+"2","** building package indices
+"
+"2","** installing vignettes
+"
+"2","** testing if installed package can be loaded from temporary location
+"
+"2","** testing if installed package can be loaded from final location
+"
+"2","** testing if installed package keeps a record of temporary installation path
+"
+"2","* DONE (confintr)
+"
+"2","* installing *source* package ‘lmodel2’ ...
+"
+"2","** package ‘lmodel2’ successfully unpacked and MD5 sums checked
+"
+"2","** using staged installation
+"
+"2","** R
+"
+"2","** data
+"
+"2","** inst
+"
+"2","** byte-compile and prepare package for lazy loading
+"
+"2","** help
+"
+"2","*** installing help indices
+"
+"2","** building package indices
+"
+"2","** installing vignettes
+"
+"2","** testing if installed package can be loaded from temporary location
+"
+"2","** testing if installed package can be loaded from final location
+"
+"2","** testing if installed package keeps a record of temporary installation path
+"
+"2","* DONE (lmodel2)
+"
+"2","* installing *source* package ‘splus2R’ ...
+"
+"2","** package ‘splus2R’ successfully unpacked and MD5 sums checked
+"
+"2","** using staged installation
+"
+"2","** libs
+"
+"2","using C compiler: ‘gcc (Ubuntu 13.2.0-23ubuntu4) 13.2.0’
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG       -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c cpeaks.c -o cpeaks.o
+"
+"1","gcc -I""/usr/share/R/include"" -DNDEBUG       -fpic  -g -O2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -ffile-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=. -fstack-protector-strong -fstack-clash-protection -Wformat -Werror=format-security -fcf-protection -fdebug-prefix-map=/build/r-base-EawLoD/r-base-4.4.1=/usr/src/r-base-4.4.1-1.2404.0 -Wdate-time -D_FORTIFY_SOURCE=3  -c init.c -o init.o
+"
+"1","gcc -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -flto=auto -ffat-lto-objects -Wl,-z,relro -o splus2R.so cpeaks.o init.o -L/usr/lib/R/lib -lR
+"
+"2","installing to /net/home/knenoff/R/04_Rlibrary/00LOCK-splus2R/00new/splus2R/libs
+"
+"2","** R
+"
+"2","** demo
+"
+"2","** inst
+"
+"2","** byte-compile and prepare package for lazy loading
+"
+"2","** help
+"
+"2","*** installing help indices
+"
+"2","** building package indices
+"
+"2","** testing if installed package can be loaded from temporary location
+"
+"2","** checking absolute paths in shared objects and dynamic libraries
+"
+"2","** testing if installed package can be loaded from final location
+"
+"2","** testing if installed package keeps a record of temporary installation path
+"
+"2","* DONE (splus2R)
+"
+"2","* installing *source* package ‘multcompView’ ...
+"
+"2","** package ‘multcompView’ successfully unpacked and MD5 sums checked
+"
+"2","** using staged installation
+"
+"2","** R
+"
+"2","** byte-compile and prepare package for lazy loading
+"
+"2","** help
+"
+"2","*** installing help indices
+"
+"2","** building package indices
+"
+"2","** testing if installed package can be loaded from temporary location
+"
+"2","** testing if installed package can be loaded from final location
+"
+"2","** testing if installed package keeps a record of temporary installation path
+"
+"2","* DONE (multcompView)
+"
+"2","* installing *source* package ‘ggpp’ ...
+"
+"2","** package ‘ggpp’ successfully unpacked and MD5 sums checked
+"
+"2","** using staged installation
+"
+"2","** R
+"
+"2","** data
+"
+"2","*** moving datasets to lazyload DB
+"
+"2","** inst
+"
+"2","** byte-compile and prepare package for lazy loading
+"
+"2","** help
+"
+"2","*** installing help indices
+"
+"2","*** copying figures
+"
+"2","** building package indices
+"
+"2","** installing vignettes
+"
+"2","** testing if installed package can be loaded from temporary location
+"
+"2","** testing if installed package can be loaded from final location
+"
+"2","** testing if installed package keeps a record of temporary installation path
+"
+"2","* DONE (ggpp)
+"
+"2","* installing *source* package ‘multcomp’ ...
+"
+"2","** package ‘multcomp’ successfully unpacked and MD5 sums checked
+"
+"2","** using staged installation
+"
+"2","** R
+"
+"2","** data
+"
+"2","*** moving datasets to lazyload DB
+"
+"2","** demo
+"
+"2","** inst
+"
+"2","** byte-compile and prepare package for lazy loading
+"
+"2","** help
+"
+"2","*** installing help indices
+"
+"2","** building package indices
+"
+"2","** installing vignettes
+"
+"2","** testing if installed package can be loaded from temporary location
+"
+"2","** testing if installed package can be loaded from final location
+"
+"2","** testing if installed package keeps a record of temporary installation path
+"
+"2","* DONE (multcomp)
+"
+"2","* installing *source* package ‘ggpmisc’ ...
+"
+"2","** package ‘ggpmisc’ successfully unpacked and MD5 sums checked
+"
+"2","** using staged installation
+"
+"2","** R
+"
+"2","** inst
+"
+"2","** byte-compile and prepare package for lazy loading
+"
+"2","** help
+"
+"2","*** installing help indices
+"
+"2","*** copying figures
+"
+"2","** building package indices
+"
+"2","** installing vignettes
+"
+"2","** testing if installed package can be loaded from temporary location
+"
+"2","** testing if installed package can be loaded from final location
+"
+"2","** testing if installed package keeps a record of temporary installation path
+"
+"2","* DONE (ggpmisc)
+"
+"2","
+"
+"2",""
+"2","The downloaded source packages are in
+	‘/tmp/RtmpUBWV3b/downloaded_packages’"
+"2",""
+"2","
+"
+"2","Loading required package: ggpp
+"
+"2","Registered S3 methods overwritten by 'ggpp':
+  method                  from   
+  heightDetails.titleGrob ggplot2
+  widthDetails.titleGrob  ggplot2
+"
+"2","
+Attaching package: ‘ggpp’
+
+"
+"2","The following objects are masked from ‘package:ggpubr’:
+
+    as_npc, as_npcx, as_npcy
+
+"
+"2","The following object is masked from ‘package:ggplot2’:
+
+    annotate
+
+"

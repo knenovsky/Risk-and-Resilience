@@ -1,0 +1,38 @@
+"0","Xgboostinput_raw<-Xgboostinput"
+"0","Label<-""p_value_mort"""
+"0","features<-colnames(Xgboostinput)[colnames(Xgboostinput) %in% wdi_series$`Indicator Code`]"
+"0","Xgboostinput_filtered<-Xgboostinput_raw %>%  select(features,Label)  %>% data.frame()%>% "
+"0","  drop_na() %>% scale() %>% "
+"0","  data.frame() %>% "
+"0","  cbind(""Country.Code""=Xgboostinput$`Country Code`, . ) "
+"2","Warning:"
+"2"," [38;5;236mUsing an external vector in selections was deprecated in tidyselect 1.1.0.
+[36mℹ[38;5;236m Please use `all_of()` or `any_of()` instead.
+  # Was:
+  data %>% select(features)
+
+  # Now:
+  data %>% select(all_of(features))
+
+See <https://tidyselect.r-lib.org/reference/faq-external-vector.html>.
+[90mThis warning is displayed once every 8 hours.[38;5;236m
+[90mCall `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.[38;5;236m[39m
+"
+"2","Warning:"
+"2"," [38;5;236mUsing an external vector in selections was deprecated in tidyselect 1.1.0.
+[36mℹ[38;5;236m Please use `all_of()` or `any_of()` instead.
+  # Was:
+  data %>% select(Label)
+
+  # Now:
+  data %>% select(all_of(Label))
+
+See <https://tidyselect.r-lib.org/reference/faq-external-vector.html>.
+[90mThis warning is displayed once every 8 hours.[38;5;236m
+[90mCall `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.[38;5;236m[39m
+"
+"0","wdi_rawData<-createXgboostData_tuned(numberofruns = run[1:1000],Xgboostinput_filtered =Xgboostinput_filtered,features = features,Label = Label )"
+"1","[1]"
+"1"," 496"
+"1","
+"

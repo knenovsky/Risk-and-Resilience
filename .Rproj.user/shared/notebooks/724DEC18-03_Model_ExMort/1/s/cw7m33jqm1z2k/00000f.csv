@@ -1,0 +1,23 @@
+"0","Xgboostinput_pc<-Xgboostinput_complete_pca %>% rename(""Country.Code""=`Country Code`)"
+"0",""
+"0","Label<-""p_value_mort"""
+"0","features<-Xgboostinput_pc %>% dplyr::select(-`Country.Code`,-p_value_mort) %>%  colnames()"
+"0","features<-features[!grepl(""xford"",features)]"
+"0",""
+"0",""
+"0",""
+"0","wdi_pc20Data<-createXgboostData_tuned(numberofruns = topruns$run,Xgboostinput_filtered =Xgboostinput_pc,features = features,Label = Label)"
+"1","[1]"
+"1"," 718"
+"1","
+"
+"0","wdi_pc20Data %>% #saveRDS(""../output/03_Xgboost_pca20_models"")"
+"0",""
+"0",""
+"0",""
+"0",""
+"2","Error: Incomplete expression: wdi_pc20Data %>% #saveRDS(""../output/03_Xgboost_pca20_models"")
+
+
+
+"

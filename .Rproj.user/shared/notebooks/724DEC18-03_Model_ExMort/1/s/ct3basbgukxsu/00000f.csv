@@ -1,0 +1,6 @@
+"0","threshold <- 0.75"
+"0",""
+"0","cor_matrix2<-cor_matrix%>% data.frame %>% filter(e.Isomap.1<threshold) %>% rownames() "
+"0",""
+"0","features_final<-cor_matrix2[!grepl(""PCA|Air|Cardiovasc"",cor_matrix2)]"
+"0",""

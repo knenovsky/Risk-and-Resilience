@@ -1,0 +1,11 @@
+"0","myvector<-c(""grey30"",""slategrey"",""steelblue"",""#7079BB"",""#B8509F"",""#73C9BC"", ""#C7D92D"",""#4EBA7C"",""orange"",""skyblue"")"
+"0",""
+"0","RMSE_decision<-performance_df %>%  "
+"0","  mutate(Class=case_when(  grepl(""^B"",ident)~""B: PCA"","
+"0","                           grepl(""^C"",ident)~""C: Isomap"", "
+"0","                           grepl(""^A"",ident)~""A: Baseline"",TRUE~""D: Others"""
+"0","                           )) %>% filter(!grepl(""D:"",ident)) %>% "
+"0","  ggplot(aes(x=RMSE),""black"")+geom_density(aes(fill=ident),alpha=0.5)+geom_vline(xintercept = median(wdi_rawData$Xgboost_summary$RMSE))+scale_fill_manual(values =myvector )+scale_color_manual(values =myvector )+xlab(""Root Mean Square Error"") + facet_wrap(~Class,ncol = 1)+"
+"0","    theme(strip.text.x = element_text(hjust = 0, margin=margin(l=0.1)))"
+"2","Error: object 'performance_df' not found
+"

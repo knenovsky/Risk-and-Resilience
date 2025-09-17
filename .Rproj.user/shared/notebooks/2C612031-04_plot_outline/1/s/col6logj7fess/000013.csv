@@ -1,0 +1,15 @@
+"0","testperthousendplot<-owid_who_worldbank_extraB %>%
+  filter(!is.na(`Income Group`)) %>%
+  ggplot(aes(x = incomegroup, y = log(test_per_thousend), fill = incomegroup)) +  # Change color to fill
+  geom_violin(color=""black"") +
+  default_fill_palette+  # Adjust color palette
+  default_color_palette_plotA+
+  theme(legend.position = ""asd"", axis.line = element_line(linetype = ""dotted"")) +
+ ylab("" %>% lity"") +
+  xlab(""Income Group"") +
+  geom_hline(yintercept = 0, color = ""grey30"") +
+  geom_jitter(aes(color = `Income Group`),alpha = 0.6) +
+  stat_kruskal_test(label = ""p = {p.format}"")
+"
+"2","Error: object 'default_fill_palette' not found
+"

@@ -1,0 +1,12 @@
+"0","# Train the model using caret with parallel processing
+xgb_caret_wdi_raw <- caret::train(
+  x = train_data %>% dplyr::select(features_iso),
+  y = train_data %>% pull(Label),
+  method = ""xgbTree"",
+  tuneGrid = param_grid,
+  trControl = custom_control,
+  verbosity = 1
+)
+"
+"2","Error in summary.connection(connection) : invalid connection
+"
