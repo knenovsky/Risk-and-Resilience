@@ -66,27 +66,47 @@ CLUSTER <- rep("localhost", 50)
 Sys.setenv(OPENBLAS_NUM_THREADS = 50)
 ```
 
-## Define Directory Paths
+## Define Directories
 ```{r}
 # Project directories
 DATA_DIR   <- "../data/01_data"
+INPUT_DIR <- "../data/input_data"
 FIGURE_DIR <- "../figures/01_figures"
 LIB_DIR    <- "../libraries"
+WDI_DIR   <- "../data/231103_WDI" # 
+EXMORT_DIR    <- "../data/230225_WHO_Excess_Mort/2022-03-25_covid-19_gem"
 
+```
+
+### Data paths
+
+
+```{r}
 # World Bank Indicators
-WDI_DIR           <- "../data/231103_WDI"
-wdi_series_path   <- file.path(WDI_DIR, "WDISeries.csv")
-wdi_data_path     <- file.path(WDI_DIR, "WDIData.csv")
-wdi_country_path  <- file.path(WDI_DIR, "WDICountry.csv")
-wdi_income_path   <- file.path(WDI_DIR, "CLASS.xlsx")  # World Bank classification (2023-11-03)
+wdi_series_path   <- file.path(WDI_DIR, "WDISeries.csv") #contains more information on the single indicators.
+wdi_data_path     <- file.path(WDI_DIR, "WDIData.csv") #contains the main data table.
+wdi_country_path  <- file.path(WDI_DIR, "WDICountry.csv") #contains more information on the countries and regions.
 
+```
+Download the WDI data at https://datacatalog.worldbank.org/dataset/world-development-indicators
+
+
+```{r}
 # Human Development Index
-HDI_data_path     <- file.path(DATA_DIR, "01_hdi_data.csv")
+HDI_data_path     <- file.path(INPUT_DIR, "01_hdi_data.csv")
+wdi_income_path   <- file.path(INPUT_DIR, "CLASS.xlsx")  # World Bank classification (2023-11-03)
+```
 
+
+
+```{r}
 # WHO Excess Mortality Data
-EXMORT_DIR        <- "../data/230225_WHO_Excess_Mort/2022-03-25_covid-19_gem"
-exmort_path       <- file.path(EXMORT_DIR, "WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx")
 
+exmort_path       <- file.path(EXMORT_DIR, "WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx")
+```
+
+
+```{r}
 # Custom scripts
 relative_indicators_path   <- file.path(DATA_DIR, "01_relative_indicators_2023_06.R")
 RELATIVE_INDICATORS_FILE_NAME <- "01_relative_indicators_2023_06.R"
