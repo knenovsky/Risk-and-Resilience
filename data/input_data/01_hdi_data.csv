@@ -1,0 +1,4889 @@
+Country,year,HDI,Country Code
+Afghanistan,1990,0.295,AFG
+Albania,1990,0.635,ALB
+Algeria,1990,0.577,DZA
+Andorra,1990,,AND
+Angola,1990,,AGO
+Antigua and Barbuda,1990,,ATG
+Argentina,1990,0.705,ARG
+Armenia,1990,0.634,ARM
+Australia,1990,0.866,AUS
+Austria,1990,0.794,AUT
+Azerbaijan,1990,,AZE
+Bahamas,1990,,BHS
+Bahrain,1990,0.745,BHR
+Bangladesh,1990,0.386,BGD
+Barbados,1990,0.714,BRB
+Belarus,1990,,BLR
+Belgium,1990,0.805,BEL
+Belize,1990,0.648,BLZ
+Benin,1990,0.345,BEN
+Bhutan,1990,,BTN
+Bolivia (Plurinational State of),1990,0.535,BOL
+Bosnia and Herzegovina,1990,,BIH
+Botswana,1990,0.585,BWA
+Brazil,1990,0.611,BRA
+Brunei Darussalam,1990,0.782,BRN
+Bulgaria,1990,0.7,BGR
+Burkina Faso,1990,,BFA
+Burundi,1990,0.27,BDI
+Cabo Verde,1990,,CPV
+Cambodia,1990,0.357,KHM
+Cameroon,1990,0.444,CMR
+Canada,1990,0.849,CAN
+Central African Republic,1990,0.32,CAF
+Chad,1990,,TCD
+Chile,1990,0.7,CHL
+China,1990,0.499,CHN
+Colombia,1990,0.592,COL
+Comoros,1990,,COM
+Congo,1990,0.521,COG
+Congo (Democratic Republic of the),1990,0.356,COD
+Costa Rica,1990,0.653,CRI
+Croatia,1990,0.669,HRV
+Cuba,1990,0.676,CUB
+Cyprus,1990,0.733,CYP
+Czech Republic,1990,0.761,CZE
+Cü¾†˜¼te d'Ivoire,1990,0.389,CIV
+Denmark,1990,0.799,DNK
+Djibouti,1990,,DJI
+Dominica,1990,,DMA
+Dominican Republic,1990,0.596,DOM
+Ecuador,1990,0.643,ECU
+Egypt,1990,0.547,EGY
+El Salvador,1990,0.529,SLV
+Equatorial Guinea,1990,,GNQ
+Eritrea,1990,,ERI
+Estonia,1990,0.728,EST
+Ethiopia,1990,,ETH
+Fiji,1990,0.641,FJI
+Finland,1990,0.783,FIN
+France,1990,0.779,FRA
+Gabon,1990,0.62,GAB
+Gambia,1990,0.33,GMB
+Georgia,1990,,GEO
+Germany,1990,0.801,DEU
+Ghana,1990,0.455,GHA
+Greece,1990,0.76,GRC
+Grenada,1990,,GRD
+Guatemala,1990,0.478,GTM
+Guinea,1990,0.271,GIN
+Guinea-Bissau,1990,,GNB
+Guyana,1990,0.541,GUY
+Haiti,1990,0.408,HTI
+Honduras,1990,0.507,HND
+"Hong Kong, China (SAR)",1990,0.781,HKG
+Hungary,1990,0.703,HUN
+Iceland,1990,0.797,ISL
+India,1990,0.428,IND
+Indonesia,1990,0.528,IDN
+Iran (Islamic Republic of),1990,0.572,IRN
+Iraq,1990,0.572,IRQ
+Ireland,1990,0.762,IRL
+Israel,1990,0.785,ISR
+Italy,1990,0.768,ITA
+Jamaica,1990,0.651,JAM
+Japan,1990,0.814,JPN
+Jordan,1990,0.62,JOR
+Kazakhstan,1990,0.69,KAZ
+Kenya,1990,0.473,KEN
+Kiribati,1990,,KIR
+Korea (Republic of),1990,0.731,KOR
+Kuwait,1990,0.713,KWT
+Kyrgyzstan,1990,0.615,KGZ
+Lao People's Democratic Republic,1990,0.397,LAO
+Latvia,1990,0.703,LVA
+Lebanon,1990,,LBN
+Lesotho,1990,0.493,LSO
+Liberia,1990,,LBR
+Libya,1990,0.681,LBY
+Liechtenstein,1990,,LIE
+Lithuania,1990,0.731,LTU
+Luxembourg,1990,0.782,LUX
+Madagascar,1990,,MDG
+Malawi,1990,0.325,MWI
+Malaysia,1990,0.643,MYS
+Maldives,1990,,MDV
+Mali,1990,0.222,MLI
+Malta,1990,0.736,MLT
+Mauritania,1990,0.378,MRT
+Mauritius,1990,0.62,MUS
+Mexico,1990,0.648,MEX
+Micronesia (Federated States of),1990,,FSM
+Moldova (Republic of),1990,0.652,MDA
+Mongolia,1990,0.579,MNG
+Montenegro,1990,,MNE
+Morocco,1990,0.458,MAR
+Mozambique,1990,0.209,MOZ
+Myanmar,1990,0.353,MMR
+Namibia,1990,0.578,NAM
+Nepal,1990,0.378,NPL
+Netherlands,1990,0.83,NLD
+New Zealand,1990,0.818,NZL
+Nicaragua,1990,0.495,NIC
+Niger,1990,0.212,NER
+Nigeria,1990,,NGA
+Norway,1990,0.849,NOR
+Oman,1990,,OMN
+Pakistan,1990,0.404,PAK
+Palau,1990,,PLW
+"Palestine, State of",1990,,
+Panama,1990,0.662,PAN
+Papua New Guinea,1990,0.36,PNG
+Paraguay,1990,0.58,PRY
+Peru,1990,0.613,PER
+Philippines,1990,0.586,PHL
+Poland,1990,0.712,POL
+Portugal,1990,0.711,PRT
+Qatar,1990,0.754,QAT
+Romania,1990,0.7,ROU
+Russian Federation,1990,0.733,RUS
+Rwanda,1990,0.244,RWA
+Saint Kitts and Nevis,1990,,KNA
+Saint Lucia,1990,,LCA
+Saint Vincent and the Grenadines,1990,,VCT
+Samoa,1990,0.598,WSM
+Sao Tome and Principe,1990,0.454,STP
+Saudi Arabia,1990,0.698,SAU
+Senegal,1990,0.367,SEN
+Serbia,1990,0.714,SRB
+Seychelles,1990,,SYC
+Sierra Leone,1990,0.272,SLE
+Singapore,1990,0.718,SGP
+Slovakia,1990,0.738,SVK
+Slovenia,1990,0.767,SVN
+Solomon Islands,1990,,SLB
+South Africa,1990,0.621,ZAF
+South Sudan,1990,,SSD
+Spain,1990,0.755,ESP
+Sri Lanka,1990,0.626,LKA
+Sudan,1990,0.331,SDN
+Suriname,1990,,SUR
+Swaziland,1990,0.548,
+Sweden,1990,0.815,SWE
+Switzerland,1990,0.831,CHE
+Syrian Arab Republic,1990,0.556,SYR
+Tajikistan,1990,0.616,TJK
+Tanzania (United Republic of),1990,0.37,TZA
+Thailand,1990,0.574,THA
+The former Yugoslav Republic of Macedonia,1990,,MKD
+Timor-Leste,1990,,TLS
+Togo,1990,0.404,TGO
+Tonga,1990,0.648,TON
+Trinidad and Tobago,1990,0.67,TTO
+Tunisia,1990,0.569,TUN
+Turkey,1990,0.576,
+Turkmenistan,1990,,TKM
+Uganda,1990,0.309,UGA
+Ukraine,1990,0.706,UKR
+United Arab Emirates,1990,0.726,ARE
+United Kingdom,1990,0.775,GBR
+United States,1990,0.86,USA
+Uruguay,1990,0.692,URY
+Uzbekistan,1990,,UZB
+Vanuatu,1990,,VUT
+Venezuela (Bolivarian Republic of),1990,0.634,VEN
+Viet Nam,1990,0.477,VNM
+Yemen,1990,0.405,YEM
+Zambia,1990,0.398,ZMB
+Zimbabwe,1990,0.499,ZWE
+Afghanistan,1991,0.3,AFG
+Albania,1991,0.618,ALB
+Algeria,1991,0.581,DZA
+Andorra,1991,,AND
+Angola,1991,,AGO
+Antigua and Barbuda,1991,,ATG
+Argentina,1991,0.713,ARG
+Armenia,1991,0.628,ARM
+Australia,1991,0.867,AUS
+Austria,1991,0.798,AUT
+Azerbaijan,1991,,AZE
+Bahamas,1991,,BHS
+Bahrain,1991,0.751,BHR
+Bangladesh,1991,0.393,BGD
+Barbados,1991,0.716,BRB
+Belarus,1991,,BLR
+Belgium,1991,0.809,BEL
+Belize,1991,0.651,BLZ
+Benin,1991,0.351,BEN
+Bhutan,1991,,BTN
+Bolivia (Plurinational State of),1991,0.543,BOL
+Bosnia and Herzegovina,1991,,BIH
+Botswana,1991,0.592,BWA
+Brazil,1991,0.615,BRA
+Brunei Darussalam,1991,0.787,BRN
+Bulgaria,1991,0.696,BGR
+Burkina Faso,1991,,BFA
+Burundi,1991,0.273,BDI
+Cabo Verde,1991,,CPV
+Cambodia,1991,0.362,KHM
+Cameroon,1991,0.442,CMR
+Canada,1991,0.853,CAN
+Central African Republic,1991,0.314,CAF
+Chad,1991,,TCD
+Chile,1991,0.71,CHL
+China,1991,0.507,CHN
+Colombia,1991,0.595,COL
+Comoros,1991,,COM
+Congo,1991,0.519,COG
+Congo (Democratic Republic of the),1991,0.352,COD
+Costa Rica,1991,0.658,CRI
+Croatia,1991,0.664,HRV
+Cuba,1991,0.67,CUB
+Cyprus,1991,0.736,CYP
+Czech Republic,1991,0.759,CZE
+Cü¾†˜¼te d'Ivoire,1991,0.388,CIV
+Denmark,1991,0.803,DNK
+Djibouti,1991,,DJI
+Dominica,1991,,DMA
+Dominican Republic,1991,0.601,DOM
+Ecuador,1991,0.646,ECU
+Egypt,1991,0.551,EGY
+El Salvador,1991,0.534,SLV
+Equatorial Guinea,1991,,GNQ
+Eritrea,1991,,ERI
+Estonia,1991,0.723,EST
+Ethiopia,1991,,ETH
+Fiji,1991,0.649,FJI
+Finland,1991,0.786,FIN
+France,1991,0.788,FRA
+Gabon,1991,0.625,GAB
+Gambia,1991,0.336,GMB
+Georgia,1991,,GEO
+Germany,1991,0.809,DEU
+Ghana,1991,0.46,GHA
+Greece,1991,0.77,GRC
+Grenada,1991,,GRD
+Guatemala,1991,0.484,GTM
+Guinea,1991,0.275,GIN
+Guinea-Bissau,1991,,GNB
+Guyana,1991,0.537,GUY
+Haiti,1991,0.408,HTI
+Honduras,1991,0.509,HND
+"Hong Kong, China (SAR)",1991,0.786,HKG
+Hungary,1991,0.701,HUN
+Iceland,1991,0.809,ISL
+India,1991,0.432,IND
+Indonesia,1991,0.528,IDN
+Iran (Islamic Republic of),1991,0.59,IRN
+Iraq,1991,0.527,IRQ
+Ireland,1991,0.766,IRL
+Israel,1991,0.794,ISR
+Italy,1991,0.773,ITA
+Jamaica,1991,0.656,JAM
+Japan,1991,0.819,JPN
+Jordan,1991,0.63,JOR
+Kazakhstan,1991,0.684,KAZ
+Kenya,1991,0.471,KEN
+Kiribati,1991,,KIR
+Korea (Republic of),1991,0.741,KOR
+Kuwait,1991,0.673,KWT
+Kyrgyzstan,1991,0.609,KGZ
+Lao People's Democratic Republic,1991,0.402,LAO
+Latvia,1991,0.699,LVA
+Lebanon,1991,,LBN
+Lesotho,1991,0.493,LSO
+Liberia,1991,,LBR
+Libya,1991,0.693,LBY
+Liechtenstein,1991,,LIE
+Lithuania,1991,0.727,LTU
+Luxembourg,1991,0.79,LUX
+Madagascar,1991,,MDG
+Malawi,1991,0.331,MWI
+Malaysia,1991,0.651,MYS
+Maldives,1991,,MDV
+Mali,1991,0.229,MLI
+Malta,1991,0.741,MLT
+Mauritania,1991,0.382,MRT
+Mauritius,1991,0.626,MUS
+Mexico,1991,0.652,MEX
+Micronesia (Federated States of),1991,,FSM
+Moldova (Republic of),1991,0.641,MDA
+Mongolia,1991,0.573,MNG
+Montenegro,1991,,MNE
+Morocco,1991,0.464,MAR
+Mozambique,1991,0.212,MOZ
+Myanmar,1991,0.361,MMR
+Namibia,1991,0.581,NAM
+Nepal,1991,0.386,NPL
+Netherlands,1991,0.835,NLD
+New Zealand,1991,0.82,NZL
+Nicaragua,1991,0.495,NIC
+Niger,1991,0.215,NER
+Nigeria,1991,,NGA
+Norway,1991,0.855,NOR
+Oman,1991,,OMN
+Pakistan,1991,0.409,PAK
+Palau,1991,,PLW
+"Palestine, State of",1991,,
+Panama,1991,0.669,PAN
+Papua New Guinea,1991,0.368,PNG
+Paraguay,1991,0.585,PRY
+Peru,1991,0.616,PER
+Philippines,1991,0.587,PHL
+Poland,1991,0.709,POL
+Portugal,1991,0.72,PRT
+Qatar,1991,0.751,QAT
+Romania,1991,0.685,ROU
+Russian Federation,1991,0.729,RUS
+Rwanda,1991,0.22,RWA
+Saint Kitts and Nevis,1991,,KNA
+Saint Lucia,1991,,LCA
+Saint Vincent and the Grenadines,1991,,VCT
+Samoa,1991,0.601,WSM
+Sao Tome and Principe,1991,0.457,STP
+Saudi Arabia,1991,0.707,SAU
+Senegal,1991,0.366,SEN
+Serbia,1991,0.713,SRB
+Seychelles,1991,,SYC
+Sierra Leone,1991,0.267,SLE
+Singapore,1991,0.729,SGP
+Slovakia,1991,0.733,SVK
+Slovenia,1991,0.764,SVN
+Solomon Islands,1991,,SLB
+South Africa,1991,0.629,ZAF
+South Sudan,1991,,SSD
+Spain,1991,0.764,ESP
+Sri Lanka,1991,0.631,LKA
+Sudan,1991,0.337,SDN
+Suriname,1991,,SUR
+Swaziland,1991,0.55,
+Sweden,1991,0.817,SWE
+Switzerland,1991,0.833,CHE
+Syrian Arab Republic,1991,0.56,SYR
+Tajikistan,1991,0.611,TJK
+Tanzania (United Republic of),1991,0.37,TZA
+Thailand,1991,0.583,THA
+The former Yugoslav Republic of Macedonia,1991,,MKD
+Timor-Leste,1991,,TLS
+Togo,1991,0.407,TGO
+Tonga,1991,0.654,TON
+Trinidad and Tobago,1991,0.671,TTO
+Tunisia,1991,0.575,TUN
+Turkey,1991,0.58,
+Turkmenistan,1991,,TKM
+Uganda,1991,0.31,UGA
+Ukraine,1991,0.701,UKR
+United Arab Emirates,1991,0.738,ARE
+United Kingdom,1991,0.787,GBR
+United States,1991,0.861,USA
+Uruguay,1991,0.697,URY
+Uzbekistan,1991,,UZB
+Vanuatu,1991,,VUT
+Venezuela (Bolivarian Republic of),1991,0.644,VEN
+Viet Nam,1991,0.486,VNM
+Yemen,1991,0.408,YEM
+Zambia,1991,0.396,ZMB
+Zimbabwe,1991,0.501,ZWE
+Afghanistan,1992,0.309,AFG
+Albania,1992,0.603,ALB
+Algeria,1992,0.587,DZA
+Andorra,1992,,AND
+Angola,1992,,AGO
+Antigua and Barbuda,1992,,ATG
+Argentina,1992,0.72,ARG
+Armenia,1992,0.595,ARM
+Australia,1992,0.871,AUS
+Austria,1992,0.804,AUT
+Azerbaijan,1992,,AZE
+Bahamas,1992,,BHS
+Bahrain,1992,0.757,BHR
+Bangladesh,1992,0.4,BGD
+Barbados,1992,0.716,BRB
+Belarus,1992,,BLR
+Belgium,1992,0.824,BEL
+Belize,1992,0.655,BLZ
+Benin,1992,0.355,BEN
+Bhutan,1992,,BTN
+Bolivia (Plurinational State of),1992,0.549,BOL
+Bosnia and Herzegovina,1992,,BIH
+Botswana,1992,0.59,BWA
+Brazil,1992,0.622,BRA
+Brunei Darussalam,1992,0.792,BRN
+Bulgaria,1992,0.696,BGR
+Burkina Faso,1992,,BFA
+Burundi,1992,0.271,BDI
+Cabo Verde,1992,,CPV
+Cambodia,1992,0.366,KHM
+Cameroon,1992,0.44,CMR
+Canada,1992,0.855,CAN
+Central African Republic,1992,0.302,CAF
+Chad,1992,,TCD
+Chile,1992,0.718,CHL
+China,1992,0.518,CHN
+Colombia,1992,0.606,COL
+Comoros,1992,,COM
+Congo,1992,0.518,COG
+Congo (Democratic Republic of the),1992,0.346,COD
+Costa Rica,1992,0.667,CRI
+Croatia,1992,0.663,HRV
+Cuba,1992,0.663,CUB
+Cyprus,1992,0.741,CYP
+Czech Republic,1992,0.761,CZE
+Cü¾†˜¼te d'Ivoire,1992,0.388,CIV
+Denmark,1992,0.808,DNK
+Djibouti,1992,,DJI
+Dominica,1992,,DMA
+Dominican Republic,1992,0.61,DOM
+Ecuador,1992,0.65,ECU
+Egypt,1992,0.557,EGY
+El Salvador,1992,0.546,SLV
+Equatorial Guinea,1992,,GNQ
+Eritrea,1992,,ERI
+Estonia,1992,0.715,EST
+Ethiopia,1992,,ETH
+Fiji,1992,0.653,FJI
+Finland,1992,0.794,FIN
+France,1992,0.798,FRA
+Gabon,1992,0.625,GAB
+Gambia,1992,0.34,GMB
+Georgia,1992,,GEO
+Germany,1992,0.814,DEU
+Ghana,1992,0.464,GHA
+Greece,1992,0.771,GRC
+Grenada,1992,,GRD
+Guatemala,1992,0.49,GTM
+Guinea,1992,0.278,GIN
+Guinea-Bissau,1992,,GNB
+Guyana,1992,0.552,GUY
+Haiti,1992,0.405,HTI
+Honduras,1992,0.514,HND
+"Hong Kong, China (SAR)",1992,0.791,HKG
+Hungary,1992,0.706,HUN
+Iceland,1992,0.812,ISL
+India,1992,0.439,IND
+Indonesia,1992,0.534,IDN
+Iran (Islamic Republic of),1992,0.603,IRN
+Iraq,1992,0.541,IRQ
+Ireland,1992,0.772,IRL
+Israel,1992,0.801,ISR
+Italy,1992,0.779,ITA
+Jamaica,1992,0.658,JAM
+Japan,1992,0.822,JPN
+Jordan,1992,0.651,JOR
+Kazakhstan,1992,0.682,KAZ
+Kenya,1992,0.468,KEN
+Kiribati,1992,,KIR
+Korea (Republic of),1992,0.749,KOR
+Kuwait,1992,0.666,KWT
+Kyrgyzstan,1992,0.599,KGZ
+Lao People's Democratic Republic,1992,0.408,LAO
+Latvia,1992,0.678,LVA
+Lebanon,1992,,LBN
+Lesotho,1992,0.493,LSO
+Liberia,1992,,LBR
+Libya,1992,0.697,LBY
+Liechtenstein,1992,,LIE
+Lithuania,1992,0.711,LTU
+Luxembourg,1992,0.795,LUX
+Madagascar,1992,,MDG
+Malawi,1992,0.338,MWI
+Malaysia,1992,0.66,MYS
+Maldives,1992,,MDV
+Mali,1992,0.233,MLI
+Malta,1992,0.746,MLT
+Mauritania,1992,0.391,MRT
+Mauritius,1992,0.633,MUS
+Mexico,1992,0.656,MEX
+Micronesia (Federated States of),1992,,FSM
+Moldova (Republic of),1992,0.621,MDA
+Mongolia,1992,0.561,MNG
+Montenegro,1992,,MNE
+Morocco,1992,0.468,MAR
+Mozambique,1992,0.208,MOZ
+Myanmar,1992,0.375,MMR
+Namibia,1992,0.586,NAM
+Nepal,1992,0.394,NPL
+Netherlands,1992,0.836,NLD
+New Zealand,1992,0.825,NZL
+Nicaragua,1992,0.498,NIC
+Niger,1992,0.218,NER
+Nigeria,1992,,NGA
+Norway,1992,0.862,NOR
+Oman,1992,,OMN
+Pakistan,1992,0.415,PAK
+Palau,1992,,PLW
+"Palestine, State of",1992,,
+Panama,1992,0.676,PAN
+Papua New Guinea,1992,0.378,PNG
+Paraguay,1992,0.589,PRY
+Peru,1992,0.616,PER
+Philippines,1992,0.589,PHL
+Poland,1992,0.713,POL
+Portugal,1992,0.731,PRT
+Qatar,1992,0.752,QAT
+Romania,1992,0.677,ROU
+Russian Federation,1992,0.718,RUS
+Rwanda,1992,0.206,RWA
+Saint Kitts and Nevis,1992,,KNA
+Saint Lucia,1992,,LCA
+Saint Vincent and the Grenadines,1992,,VCT
+Samoa,1992,0.604,WSM
+Sao Tome and Principe,1992,0.46,STP
+Saudi Arabia,1992,0.712,SAU
+Senegal,1992,0.367,SEN
+Serbia,1992,0.7,SRB
+Seychelles,1992,,SYC
+Sierra Leone,1992,0.262,SLE
+Singapore,1992,0.74,SGP
+Slovakia,1992,0.732,SVK
+Slovenia,1992,0.766,SVN
+Solomon Islands,1992,,SLB
+South Africa,1992,0.638,ZAF
+South Sudan,1992,,SSD
+Spain,1992,0.772,ESP
+Sri Lanka,1992,0.636,LKA
+Sudan,1992,0.345,SDN
+Suriname,1992,,SUR
+Swaziland,1992,0.551,
+Sweden,1992,0.82,SWE
+Switzerland,1992,0.835,CHE
+Syrian Arab Republic,1992,0.566,SYR
+Tajikistan,1992,0.589,TJK
+Tanzania (United Republic of),1992,0.368,TZA
+Thailand,1992,0.59,THA
+The former Yugoslav Republic of Macedonia,1992,,MKD
+Timor-Leste,1992,,TLS
+Togo,1992,0.399,TGO
+Tonga,1992,0.657,TON
+Trinidad and Tobago,1992,0.671,TTO
+Tunisia,1992,0.583,TUN
+Turkey,1992,0.586,
+Turkmenistan,1992,,TKM
+Uganda,1992,0.303,UGA
+Ukraine,1992,0.693,UKR
+United Arab Emirates,1992,0.742,ARE
+United Kingdom,1992,0.8,GBR
+United States,1992,0.866,USA
+Uruguay,1992,0.7,URY
+Uzbekistan,1992,,UZB
+Vanuatu,1992,,VUT
+Venezuela (Bolivarian Republic of),1992,0.65,VEN
+Viet Nam,1992,0.498,VNM
+Yemen,1992,0.412,YEM
+Zambia,1992,0.397,ZMB
+Zimbabwe,1992,0.486,ZWE
+Afghanistan,1993,0.305,AFG
+Albania,1993,0.608,ALB
+Algeria,1993,0.591,DZA
+Andorra,1993,,AND
+Angola,1993,,AGO
+Antigua and Barbuda,1993,,ATG
+Argentina,1993,0.725,ARG
+Armenia,1993,0.593,ARM
+Australia,1993,0.874,AUS
+Austria,1993,0.806,AUT
+Azerbaijan,1993,,AZE
+Bahamas,1993,,BHS
+Bahrain,1993,0.765,BHR
+Bangladesh,1993,0.408,BGD
+Barbados,1993,0.72,BRB
+Belarus,1993,,BLR
+Belgium,1993,0.838,BEL
+Belize,1993,0.656,BLZ
+Benin,1993,0.361,BEN
+Bhutan,1993,,BTN
+Bolivia (Plurinational State of),1993,0.556,BOL
+Bosnia and Herzegovina,1993,,BIH
+Botswana,1993,0.587,BWA
+Brazil,1993,0.631,BRA
+Brunei Darussalam,1993,0.797,BRN
+Bulgaria,1993,0.696,BGR
+Burkina Faso,1993,,BFA
+Burundi,1993,0.271,BDI
+Cabo Verde,1993,,CPV
+Cambodia,1993,0.368,KHM
+Cameroon,1993,0.437,CMR
+Canada,1993,0.854,CAN
+Central African Republic,1993,0.302,CAF
+Chad,1993,,TCD
+Chile,1993,0.713,CHL
+China,1993,0.528,CHN
+Colombia,1993,0.613,COL
+Comoros,1993,,COM
+Congo,1993,0.513,COG
+Congo (Democratic Republic of the),1993,0.339,COD
+Costa Rica,1993,0.673,CRI
+Croatia,1993,0.666,HRV
+Cuba,1993,0.656,CUB
+Cyprus,1993,0.778,CYP
+Czech Republic,1993,0.767,CZE
+Cü¾†˜¼te d'Ivoire,1993,0.387,CIV
+Denmark,1993,0.815,DNK
+Djibouti,1993,,DJI
+Dominica,1993,,DMA
+Dominican Republic,1993,0.617,DOM
+Ecuador,1993,0.654,ECU
+Egypt,1993,0.563,EGY
+El Salvador,1993,0.557,SLV
+Equatorial Guinea,1993,,GNQ
+Eritrea,1993,,ERI
+Estonia,1993,0.708,EST
+Ethiopia,1993,,ETH
+Fiji,1993,0.658,FJI
+Finland,1993,0.798,FIN
+France,1993,0.803,FRA
+Gabon,1993,0.628,GAB
+Gambia,1993,0.345,GMB
+Georgia,1993,,GEO
+Germany,1993,0.822,DEU
+Ghana,1993,0.468,GHA
+Greece,1993,0.769,GRC
+Grenada,1993,,GRD
+Guatemala,1993,0.495,GTM
+Guinea,1993,0.282,GIN
+Guinea-Bissau,1993,,GNB
+Guyana,1993,0.566,GUY
+Haiti,1993,0.413,HTI
+Honduras,1993,0.522,HND
+"Hong Kong, China (SAR)",1993,0.799,HKG
+Hungary,1993,0.719,HUN
+Iceland,1993,0.812,ISL
+India,1993,0.445,IND
+Indonesia,1993,0.545,IDN
+Iran (Islamic Republic of),1993,0.614,IRN
+Iraq,1993,0.561,IRQ
+Ireland,1993,0.78,IRL
+Israel,1993,0.806,ISR
+Italy,1993,0.784,ITA
+Jamaica,1993,0.667,JAM
+Japan,1993,0.828,JPN
+Jordan,1993,0.662,JOR
+Kazakhstan,1993,0.676,KAZ
+Kenya,1993,0.463,KEN
+Kiribati,1993,,KIR
+Korea (Republic of),1993,0.759,KOR
+Kuwait,1993,0.695,KWT
+Kyrgyzstan,1993,0.586,KGZ
+Lao People's Democratic Republic,1993,0.414,LAO
+Latvia,1993,0.668,LVA
+Lebanon,1993,,LBN
+Lesotho,1993,0.487,LSO
+Liberia,1993,,LBR
+Libya,1993,0.7,LBY
+Liechtenstein,1993,,LIE
+Lithuania,1993,0.7,LTU
+Luxembourg,1993,0.799,LUX
+Madagascar,1993,,MDG
+Malawi,1993,0.346,MWI
+Malaysia,1993,0.667,MYS
+Maldives,1993,,MDV
+Mali,1993,0.24,MLI
+Malta,1993,0.75,MLT
+Mauritania,1993,0.403,MRT
+Mauritius,1993,0.638,MUS
+Mexico,1993,0.662,MEX
+Micronesia (Federated States of),1993,,FSM
+Moldova (Republic of),1993,0.619,MDA
+Mongolia,1993,0.546,MNG
+Montenegro,1993,,MNE
+Morocco,1993,0.474,MAR
+Mozambique,1993,0.215,MOZ
+Myanmar,1993,0.381,MMR
+Namibia,1993,0.588,NAM
+Nepal,1993,0.398,NPL
+Netherlands,1993,0.84,NLD
+New Zealand,1993,0.836,NZL
+Nicaragua,1993,0.503,NIC
+Niger,1993,0.222,NER
+Nigeria,1993,,NGA
+Norway,1993,0.87,NOR
+Oman,1993,,OMN
+Pakistan,1993,0.418,PAK
+Palau,1993,,PLW
+"Palestine, State of",1993,,
+Panama,1993,0.682,PAN
+Papua New Guinea,1993,0.389,PNG
+Paraguay,1993,0.596,PRY
+Peru,1993,0.621,PER
+Philippines,1993,0.591,PHL
+Poland,1993,0.723,POL
+Portugal,1993,0.745,PRT
+Qatar,1993,0.763,QAT
+Romania,1993,0.677,ROU
+Russian Federation,1993,0.71,RUS
+Rwanda,1993,0.203,RWA
+Saint Kitts and Nevis,1993,,KNA
+Saint Lucia,1993,,LCA
+Saint Vincent and the Grenadines,1993,,VCT
+Samoa,1993,0.61,WSM
+Sao Tome and Principe,1993,0.464,STP
+Saudi Arabia,1993,0.715,SAU
+Senegal,1993,0.365,SEN
+Serbia,1993,0.684,SRB
+Seychelles,1993,,SYC
+Sierra Leone,1993,0.265,SLE
+Singapore,1993,0.751,SGP
+Slovakia,1993,0.736,SVK
+Slovenia,1993,0.768,SVN
+Solomon Islands,1993,,SLB
+South Africa,1993,0.645,ZAF
+South Sudan,1993,,SSD
+Spain,1993,0.783,ESP
+Sri Lanka,1993,0.638,LKA
+Sudan,1993,0.352,SDN
+Suriname,1993,,SUR
+Swaziland,1993,0.549,
+Sweden,1993,0.839,SWE
+Switzerland,1993,0.84,CHE
+Syrian Arab Republic,1993,0.569,SYR
+Tajikistan,1993,0.571,TJK
+Tanzania (United Republic of),1993,0.368,TZA
+Thailand,1993,0.598,THA
+The former Yugoslav Republic of Macedonia,1993,,MKD
+Timor-Leste,1993,,TLS
+Togo,1993,0.389,TGO
+Tonga,1993,0.661,TON
+Trinidad and Tobago,1993,0.673,TTO
+Tunisia,1993,0.59,TUN
+Turkey,1993,0.594,
+Turkmenistan,1993,,TKM
+Uganda,1993,0.311,UGA
+Ukraine,1993,0.682,UKR
+United Arab Emirates,1993,0.748,ARE
+United Kingdom,1993,0.813,GBR
+United States,1993,0.871,USA
+Uruguay,1993,0.703,URY
+Uzbekistan,1993,,UZB
+Vanuatu,1993,,VUT
+Venezuela (Bolivarian Republic of),1993,0.653,VEN
+Viet Nam,1993,0.508,VNM
+Yemen,1993,0.414,YEM
+Zambia,1993,0.402,ZMB
+Zimbabwe,1993,0.479,ZWE
+Afghanistan,1994,0.3,AFG
+Albania,1994,0.616,ALB
+Algeria,1994,0.595,DZA
+Andorra,1994,,AND
+Angola,1994,,AGO
+Antigua and Barbuda,1994,,ATG
+Argentina,1994,0.728,ARG
+Armenia,1994,0.597,ARM
+Australia,1994,0.876,AUS
+Austria,1994,0.812,AUT
+Azerbaijan,1994,,AZE
+Bahamas,1994,,BHS
+Bahrain,1994,0.768,BHR
+Bangladesh,1994,0.415,BGD
+Barbados,1994,0.725,BRB
+Belarus,1994,,BLR
+Belgium,1994,0.844,BEL
+Belize,1994,0.66,BLZ
+Benin,1994,0.365,BEN
+Bhutan,1994,,BTN
+Bolivia (Plurinational State of),1994,0.564,BOL
+Bosnia and Herzegovina,1994,,BIH
+Botswana,1994,0.581,BWA
+Brazil,1994,0.64,BRA
+Brunei Darussalam,1994,0.801,BRN
+Bulgaria,1994,0.697,BGR
+Burkina Faso,1994,,BFA
+Burundi,1994,0.27,BDI
+Cabo Verde,1994,,CPV
+Cambodia,1994,0.377,KHM
+Cameroon,1994,0.435,CMR
+Canada,1994,0.858,CAN
+Central African Republic,1994,0.304,CAF
+Chad,1994,,TCD
+Chile,1994,0.719,CHL
+China,1994,0.538,CHN
+Colombia,1994,0.62,COL
+Comoros,1994,,COM
+Congo,1994,0.505,COG
+Congo (Democratic Republic of the),1994,0.333,COD
+Costa Rica,1994,0.679,CRI
+Croatia,1994,0.68,HRV
+Cuba,1994,0.652,CUB
+Cyprus,1994,0.782,CYP
+Czech Republic,1994,0.776,CZE
+Cü¾†˜¼te d'Ivoire,1994,0.387,CIV
+Denmark,1994,0.823,DNK
+Djibouti,1994,,DJI
+Dominica,1994,,DMA
+Dominican Republic,1994,0.622,DOM
+Ecuador,1994,0.658,ECU
+Egypt,1994,0.57,EGY
+El Salvador,1994,0.567,SLV
+Equatorial Guinea,1994,,GNQ
+Eritrea,1994,,ERI
+Estonia,1994,0.712,EST
+Ethiopia,1994,,ETH
+Fiji,1994,0.664,FJI
+Finland,1994,0.808,FIN
+France,1994,0.818,FRA
+Gabon,1994,0.631,GAB
+Gambia,1994,0.348,GMB
+Georgia,1994,,GEO
+Germany,1994,0.828,DEU
+Ghana,1994,0.47,GHA
+Greece,1994,0.772,GRC
+Grenada,1994,,GRD
+Guatemala,1994,0.5,GTM
+Guinea,1994,0.286,GIN
+Guinea-Bissau,1994,,GNB
+Guyana,1994,0.576,GUY
+Haiti,1994,0.416,HTI
+Honduras,1994,0.525,HND
+"Hong Kong, China (SAR)",1994,0.804,HKG
+Hungary,1994,0.733,HUN
+Iceland,1994,0.818,ISL
+India,1994,0.453,IND
+Indonesia,1994,0.554,IDN
+Iran (Islamic Republic of),1994,0.623,IRN
+Iraq,1994,0.561,IRQ
+Ireland,1994,0.788,IRL
+Israel,1994,0.811,ISR
+Italy,1994,0.793,ITA
+Jamaica,1994,0.669,JAM
+Japan,1994,0.834,JPN
+Jordan,1994,0.673,JOR
+Kazakhstan,1994,0.668,KAZ
+Kenya,1994,0.46,KEN
+Kiribati,1994,,KIR
+Korea (Republic of),1994,0.77,KOR
+Kuwait,1994,0.721,KWT
+Kyrgyzstan,1994,0.568,KGZ
+Lao People's Democratic Republic,1994,0.423,LAO
+Latvia,1994,0.668,LVA
+Lebanon,1994,,LBN
+Lesotho,1994,0.489,LSO
+Liberia,1994,,LBR
+Libya,1994,0.705,LBY
+Liechtenstein,1994,,LIE
+Lithuania,1994,0.696,LTU
+Luxembourg,1994,0.803,LUX
+Madagascar,1994,,MDG
+Malawi,1994,0.347,MWI
+Malaysia,1994,0.675,MYS
+Maldives,1994,,MDV
+Mali,1994,0.247,MLI
+Malta,1994,0.754,MLT
+Mauritania,1994,0.415,MRT
+Mauritius,1994,0.643,MUS
+Mexico,1994,0.668,MEX
+Micronesia (Federated States of),1994,,FSM
+Moldova (Republic of),1994,0.596,MDA
+Mongolia,1994,0.549,MNG
+Montenegro,1994,,MNE
+Morocco,1994,0.485,MAR
+Mozambique,1994,0.222,MOZ
+Myanmar,1994,0.388,MMR
+Namibia,1994,0.59,NAM
+Nepal,1994,0.405,NPL
+Netherlands,1994,0.865,NLD
+New Zealand,1994,0.845,NZL
+Nicaragua,1994,0.515,NIC
+Niger,1994,0.226,NER
+Nigeria,1994,,NGA
+Norway,1994,0.884,NOR
+Oman,1994,,OMN
+Pakistan,1994,0.423,PAK
+Palau,1994,,PLW
+"Palestine, State of",1994,,
+Panama,1994,0.685,PAN
+Papua New Guinea,1994,0.39,PNG
+Paraguay,1994,0.6,PRY
+Peru,1994,0.632,PER
+Philippines,1994,0.594,PHL
+Poland,1994,0.732,POL
+Portugal,1994,0.752,PRT
+Qatar,1994,0.775,QAT
+Romania,1994,0.68,ROU
+Russian Federation,1994,0.701,RUS
+Rwanda,1994,0.194,RWA
+Saint Kitts and Nevis,1994,,KNA
+Saint Lucia,1994,,LCA
+Saint Vincent and the Grenadines,1994,,VCT
+Samoa,1994,0.612,WSM
+Sao Tome and Principe,1994,0.468,STP
+Saudi Arabia,1994,0.718,SAU
+Senegal,1994,0.365,SEN
+Serbia,1994,0.688,SRB
+Seychelles,1994,,SYC
+Sierra Leone,1994,0.268,SLE
+Singapore,1994,0.763,SGP
+Slovakia,1994,0.742,SVK
+Slovenia,1994,0.775,SVN
+Solomon Islands,1994,,SLB
+South Africa,1994,0.652,ZAF
+South Sudan,1994,,SSD
+Spain,1994,0.792,ESP
+Sri Lanka,1994,0.646,LKA
+Sudan,1994,0.358,SDN
+Suriname,1994,,SUR
+Swaziland,1994,0.544,
+Sweden,1994,0.848,SWE
+Switzerland,1994,0.842,CHE
+Syrian Arab Republic,1994,0.574,SYR
+Tajikistan,1994,0.549,TJK
+Tanzania (United Republic of),1994,0.367,TZA
+Thailand,1994,0.604,THA
+The former Yugoslav Republic of Macedonia,1994,,MKD
+Timor-Leste,1994,,TLS
+Togo,1994,0.395,TGO
+Tonga,1994,0.667,TON
+Trinidad and Tobago,1994,0.677,TTO
+Tunisia,1994,0.6,TUN
+Turkey,1994,0.596,
+Turkmenistan,1994,,TKM
+Uganda,1994,0.314,UGA
+Ukraine,1994,0.668,UKR
+United Arab Emirates,1994,0.756,ARE
+United Kingdom,1994,0.826,GBR
+United States,1994,0.874,USA
+Uruguay,1994,0.709,URY
+Uzbekistan,1994,,UZB
+Vanuatu,1994,,VUT
+Venezuela (Bolivarian Republic of),1994,0.654,VEN
+Viet Nam,1994,0.519,VNM
+Yemen,1994,0.418,YEM
+Zambia,1994,0.401,ZMB
+Zimbabwe,1994,0.475,ZWE
+Afghanistan,1995,0.324,AFG
+Albania,1995,0.628,ALB
+Algeria,1995,0.6,DZA
+Andorra,1995,,AND
+Angola,1995,,AGO
+Antigua and Barbuda,1995,,ATG
+Argentina,1995,0.731,ARG
+Armenia,1995,0.603,ARM
+Australia,1995,0.885,AUS
+Austria,1995,0.816,AUT
+Azerbaijan,1995,0.609,AZE
+Bahamas,1995,,BHS
+Bahrain,1995,0.775,BHR
+Bangladesh,1995,0.423,BGD
+Barbados,1995,0.729,BRB
+Belarus,1995,0.655,BLR
+Belgium,1995,0.851,BEL
+Belize,1995,0.662,BLZ
+Benin,1995,0.371,BEN
+Bhutan,1995,,BTN
+Bolivia (Plurinational State of),1995,0.571,BOL
+Bosnia and Herzegovina,1995,,BIH
+Botswana,1995,0.58,BWA
+Brazil,1995,0.649,BRA
+Brunei Darussalam,1995,0.805,BRN
+Bulgaria,1995,0.702,BGR
+Burkina Faso,1995,,BFA
+Burundi,1995,0.266,BDI
+Cabo Verde,1995,,CPV
+Cambodia,1995,0.379,KHM
+Cameroon,1995,0.436,CMR
+Canada,1995,0.86,CAN
+Central African Republic,1995,0.307,CAF
+Chad,1995,,TCD
+Chile,1995,0.728,CHL
+China,1995,0.547,CHN
+Colombia,1995,0.626,COL
+Comoros,1995,,COM
+Congo,1995,0.493,COG
+Congo (Democratic Republic of the),1995,0.331,COD
+Costa Rica,1995,0.684,CRI
+Croatia,1995,0.695,HRV
+Cuba,1995,0.654,CUB
+Cyprus,1995,0.784,CYP
+Czech Republic,1995,0.785,CZE
+Cü¾†˜¼te d'Ivoire,1995,0.388,CIV
+Denmark,1995,0.83,DNK
+Djibouti,1995,0.353,DJI
+Dominica,1995,,DMA
+Dominican Republic,1995,0.628,DOM
+Ecuador,1995,0.662,ECU
+Egypt,1995,0.577,EGY
+El Salvador,1995,0.577,SLV
+Equatorial Guinea,1995,,GNQ
+Eritrea,1995,,ERI
+Estonia,1995,0.722,EST
+Ethiopia,1995,,ETH
+Fiji,1995,0.67,FJI
+Finland,1995,0.815,FIN
+France,1995,0.825,FRA
+Gabon,1995,0.634,GAB
+Gambia,1995,0.351,GMB
+Georgia,1995,,GEO
+Germany,1995,0.834,DEU
+Ghana,1995,0.473,GHA
+Greece,1995,0.774,GRC
+Grenada,1995,,GRD
+Guatemala,1995,0.507,GTM
+Guinea,1995,0.29,GIN
+Guinea-Bissau,1995,,GNB
+Guyana,1995,0.582,GUY
+Haiti,1995,0.417,HTI
+Honduras,1995,0.53,HND
+"Hong Kong, China (SAR)",1995,0.808,HKG
+Hungary,1995,0.741,HUN
+Iceland,1995,0.82,ISL
+India,1995,0.46,IND
+Indonesia,1995,0.564,IDN
+Iran (Islamic Republic of),1995,0.634,IRN
+Iraq,1995,0.553,IRQ
+Ireland,1995,0.794,IRL
+Israel,1995,0.817,ISR
+Italy,1995,0.799,ITA
+Jamaica,1995,0.671,JAM
+Japan,1995,0.838,JPN
+Jordan,1995,0.687,JOR
+Kazakhstan,1995,0.665,KAZ
+Kenya,1995,0.459,KEN
+Kiribati,1995,,KIR
+Korea (Republic of),1995,0.781,KOR
+Kuwait,1995,0.747,KWT
+Kyrgyzstan,1995,0.562,KGZ
+Lao People's Democratic Republic,1995,0.425,LAO
+Latvia,1995,0.674,LVA
+Lebanon,1995,,LBN
+Lesotho,1995,0.483,LSO
+Liberia,1995,,LBR
+Libya,1995,0.709,LBY
+Liechtenstein,1995,,LIE
+Lithuania,1995,0.702,LTU
+Luxembourg,1995,0.808,LUX
+Madagascar,1995,,MDG
+Malawi,1995,0.38,MWI
+Malaysia,1995,0.683,MYS
+Maldives,1995,0.52,MDV
+Mali,1995,0.252,MLI
+Malta,1995,0.758,MLT
+Mauritania,1995,0.422,MRT
+Mauritius,1995,0.648,MUS
+Mexico,1995,0.67,MEX
+Micronesia (Federated States of),1995,,FSM
+Moldova (Republic of),1995,0.594,MDA
+Mongolia,1995,0.554,MNG
+Montenegro,1995,,MNE
+Morocco,1995,0.489,MAR
+Mozambique,1995,0.23,MOZ
+Myanmar,1995,0.393,MMR
+Namibia,1995,0.587,NAM
+Nepal,1995,0.41,NPL
+Netherlands,1995,0.863,NLD
+New Zealand,1995,0.851,NZL
+Nicaragua,1995,0.524,NIC
+Niger,1995,0.231,NER
+Nigeria,1995,,NGA
+Norway,1995,0.883,NOR
+Oman,1995,,OMN
+Pakistan,1995,0.429,PAK
+Palau,1995,,PLW
+"Palestine, State of",1995,,
+Panama,1995,0.691,PAN
+Papua New Guinea,1995,0.398,PNG
+Paraguay,1995,0.606,PRY
+Peru,1995,0.642,PER
+Philippines,1995,0.597,PHL
+Poland,1995,0.738,POL
+Portugal,1995,0.759,PRT
+Qatar,1995,0.783,QAT
+Romania,1995,0.686,ROU
+Russian Federation,1995,0.7,RUS
+Rwanda,1995,0.23,RWA
+Saint Kitts and Nevis,1995,,KNA
+Saint Lucia,1995,,LCA
+Saint Vincent and the Grenadines,1995,,VCT
+Samoa,1995,0.619,WSM
+Sao Tome and Principe,1995,0.471,STP
+Saudi Arabia,1995,0.722,SAU
+Senegal,1995,0.371,SEN
+Serbia,1995,0.694,SRB
+Seychelles,1995,,SYC
+Sierra Leone,1995,0.269,SLE
+Singapore,1995,0.773,SGP
+Slovakia,1995,0.75,SVK
+Slovenia,1995,0.782,SVN
+Solomon Islands,1995,,SLB
+South Africa,1995,0.653,ZAF
+South Sudan,1995,,SSD
+Spain,1995,0.801,ESP
+Sri Lanka,1995,0.651,LKA
+Sudan,1995,0.365,SDN
+Suriname,1995,,SUR
+Swaziland,1995,0.543,
+Sweden,1995,0.856,SWE
+Switzerland,1995,0.846,CHE
+Syrian Arab Republic,1995,0.577,SYR
+Tajikistan,1995,0.539,TJK
+Tanzania (United Republic of),1995,0.368,TZA
+Thailand,1995,0.611,THA
+The former Yugoslav Republic of Macedonia,1995,,MKD
+Timor-Leste,1995,,TLS
+Togo,1995,0.408,TGO
+Tonga,1995,0.671,TON
+Trinidad and Tobago,1995,0.682,TTO
+Tunisia,1995,0.608,TUN
+Turkey,1995,0.604,
+Turkmenistan,1995,,TKM
+Uganda,1995,0.32,UGA
+Ukraine,1995,0.664,UKR
+United Arab Emirates,1995,0.764,ARE
+United Kingdom,1995,0.839,GBR
+United States,1995,0.877,USA
+Uruguay,1995,0.711,URY
+Uzbekistan,1995,,UZB
+Vanuatu,1995,,VUT
+Venezuela (Bolivarian Republic of),1995,0.658,VEN
+Viet Nam,1995,0.531,VNM
+Yemen,1995,0.421,YEM
+Zambia,1995,0.405,ZMB
+Zimbabwe,1995,0.465,ZWE
+Afghanistan,1996,0.328,AFG
+Albania,1996,0.637,ALB
+Algeria,1996,0.609,DZA
+Andorra,1996,,AND
+Angola,1996,,AGO
+Antigua and Barbuda,1996,,ATG
+Argentina,1996,0.738,ARG
+Armenia,1996,0.609,ARM
+Australia,1996,0.888,AUS
+Austria,1996,0.819,AUT
+Azerbaijan,1996,0.61,AZE
+Bahamas,1996,,BHS
+Bahrain,1996,0.778,BHR
+Bangladesh,1996,0.432,BGD
+Barbados,1996,0.733,BRB
+Belarus,1996,0.659,BLR
+Belgium,1996,0.856,BEL
+Belize,1996,0.659,BLZ
+Benin,1996,0.375,BEN
+Bhutan,1996,,BTN
+Bolivia (Plurinational State of),1996,0.577,BOL
+Bosnia and Herzegovina,1996,,BIH
+Botswana,1996,0.575,BWA
+Brazil,1996,0.656,BRA
+Brunei Darussalam,1996,0.807,BRN
+Bulgaria,1996,0.702,BGR
+Burkina Faso,1996,,BFA
+Burundi,1996,0.262,BDI
+Cabo Verde,1996,,CPV
+Cambodia,1996,0.391,KHM
+Cameroon,1996,0.433,CMR
+Canada,1996,0.863,CAN
+Central African Republic,1996,0.304,CAF
+Chad,1996,,TCD
+Chile,1996,0.735,CHL
+China,1996,0.557,CHN
+Colombia,1996,0.635,COL
+Comoros,1996,,COM
+Congo,1996,0.49,COG
+Congo (Democratic Republic of the),1996,0.33,COD
+Costa Rica,1996,0.687,CRI
+Croatia,1996,0.707,HRV
+Cuba,1996,0.665,CUB
+Cyprus,1996,0.788,CYP
+Czech Republic,1996,0.797,CZE
+Cü¾†˜¼te d'Ivoire,1996,0.389,CIV
+Denmark,1996,0.836,DNK
+Djibouti,1996,0.351,DJI
+Dominica,1996,,DMA
+Dominican Republic,1996,0.634,DOM
+Ecuador,1996,0.664,ECU
+Egypt,1996,0.585,EGY
+El Salvador,1996,0.585,SLV
+Equatorial Guinea,1996,,GNQ
+Eritrea,1996,,ERI
+Estonia,1996,0.733,EST
+Ethiopia,1996,,ETH
+Fiji,1996,0.675,FJI
+Finland,1996,0.822,FIN
+France,1996,0.83,FRA
+Gabon,1996,0.636,GAB
+Gambia,1996,0.357,GMB
+Georgia,1996,,GEO
+Germany,1996,0.84,DEU
+Ghana,1996,0.474,GHA
+Greece,1996,0.777,GRC
+Grenada,1996,,GRD
+Guatemala,1996,0.515,GTM
+Guinea,1996,0.294,GIN
+Guinea-Bissau,1996,,GNB
+Guyana,1996,0.592,GUY
+Haiti,1996,0.426,HTI
+Honduras,1996,0.536,HND
+"Hong Kong, China (SAR)",1996,0.811,HKG
+Hungary,1996,0.745,HUN
+Iceland,1996,0.825,ISL
+India,1996,0.468,IND
+Indonesia,1996,0.577,IDN
+Iran (Islamic Republic of),1996,0.642,IRN
+Iraq,1996,0.572,IRQ
+Ireland,1996,0.801,IRL
+Israel,1996,0.823,ISR
+Italy,1996,0.805,ITA
+Jamaica,1996,0.675,JAM
+Japan,1996,0.842,JPN
+Jordan,1996,0.689,JOR
+Kazakhstan,1996,0.666,KAZ
+Kenya,1996,0.456,KEN
+Kiribati,1996,,KIR
+Korea (Republic of),1996,0.792,KOR
+Kuwait,1996,0.772,KWT
+Kyrgyzstan,1996,0.567,KGZ
+Lao People's Democratic Republic,1996,0.438,LAO
+Latvia,1996,0.68,LVA
+Lebanon,1996,,LBN
+Lesotho,1996,0.477,LSO
+Liberia,1996,,LBR
+Libya,1996,0.714,LBY
+Liechtenstein,1996,,LIE
+Lithuania,1996,0.711,LTU
+Luxembourg,1996,0.817,LUX
+Madagascar,1996,,MDG
+Malawi,1996,0.368,MWI
+Malaysia,1996,0.695,MYS
+Maldives,1996,0.533,MDV
+Mali,1996,0.261,MLI
+Malta,1996,0.762,MLT
+Mauritania,1996,0.429,MRT
+Mauritius,1996,0.651,MUS
+Mexico,1996,0.676,MEX
+Micronesia (Federated States of),1996,,FSM
+Moldova (Republic of),1996,0.591,MDA
+Mongolia,1996,0.561,MNG
+Montenegro,1996,,MNE
+Morocco,1996,0.499,MAR
+Mozambique,1996,0.254,MOZ
+Myanmar,1996,0.399,MMR
+Namibia,1996,0.581,NAM
+Nepal,1996,0.419,NPL
+Netherlands,1996,0.867,NLD
+New Zealand,1996,0.855,NZL
+Nicaragua,1996,0.535,NIC
+Niger,1996,0.237,NER
+Nigeria,1996,,NGA
+Norway,1996,0.888,NOR
+Oman,1996,,OMN
+Pakistan,1996,0.433,PAK
+Palau,1996,,PLW
+"Palestine, State of",1996,,
+Panama,1996,0.695,PAN
+Papua New Guinea,1996,0.406,PNG
+Paraguay,1996,0.613,PRY
+Peru,1996,0.647,PER
+Philippines,1996,0.605,PHL
+Poland,1996,0.746,POL
+Portugal,1996,0.766,PRT
+Qatar,1996,0.796,QAT
+Romania,1996,0.694,ROU
+Russian Federation,1996,0.701,RUS
+Rwanda,1996,0.259,RWA
+Saint Kitts and Nevis,1996,,KNA
+Saint Lucia,1996,,LCA
+Saint Vincent and the Grenadines,1996,,VCT
+Samoa,1996,0.626,WSM
+Sao Tome and Principe,1996,0.476,STP
+Saudi Arabia,1996,0.727,SAU
+Senegal,1996,0.373,SEN
+Serbia,1996,0.697,SRB
+Seychelles,1996,,SYC
+Sierra Leone,1996,0.275,SLE
+Singapore,1996,0.783,SGP
+Slovakia,1996,0.754,SVK
+Slovenia,1996,0.788,SVN
+Solomon Islands,1996,,SLB
+South Africa,1996,0.651,ZAF
+South Sudan,1996,,SSD
+Spain,1996,0.806,ESP
+Sri Lanka,1996,0.655,LKA
+Sudan,1996,0.373,SDN
+Suriname,1996,,SUR
+Swaziland,1996,0.539,
+Sweden,1996,0.859,SWE
+Switzerland,1996,0.853,CHE
+Syrian Arab Republic,1996,0.581,SYR
+Tajikistan,1996,0.522,TJK
+Tanzania (United Republic of),1996,0.369,TZA
+Thailand,1996,0.619,THA
+The former Yugoslav Republic of Macedonia,1996,,MKD
+Timor-Leste,1996,,TLS
+Togo,1996,0.417,TGO
+Tonga,1996,0.671,TON
+Trinidad and Tobago,1996,0.688,TTO
+Tunisia,1996,0.617,TUN
+Turkey,1996,0.613,
+Turkmenistan,1996,,TKM
+Uganda,1996,0.336,UGA
+Ukraine,1996,0.661,UKR
+United Arab Emirates,1996,0.771,ARE
+United Kingdom,1996,0.843,GBR
+United States,1996,0.878,USA
+Uruguay,1996,0.717,URY
+Uzbekistan,1996,,UZB
+Vanuatu,1996,,VUT
+Venezuela (Bolivarian Republic of),1996,0.66,VEN
+Viet Nam,1996,0.542,VNM
+Yemen,1996,0.424,YEM
+Zambia,1996,0.408,ZMB
+Zimbabwe,1996,0.46,ZWE
+Afghanistan,1997,0.332,AFG
+Albania,1997,0.636,ALB
+Algeria,1997,0.617,DZA
+Andorra,1997,,AND
+Angola,1997,,AGO
+Antigua and Barbuda,1997,,ATG
+Argentina,1997,0.746,ARG
+Armenia,1997,0.618,ARM
+Australia,1997,0.891,AUS
+Austria,1997,0.823,AUT
+Azerbaijan,1997,0.615,AZE
+Bahamas,1997,,BHS
+Bahrain,1997,0.779,BHR
+Bangladesh,1997,0.441,BGD
+Barbados,1997,0.738,BRB
+Belarus,1997,0.666,BLR
+Belgium,1997,0.861,BEL
+Belize,1997,0.661,BLZ
+Benin,1997,0.38,BEN
+Bhutan,1997,,BTN
+Bolivia (Plurinational State of),1997,0.579,BOL
+Bosnia and Herzegovina,1997,,BIH
+Botswana,1997,0.572,BWA
+Brazil,1997,0.664,BRA
+Brunei Darussalam,1997,0.81,BRN
+Bulgaria,1997,0.704,BGR
+Burkina Faso,1997,,BFA
+Burundi,1997,0.264,BDI
+Cabo Verde,1997,,CPV
+Cambodia,1997,0.397,KHM
+Cameroon,1997,0.434,CMR
+Canada,1997,0.862,CAN
+Central African Republic,1997,0.307,CAF
+Chad,1997,,TCD
+Chile,1997,0.742,CHL
+China,1997,0.565,CHN
+Colombia,1997,0.643,COL
+Comoros,1997,,COM
+Congo,1997,0.493,COG
+Congo (Democratic Republic of the),1997,0.333,COD
+Costa Rica,1997,0.693,CRI
+Croatia,1997,0.719,HRV
+Cuba,1997,0.669,CUB
+Cyprus,1997,0.791,CYP
+Czech Republic,1997,0.802,CZE
+Cü¾†˜¼te d'Ivoire,1997,0.392,CIV
+Denmark,1997,0.842,DNK
+Djibouti,1997,0.356,DJI
+Dominica,1997,,DMA
+Dominican Republic,1997,0.64,DOM
+Ecuador,1997,0.668,ECU
+Egypt,1997,0.592,EGY
+El Salvador,1997,0.595,SLV
+Equatorial Guinea,1997,,GNQ
+Eritrea,1997,,ERI
+Estonia,1997,0.746,EST
+Ethiopia,1997,,ETH
+Fiji,1997,0.675,FJI
+Finland,1997,0.83,FIN
+France,1997,0.834,FRA
+Gabon,1997,0.638,GAB
+Gambia,1997,0.363,GMB
+Georgia,1997,,GEO
+Germany,1997,0.845,DEU
+Ghana,1997,0.476,GHA
+Greece,1997,0.782,GRC
+Grenada,1997,,GRD
+Guatemala,1997,0.523,GTM
+Guinea,1997,0.302,GIN
+Guinea-Bissau,1997,,GNB
+Guyana,1997,0.597,GUY
+Haiti,1997,0.432,HTI
+Honduras,1997,0.543,HND
+"Hong Kong, China (SAR)",1997,0.815,HKG
+Hungary,1997,0.747,HUN
+Iceland,1997,0.833,ISL
+India,1997,0.474,IND
+Indonesia,1997,0.59,IDN
+Iran (Islamic Republic of),1997,0.648,IRN
+Iraq,1997,0.582,IRQ
+Ireland,1997,0.809,IRL
+Israel,1997,0.831,ISR
+Italy,1997,0.812,ITA
+Jamaica,1997,0.677,JAM
+Japan,1997,0.846,JPN
+Jordan,1997,0.693,JOR
+Kazakhstan,1997,0.67,KAZ
+Kenya,1997,0.452,KEN
+Kiribati,1997,,KIR
+Korea (Republic of),1997,0.802,KOR
+Kuwait,1997,0.775,KWT
+Kyrgyzstan,1997,0.576,KGZ
+Lao People's Democratic Republic,1997,0.445,LAO
+Latvia,1997,0.693,LVA
+Lebanon,1997,,LBN
+Lesotho,1997,0.468,LSO
+Liberia,1997,,LBR
+Libya,1997,0.72,LBY
+Liechtenstein,1997,,LIE
+Lithuania,1997,0.724,LTU
+Luxembourg,1997,0.826,LUX
+Madagascar,1997,,MDG
+Malawi,1997,0.388,MWI
+Malaysia,1997,0.706,MYS
+Maldives,1997,0.547,MDV
+Mali,1997,0.271,MLI
+Malta,1997,0.767,MLT
+Mauritania,1997,0.429,MRT
+Mauritius,1997,0.656,MUS
+Mexico,1997,0.683,MEX
+Micronesia (Federated States of),1997,,FSM
+Moldova (Republic of),1997,0.593,MDA
+Mongolia,1997,0.567,MNG
+Montenegro,1997,,MNE
+Morocco,1997,0.503,MAR
+Mozambique,1997,0.267,MOZ
+Myanmar,1997,0.405,MMR
+Namibia,1997,0.574,NAM
+Nepal,1997,0.426,NPL
+Netherlands,1997,0.867,NLD
+New Zealand,1997,0.86,NZL
+Nicaragua,1997,0.543,NIC
+Niger,1997,0.24,NER
+Nigeria,1997,,NGA
+Norway,1997,0.895,NOR
+Oman,1997,,OMN
+Pakistan,1997,0.437,PAK
+Palau,1997,,PLW
+"Palestine, State of",1997,,
+Panama,1997,0.702,PAN
+Papua New Guinea,1997,0.409,PNG
+Paraguay,1997,0.618,PRY
+Peru,1997,0.654,PER
+Philippines,1997,0.609,PHL
+Poland,1997,0.759,POL
+Portugal,1997,0.772,PRT
+Qatar,1997,0.8,QAT
+Romania,1997,0.695,ROU
+Russian Federation,1997,0.704,RUS
+Rwanda,1997,0.285,RWA
+Saint Kitts and Nevis,1997,,KNA
+Saint Lucia,1997,,LCA
+Saint Vincent and the Grenadines,1997,,VCT
+Samoa,1997,0.629,WSM
+Sao Tome and Principe,1997,0.479,STP
+Saudi Arabia,1997,0.731,SAU
+Senegal,1997,0.372,SEN
+Serbia,1997,0.703,SRB
+Seychelles,1997,,SYC
+Sierra Leone,1997,0.279,SLE
+Singapore,1997,0.795,SGP
+Slovakia,1997,0.756,SVK
+Slovenia,1997,0.796,SVN
+Solomon Islands,1997,,SLB
+South Africa,1997,0.647,ZAF
+South Sudan,1997,,SSD
+Spain,1997,0.81,ESP
+Sri Lanka,1997,0.662,LKA
+Sudan,1997,0.382,SDN
+Suriname,1997,,SUR
+Swaziland,1997,0.533,
+Sweden,1997,0.862,SWE
+Switzerland,1997,0.863,CHE
+Syrian Arab Republic,1997,0.586,SYR
+Tajikistan,1997,0.526,TJK
+Tanzania (United Republic of),1997,0.371,TZA
+Thailand,1997,0.625,THA
+The former Yugoslav Republic of Macedonia,1997,,MKD
+Timor-Leste,1997,,TLS
+Togo,1997,0.424,TGO
+Tonga,1997,0.672,TON
+Trinidad and Tobago,1997,0.696,TTO
+Tunisia,1997,0.624,TUN
+Turkey,1997,0.621,
+Turkmenistan,1997,,TKM
+Uganda,1997,0.351,UGA
+Ukraine,1997,0.663,UKR
+United Arab Emirates,1997,0.778,ARE
+United Kingdom,1997,0.849,GBR
+United States,1997,0.881,USA
+Uruguay,1997,0.727,URY
+Uzbekistan,1997,,UZB
+Vanuatu,1997,,VUT
+Venezuela (Bolivarian Republic of),1997,0.664,VEN
+Viet Nam,1997,0.542,VNM
+Yemen,1997,0.428,YEM
+Zambia,1997,0.411,ZMB
+Zimbabwe,1997,0.451,ZWE
+Afghanistan,1998,0.335,AFG
+Albania,1998,0.646,ALB
+Algeria,1998,0.627,DZA
+Andorra,1998,,AND
+Angola,1998,,AGO
+Antigua and Barbuda,1998,,ATG
+Argentina,1998,0.753,ARG
+Armenia,1998,0.632,ARM
+Australia,1998,0.894,AUS
+Austria,1998,0.833,AUT
+Azerbaijan,1998,0.626,AZE
+Bahamas,1998,,BHS
+Bahrain,1998,0.783,BHR
+Bangladesh,1998,0.45,BGD
+Barbados,1998,0.734,BRB
+Belarus,1998,0.67,BLR
+Belgium,1998,0.865,BEL
+Belize,1998,0.661,BLZ
+Benin,1998,0.384,BEN
+Bhutan,1998,,BTN
+Bolivia (Plurinational State of),1998,0.591,BOL
+Bosnia and Herzegovina,1998,,BIH
+Botswana,1998,0.564,BWA
+Brazil,1998,0.671,BRA
+Brunei Darussalam,1998,0.812,BRN
+Bulgaria,1998,0.709,BGR
+Burkina Faso,1998,,BFA
+Burundi,1998,0.268,BDI
+Cabo Verde,1998,,CPV
+Cambodia,1998,0.396,KHM
+Cameroon,1998,0.438,CMR
+Canada,1998,0.861,CAN
+Central African Republic,1998,0.309,CAF
+Chad,1998,,TCD
+Chile,1998,0.748,CHL
+China,1998,0.574,CHN
+Colombia,1998,0.65,COL
+Comoros,1998,,COM
+Congo,1998,0.495,COG
+Congo (Democratic Republic of the),1998,0.334,COD
+Costa Rica,1998,0.699,CRI
+Croatia,1998,0.73,HRV
+Cuba,1998,0.672,CUB
+Cyprus,1998,0.798,CYP
+Czech Republic,1998,0.802,CZE
+Cü¾†˜¼te d'Ivoire,1998,0.39,CIV
+Denmark,1998,0.848,DNK
+Djibouti,1998,0.358,DJI
+Dominica,1998,,DMA
+Dominican Republic,1998,0.645,DOM
+Ecuador,1998,0.671,ECU
+Egypt,1998,0.593,EGY
+El Salvador,1998,0.604,SLV
+Equatorial Guinea,1998,,GNQ
+Eritrea,1998,,ERI
+Estonia,1998,0.758,EST
+Ethiopia,1998,,ETH
+Fiji,1998,0.675,FJI
+Finland,1998,0.839,FIN
+France,1998,0.839,FRA
+Gabon,1998,0.641,GAB
+Gambia,1998,0.369,GMB
+Georgia,1998,,GEO
+Germany,1998,0.85,DEU
+Ghana,1998,0.477,GHA
+Greece,1998,0.792,GRC
+Grenada,1998,,GRD
+Guatemala,1998,0.531,GTM
+Guinea,1998,0.309,GIN
+Guinea-Bissau,1998,,GNB
+Guyana,1998,0.599,GUY
+Haiti,1998,0.435,HTI
+Honduras,1998,0.548,HND
+"Hong Kong, China (SAR)",1998,0.816,HKG
+Hungary,1998,0.754,HUN
+Iceland,1998,0.843,ISL
+India,1998,0.481,IND
+Indonesia,1998,0.59,IDN
+Iran (Islamic Republic of),1998,0.654,IRN
+Iraq,1998,0.596,IRQ
+Ireland,1998,0.84,IRL
+Israel,1998,0.839,ISR
+Italy,1998,0.818,ITA
+Jamaica,1998,0.678,JAM
+Japan,1998,0.848,JPN
+Jordan,1998,0.697,JOR
+Kazakhstan,1998,0.672,KAZ
+Kenya,1998,0.45,KEN
+Kiribati,1998,,KIR
+Korea (Republic of),1998,0.8,KOR
+Kuwait,1998,0.78,KWT
+Kyrgyzstan,1998,0.58,KGZ
+Lao People's Democratic Republic,1998,0.452,LAO
+Latvia,1998,0.705,LVA
+Lebanon,1998,,LBN
+Lesotho,1998,0.454,LSO
+Liberia,1998,,LBR
+Libya,1998,0.723,LBY
+Liechtenstein,1998,,LIE
+Lithuania,1998,0.736,LTU
+Luxembourg,1998,0.834,LUX
+Madagascar,1998,,MDG
+Malawi,1998,0.389,MWI
+Malaysia,1998,0.709,MYS
+Maldives,1998,0.562,MDV
+Mali,1998,0.281,MLI
+Malta,1998,0.776,MLT
+Mauritania,1998,0.436,MRT
+Mauritius,1998,0.662,MUS
+Mexico,1998,0.689,MEX
+Micronesia (Federated States of),1998,,FSM
+Moldova (Republic of),1998,0.593,MDA
+Mongolia,1998,0.575,MNG
+Montenegro,1998,,MNE
+Morocco,1998,0.51,MAR
+Mozambique,1998,0.28,MOZ
+Myanmar,1998,0.408,MMR
+Namibia,1998,0.568,NAM
+Nepal,1998,0.432,NPL
+Netherlands,1998,0.869,NLD
+New Zealand,1998,0.863,NZL
+Nicaragua,1998,0.552,NIC
+Niger,1998,0.249,NER
+Nigeria,1998,,NGA
+Norway,1998,0.906,NOR
+Oman,1998,,OMN
+Pakistan,1998,0.441,PAK
+Palau,1998,,PLW
+"Palestine, State of",1998,,
+Panama,1998,0.71,PAN
+Papua New Guinea,1998,0.411,PNG
+Paraguay,1998,0.622,PRY
+Peru,1998,0.664,PER
+Philippines,1998,0.613,PHL
+Poland,1998,0.768,POL
+Portugal,1998,0.779,PRT
+Qatar,1998,0.804,QAT
+Romania,1998,0.697,ROU
+Russian Federation,1998,0.703,RUS
+Rwanda,1998,0.3,RWA
+Saint Kitts and Nevis,1998,,KNA
+Saint Lucia,1998,,LCA
+Saint Vincent and the Grenadines,1998,,VCT
+Samoa,1998,0.635,WSM
+Sao Tome and Principe,1998,0.483,STP
+Saudi Arabia,1998,0.736,SAU
+Senegal,1998,0.376,SEN
+Serbia,1998,0.707,SRB
+Seychelles,1998,,SYC
+Sierra Leone,1998,0.286,SLE
+Singapore,1998,0.801,SGP
+Slovakia,1998,0.762,SVK
+Slovenia,1998,0.805,SVN
+Solomon Islands,1998,,SLB
+South Africa,1998,0.641,ZAF
+South Sudan,1998,,SSD
+Spain,1998,0.815,ESP
+Sri Lanka,1998,0.669,LKA
+Sudan,1998,0.388,SDN
+Suriname,1998,,SUR
+Swaziland,1998,0.523,
+Sweden,1998,0.867,SWE
+Switzerland,1998,0.872,CHE
+Syrian Arab Republic,1998,0.589,SYR
+Tajikistan,1998,0.528,TJK
+Tanzania (United Republic of),1998,0.377,TZA
+Thailand,1998,0.63,THA
+The former Yugoslav Republic of Macedonia,1998,,MKD
+Timor-Leste,1998,,TLS
+Togo,1998,0.424,TGO
+Tonga,1998,0.673,TON
+Trinidad and Tobago,1998,0.703,TTO
+Tunisia,1998,0.635,TUN
+Turkey,1998,0.632,
+Turkmenistan,1998,,TKM
+Uganda,1998,0.366,UGA
+Ukraine,1998,0.665,UKR
+United Arab Emirates,1998,0.785,ARE
+United Kingdom,1998,0.854,GBR
+United States,1998,0.884,USA
+Uruguay,1998,0.735,URY
+Uzbekistan,1998,,UZB
+Vanuatu,1998,,VUT
+Venezuela (Bolivarian Republic of),1998,0.667,VEN
+Viet Nam,1998,0.562,VNM
+Yemen,1998,0.432,YEM
+Zambia,1998,0.413,ZMB
+Zimbabwe,1998,0.442,ZWE
+Afghanistan,1999,0.338,AFG
+Albania,1999,0.656,ALB
+Algeria,1999,0.636,DZA
+Andorra,1999,,AND
+Angola,1999,0.382,AGO
+Antigua and Barbuda,1999,,ATG
+Argentina,1999,0.764,ARG
+Armenia,1999,0.639,ARM
+Australia,1999,0.897,AUS
+Austria,1999,0.833,AUT
+Azerbaijan,1999,0.636,AZE
+Bahamas,1999,,BHS
+Bahrain,1999,0.786,BHR
+Bangladesh,1999,0.459,BGD
+Barbados,1999,0.741,BRB
+Belarus,1999,0.675,BLR
+Belgium,1999,0.869,BEL
+Belize,1999,0.668,BLZ
+Benin,1999,0.389,BEN
+Bhutan,1999,,BTN
+Bolivia (Plurinational State of),1999,0.6,BOL
+Bosnia and Herzegovina,1999,,BIH
+Botswana,1999,0.559,BWA
+Brazil,1999,0.677,BRA
+Brunei Darussalam,1999,0.818,BRN
+Bulgaria,1999,0.709,BGR
+Burkina Faso,1999,,BFA
+Burundi,1999,0.268,BDI
+Cabo Verde,1999,,CPV
+Cambodia,1999,0.401,KHM
+Cameroon,1999,0.433,CMR
+Canada,1999,0.864,CAN
+Central African Republic,1999,0.312,CAF
+Chad,1999,,TCD
+Chile,1999,0.755,CHL
+China,1999,0.583,CHN
+Colombia,1999,0.65,COL
+Comoros,1999,,COM
+Congo,1999,0.487,COG
+Congo (Democratic Republic of the),1999,0.332,COD
+Costa Rica,1999,0.702,CRI
+Croatia,1999,0.739,HRV
+Cuba,1999,0.679,CUB
+Cyprus,1999,0.798,CYP
+Czech Republic,1999,0.811,CZE
+Cü¾†˜¼te d'Ivoire,1999,0.393,CIV
+Denmark,1999,0.86,DNK
+Djibouti,1999,0.361,DJI
+Dominica,1999,,DMA
+Dominican Republic,1999,0.651,DOM
+Ecuador,1999,0.668,ECU
+Egypt,1999,0.606,EGY
+El Salvador,1999,0.607,SLV
+Equatorial Guinea,1999,,GNQ
+Eritrea,1999,,ERI
+Estonia,1999,0.764,EST
+Ethiopia,1999,,ETH
+Fiji,1999,0.681,FJI
+Finland,1999,0.847,FIN
+France,1999,0.844,FRA
+Gabon,1999,0.637,GAB
+Gambia,1999,0.377,GMB
+Georgia,1999,,GEO
+Germany,1999,0.855,DEU
+Ghana,1999,0.48,GHA
+Greece,1999,0.794,GRC
+Grenada,1999,,GRD
+Guatemala,1999,0.539,GTM
+Guinea,1999,0.316,GIN
+Guinea-Bissau,1999,,GNB
+Guyana,1999,0.602,GUY
+Haiti,1999,0.439,HTI
+Honduras,1999,0.551,HND
+"Hong Kong, China (SAR)",1999,0.819,HKG
+Hungary,1999,0.761,HUN
+Iceland,1999,0.847,ISL
+India,1999,0.489,IND
+Indonesia,1999,0.597,IDN
+Iran (Islamic Republic of),1999,0.66,IRN
+Iraq,1999,0.603,IRQ
+Ireland,1999,0.848,IRL
+Israel,1999,0.845,ISR
+Italy,1999,0.823,ITA
+Jamaica,1999,0.682,JAM
+Japan,1999,0.852,JPN
+Jordan,1999,0.7,JOR
+Kazakhstan,1999,0.676,KAZ
+Kenya,1999,0.448,KEN
+Kiribati,1999,,KIR
+Korea (Republic of),1999,0.811,KOR
+Kuwait,1999,0.786,KWT
+Kyrgyzstan,1999,0.586,KGZ
+Lao People's Democratic Republic,1999,0.459,LAO
+Latvia,1999,0.716,LVA
+Lebanon,1999,,LBN
+Lesotho,1999,0.445,LSO
+Liberia,1999,0.338,LBR
+Libya,1999,0.727,LBY
+Liechtenstein,1999,,LIE
+Lithuania,1999,0.745,LTU
+Luxembourg,1999,0.848,LUX
+Madagascar,1999,,MDG
+Malawi,1999,0.391,MWI
+Malaysia,1999,0.715,MYS
+Maldives,1999,0.577,MDV
+Mali,1999,0.291,MLI
+Malta,1999,0.779,MLT
+Mauritania,1999,0.443,MRT
+Mauritius,1999,0.667,MUS
+Mexico,1999,0.694,MEX
+Micronesia (Federated States of),1999,,FSM
+Moldova (Republic of),1999,0.595,MDA
+Mongolia,1999,0.582,MNG
+Montenegro,1999,,MNE
+Morocco,1999,0.519,MAR
+Mozambique,1999,0.291,MOZ
+Myanmar,1999,0.417,MMR
+Namibia,1999,0.559,NAM
+Nepal,1999,0.439,NPL
+Netherlands,1999,0.873,NLD
+New Zealand,1999,0.864,NZL
+Nicaragua,1999,0.562,NIC
+Niger,1999,0.253,NER
+Nigeria,1999,,NGA
+Norway,1999,0.911,NOR
+Oman,1999,,OMN
+Pakistan,1999,0.445,PAK
+Palau,1999,,PLW
+"Palestine, State of",1999,,
+Panama,1999,0.716,PAN
+Papua New Guinea,1999,0.418,PNG
+Paraguay,1999,0.625,PRY
+Peru,1999,0.674,PER
+Philippines,1999,0.618,PHL
+Poland,1999,0.777,POL
+Portugal,1999,0.777,PRT
+Qatar,1999,0.808,QAT
+Romania,1999,0.703,ROU
+Russian Federation,1999,0.709,RUS
+Rwanda,1999,0.318,RWA
+Saint Kitts and Nevis,1999,,KNA
+Saint Lucia,1999,,LCA
+Saint Vincent and the Grenadines,1999,,VCT
+Samoa,1999,0.64,WSM
+Sao Tome and Principe,1999,0.488,STP
+Saudi Arabia,1999,0.737,SAU
+Senegal,1999,0.378,SEN
+Serbia,1999,0.702,SRB
+Seychelles,1999,,SYC
+Sierra Leone,1999,0.292,SLE
+Singapore,1999,0.81,SGP
+Slovakia,1999,0.761,SVK
+Slovenia,1999,0.818,SVN
+Solomon Islands,1999,0.455,SLB
+South Africa,1999,0.635,ZAF
+South Sudan,1999,,SSD
+Spain,1999,0.82,ESP
+Sri Lanka,1999,0.677,LKA
+Sudan,1999,0.394,SDN
+Suriname,1999,,SUR
+Swaziland,1999,0.516,
+Sweden,1999,0.873,SWE
+Switzerland,1999,0.879,CHE
+Syrian Arab Republic,1999,0.588,SYR
+Tajikistan,1999,0.529,TJK
+Tanzania (United Republic of),1999,0.384,TZA
+Thailand,1999,0.64,THA
+The former Yugoslav Republic of Macedonia,1999,,MKD
+Timor-Leste,1999,,TLS
+Togo,1999,0.425,TGO
+Tonga,1999,0.676,TON
+Trinidad and Tobago,1999,0.709,TTO
+Tunisia,1999,0.646,TUN
+Turkey,1999,0.641,
+Turkmenistan,1999,,TKM
+Uganda,1999,0.382,UGA
+Ukraine,1999,0.669,UKR
+United Arab Emirates,1999,0.791,ARE
+United Kingdom,1999,0.86,GBR
+United States,1999,0.885,USA
+Uruguay,1999,0.738,URY
+Uzbekistan,1999,,UZB
+Vanuatu,1999,,VUT
+Venezuela (Bolivarian Republic of),1999,0.67,VEN
+Viet Nam,1999,0.569,VNM
+Yemen,1999,0.436,YEM
+Zambia,1999,0.418,ZMB
+Zimbabwe,1999,0.434,ZWE
+Afghanistan,2000,0.34,AFG
+Albania,2000,0.662,ALB
+Algeria,2000,0.644,DZA
+Andorra,2000,,AND
+Angola,2000,0.391,AGO
+Antigua and Barbuda,2000,,ATG
+Argentina,2000,0.771,ARG
+Armenia,2000,0.644,ARM
+Australia,2000,0.899,AUS
+Austria,2000,0.837,AUT
+Azerbaijan,2000,0.642,AZE
+Bahamas,2000,0.779,BHS
+Bahrain,2000,0.794,BHR
+Bangladesh,2000,0.468,BGD
+Barbados,2000,0.75,BRB
+Belarus,2000,0.681,BLR
+Belgium,2000,0.873,BEL
+Belize,2000,0.677,BLZ
+Benin,2000,0.395,BEN
+Bhutan,2000,,BTN
+Bolivia (Plurinational State of),2000,0.607,BOL
+Bosnia and Herzegovina,2000,,BIH
+Botswana,2000,0.56,BWA
+Brazil,2000,0.685,BRA
+Brunei Darussalam,2000,0.819,BRN
+Bulgaria,2000,0.713,BGR
+Burkina Faso,2000,,BFA
+Burundi,2000,0.268,BDI
+Cabo Verde,2000,0.562,CPV
+Cambodia,2000,0.412,KHM
+Cameroon,2000,0.437,CMR
+Canada,2000,0.867,CAN
+Central African Republic,2000,0.314,CAF
+Chad,2000,0.3,TCD
+Chile,2000,0.761,CHL
+China,2000,0.592,CHN
+Colombia,2000,0.653,COL
+Comoros,2000,,COM
+Congo,2000,0.487,COG
+Congo (Democratic Republic of the),2000,0.331,COD
+Costa Rica,2000,0.708,CRI
+Croatia,2000,0.749,HRV
+Cuba,2000,0.686,CUB
+Cyprus,2000,0.8,CYP
+Czech Republic,2000,0.821,CZE
+Cü¾†˜¼te d'Ivoire,2000,0.395,CIV
+Denmark,2000,0.862,DNK
+Djibouti,2000,0.363,DJI
+Dominica,2000,0.695,DMA
+Dominican Republic,2000,0.656,DOM
+Ecuador,2000,0.67,ECU
+Egypt,2000,0.612,EGY
+El Salvador,2000,0.615,SLV
+Equatorial Guinea,2000,0.527,GNQ
+Eritrea,2000,,ERI
+Estonia,2000,0.781,EST
+Ethiopia,2000,0.283,ETH
+Fiji,2000,0.683,FJI
+Finland,2000,0.856,FIN
+France,2000,0.849,FRA
+Gabon,2000,0.633,GAB
+Gambia,2000,0.384,GMB
+Georgia,2000,0.673,GEO
+Germany,2000,0.86,DEU
+Ghana,2000,0.485,GHA
+Greece,2000,0.801,GRC
+Grenada,2000,,GRD
+Guatemala,2000,0.546,GTM
+Guinea,2000,0.322,GIN
+Guinea-Bissau,2000,,GNB
+Guyana,2000,0.606,GUY
+Haiti,2000,0.443,HTI
+Honduras,2000,0.557,HND
+"Hong Kong, China (SAR)",2000,0.825,HKG
+Hungary,2000,0.769,HUN
+Iceland,2000,0.854,ISL
+India,2000,0.494,IND
+Indonesia,2000,0.604,IDN
+Iran (Islamic Republic of),2000,0.666,IRN
+Iraq,2000,0.607,IRQ
+Ireland,2000,0.857,IRL
+Israel,2000,0.85,ISR
+Italy,2000,0.828,ITA
+Jamaica,2000,0.68,JAM
+Japan,2000,0.856,JPN
+Jordan,2000,0.706,JOR
+Kazakhstan,2000,0.685,KAZ
+Kenya,2000,0.447,KEN
+Kiribati,2000,,KIR
+Korea (Republic of),2000,0.82,KOR
+Kuwait,2000,0.786,KWT
+Kyrgyzstan,2000,0.593,KGZ
+Lao People's Democratic Republic,2000,0.463,LAO
+Latvia,2000,0.728,LVA
+Lebanon,2000,,LBN
+Lesotho,2000,0.443,LSO
+Liberia,2000,0.386,LBR
+Libya,2000,0.732,LBY
+Liechtenstein,2000,0.862,LIE
+Lithuania,2000,0.757,LTU
+Luxembourg,2000,0.854,LUX
+Madagascar,2000,0.456,MDG
+Malawi,2000,0.387,MWI
+Malaysia,2000,0.725,MYS
+Maldives,2000,0.587,MDV
+Mali,2000,0.297,MLI
+Malta,2000,0.783,MLT
+Mauritania,2000,0.444,MRT
+Mauritius,2000,0.673,MUS
+Mexico,2000,0.7,MEX
+Micronesia (Federated States of),2000,0.604,FSM
+Moldova (Republic of),2000,0.597,MDA
+Mongolia,2000,0.588,MNG
+Montenegro,2000,,MNE
+Morocco,2000,0.53,MAR
+Mozambique,2000,0.298,MOZ
+Myanmar,2000,0.427,MMR
+Namibia,2000,0.556,NAM
+Nepal,2000,0.446,NPL
+Netherlands,2000,0.878,NLD
+New Zealand,2000,0.868,NZL
+Nicaragua,2000,0.57,NIC
+Niger,2000,0.255,NER
+Nigeria,2000,,NGA
+Norway,2000,0.917,NOR
+Oman,2000,0.705,OMN
+Pakistan,2000,0.45,PAK
+Palau,2000,0.741,PLW
+"Palestine, State of",2000,,
+Panama,2000,0.721,PAN
+Papua New Guinea,2000,0.422,PNG
+Paraguay,2000,0.624,PRY
+Peru,2000,0.677,PER
+Philippines,2000,0.622,PHL
+Poland,2000,0.784,POL
+Portugal,2000,0.782,PRT
+Qatar,2000,0.809,QAT
+Romania,2000,0.708,ROU
+Russian Federation,2000,0.72,RUS
+Rwanda,2000,0.332,RWA
+Saint Kitts and Nevis,2000,,KNA
+Saint Lucia,2000,0.684,LCA
+Saint Vincent and the Grenadines,2000,0.673,VCT
+Samoa,2000,0.645,WSM
+Sao Tome and Principe,2000,0.497,STP
+Saudi Arabia,2000,0.742,SAU
+Senegal,2000,0.381,SEN
+Serbia,2000,0.709,SRB
+Seychelles,2000,0.714,SYC
+Sierra Leone,2000,0.302,SLE
+Singapore,2000,0.82,SGP
+Slovakia,2000,0.763,SVK
+Slovenia,2000,0.824,SVN
+Solomon Islands,2000,0.442,SLB
+South Africa,2000,0.629,ZAF
+South Sudan,2000,,SSD
+Spain,2000,0.825,ESP
+Sri Lanka,2000,0.686,LKA
+Sudan,2000,0.399,SDN
+Suriname,2000,,SUR
+Swaziland,2000,0.506,
+Sweden,2000,0.877,SWE
+Switzerland,2000,0.888,CHE
+Syrian Arab Republic,2000,0.589,SYR
+Tajikistan,2000,0.535,TJK
+Tanzania (United Republic of),2000,0.391,TZA
+Thailand,2000,0.649,THA
+The former Yugoslav Republic of Macedonia,2000,,MKD
+Timor-Leste,2000,0.47,TLS
+Togo,2000,0.426,TGO
+Tonga,2000,0.674,TON
+Trinidad and Tobago,2000,0.715,TTO
+Tunisia,2000,0.654,TUN
+Turkey,2000,0.653,
+Turkmenistan,2000,,TKM
+Uganda,2000,0.396,UGA
+Ukraine,2000,0.673,UKR
+United Arab Emirates,2000,0.798,ARE
+United Kingdom,2000,0.866,GBR
+United States,2000,0.884,USA
+Uruguay,2000,0.742,URY
+Uzbekistan,2000,0.594,UZB
+Vanuatu,2000,,VUT
+Venezuela (Bolivarian Republic of),2000,0.672,VEN
+Viet Nam,2000,0.576,VNM
+Yemen,2000,0.444,YEM
+Zambia,2000,0.424,ZMB
+Zimbabwe,2000,0.427,ZWE
+Afghanistan,2001,0.341,AFG
+Albania,2001,0.67,ALB
+Algeria,2001,0.653,DZA
+Andorra,2001,,AND
+Angola,2001,0.401,AGO
+Antigua and Barbuda,2001,,ATG
+Argentina,2001,0.776,ARG
+Armenia,2001,0.645,ARM
+Australia,2001,0.902,AUS
+Austria,2001,0.847,AUT
+Azerbaijan,2001,0.651,AZE
+Bahamas,2001,0.781,BHS
+Bahrain,2001,0.796,BHR
+Bangladesh,2001,0.476,BGD
+Barbados,2001,0.749,BRB
+Belarus,2001,0.687,BLR
+Belgium,2001,0.875,BEL
+Belize,2001,0.678,BLZ
+Benin,2001,0.407,BEN
+Bhutan,2001,,BTN
+Bolivia (Plurinational State of),2001,0.61,BOL
+Bosnia and Herzegovina,2001,,BIH
+Botswana,2001,0.558,BWA
+Brazil,2001,0.692,BRA
+Brunei Darussalam,2001,0.82,BRN
+Bulgaria,2001,0.723,BGR
+Burkina Faso,2001,,BFA
+Burundi,2001,0.268,BDI
+Cabo Verde,2001,0.569,CPV
+Cambodia,2001,0.427,KHM
+Cameroon,2001,0.452,CMR
+Canada,2001,0.872,CAN
+Central African Republic,2001,0.315,CAF
+Chad,2001,0.303,TCD
+Chile,2001,0.768,CHL
+China,2001,0.6,CHN
+Colombia,2001,0.656,COL
+Comoros,2001,,COM
+Congo,2001,0.488,COG
+Congo (Democratic Republic of the),2001,0.332,COD
+Costa Rica,2001,0.712,CRI
+Croatia,2001,0.759,HRV
+Cuba,2001,0.692,CUB
+Cyprus,2001,0.805,CYP
+Czech Republic,2001,0.828,CZE
+Cü¾†˜¼te d'Ivoire,2001,0.397,CIV
+Denmark,2001,0.875,DNK
+Djibouti,2001,0.372,DJI
+Dominica,2001,0.699,DMA
+Dominican Republic,2001,0.66,DOM
+Ecuador,2001,0.675,ECU
+Egypt,2001,0.617,EGY
+El Salvador,2001,0.621,SLV
+Equatorial Guinea,2001,0.542,GNQ
+Eritrea,2001,,ERI
+Estonia,2001,0.791,EST
+Ethiopia,2001,0.298,ETH
+Fiji,2001,0.687,FJI
+Finland,2001,0.863,FIN
+France,2001,0.851,FRA
+Gabon,2001,0.636,GAB
+Gambia,2001,0.392,GMB
+Georgia,2001,0.677,GEO
+Germany,2001,0.867,DEU
+Ghana,2001,0.484,GHA
+Greece,2001,0.811,GRC
+Grenada,2001,,GRD
+Guatemala,2001,0.553,GTM
+Guinea,2001,0.329,GIN
+Guinea-Bissau,2001,,GNB
+Guyana,2001,0.609,GUY
+Haiti,2001,0.444,HTI
+Honduras,2001,0.561,HND
+"Hong Kong, China (SAR)",2001,0.833,HKG
+Hungary,2001,0.775,HUN
+Iceland,2001,0.859,ISL
+India,2001,0.499,IND
+Indonesia,2001,0.608,IDN
+Iran (Islamic Republic of),2001,0.674,IRN
+Iraq,2001,0.614,IRQ
+Ireland,2001,0.862,IRL
+Israel,2001,0.855,ISR
+Italy,2001,0.836,ITA
+Jamaica,2001,0.69,JAM
+Japan,2001,0.86,JPN
+Jordan,2001,0.712,JOR
+Kazakhstan,2001,0.7,KAZ
+Kenya,2001,0.451,KEN
+Kiribati,2001,,KIR
+Korea (Republic of),2001,0.826,KOR
+Kuwait,2001,0.785,KWT
+Kyrgyzstan,2001,0.601,KGZ
+Lao People's Democratic Republic,2001,0.468,LAO
+Latvia,2001,0.746,LVA
+Lebanon,2001,,LBN
+Lesotho,2001,0.446,LSO
+Liberia,2001,0.376,LBR
+Libya,2001,0.736,LBY
+Liechtenstein,2001,0.868,LIE
+Lithuania,2001,0.77,LTU
+Luxembourg,2001,0.86,LUX
+Madagascar,2001,0.462,MDG
+Malawi,2001,0.388,MWI
+Malaysia,2001,0.723,MYS
+Maldives,2001,0.597,MDV
+Mali,2001,0.308,MLI
+Malta,2001,0.786,MLT
+Mauritania,2001,0.446,MRT
+Mauritius,2001,0.683,MUS
+Mexico,2001,0.703,MEX
+Micronesia (Federated States of),2001,0.608,FSM
+Moldova (Republic of),2001,0.607,MDA
+Mongolia,2001,0.599,MNG
+Montenegro,2001,,MNE
+Morocco,2001,0.54,MAR
+Mozambique,2001,0.311,MOZ
+Myanmar,2001,0.435,MMR
+Namibia,2001,0.556,NAM
+Nepal,2001,0.447,NPL
+Netherlands,2001,0.882,NLD
+New Zealand,2001,0.873,NZL
+Nicaragua,2001,0.577,NIC
+Niger,2001,0.261,NER
+Nigeria,2001,,NGA
+Norway,2001,0.916,NOR
+Oman,2001,0.716,OMN
+Pakistan,2001,0.457,PAK
+Palau,2001,0.746,PLW
+"Palestine, State of",2001,,
+Panama,2001,0.725,PAN
+Papua New Guinea,2001,0.428,PNG
+Paraguay,2001,0.632,PRY
+Peru,2001,0.686,PER
+Philippines,2001,0.625,PHL
+Poland,2001,0.79,POL
+Portugal,2001,0.788,PRT
+Qatar,2001,0.807,QAT
+Romania,2001,0.714,ROU
+Russian Federation,2001,0.727,RUS
+Rwanda,2001,0.343,RWA
+Saint Kitts and Nevis,2001,,KNA
+Saint Lucia,2001,0.681,LCA
+Saint Vincent and the Grenadines,2001,0.677,VCT
+Samoa,2001,0.653,WSM
+Sao Tome and Principe,2001,0.501,STP
+Saudi Arabia,2001,0.745,SAU
+Senegal,2001,0.397,SEN
+Serbia,2001,0.715,SRB
+Seychelles,2001,0.712,SYC
+Sierra Leone,2001,0.306,SLE
+Singapore,2001,0.818,SGP
+Slovakia,2001,0.763,SVK
+Slovenia,2001,0.835,SVN
+Solomon Islands,2001,0.446,SLB
+South Africa,2001,0.62,ZAF
+South Sudan,2001,,SSD
+Spain,2001,0.828,ESP
+Sri Lanka,2001,0.699,LKA
+Sudan,2001,0.403,SDN
+Suriname,2001,,SUR
+Swaziland,2001,0.502,
+Sweden,2001,0.88,SWE
+Switzerland,2001,0.89,CHE
+Syrian Arab Republic,2001,0.596,SYR
+Tajikistan,2001,0.543,TJK
+Tanzania (United Republic of),2001,0.399,TZA
+Thailand,2001,0.657,THA
+The former Yugoslav Republic of Macedonia,2001,,MKD
+Timor-Leste,2001,0.475,TLS
+Togo,2001,0.428,TGO
+Tonga,2001,0.679,TON
+Trinidad and Tobago,2001,0.721,TTO
+Tunisia,2001,0.662,TUN
+Turkey,2001,0.658,
+Turkmenistan,2001,,TKM
+Uganda,2001,0.404,UGA
+Ukraine,2001,0.683,UKR
+United Arab Emirates,2001,0.803,ARE
+United Kingdom,2001,0.87,GBR
+United States,2001,0.887,USA
+Uruguay,2001,0.746,URY
+Uzbekistan,2001,0.6,UZB
+Vanuatu,2001,,VUT
+Venezuela (Bolivarian Republic of),2001,0.684,VEN
+Viet Nam,2001,0.584,VNM
+Yemen,2001,0.45,YEM
+Zambia,2001,0.433,ZMB
+Zimbabwe,2001,0.427,ZWE
+Afghanistan,2002,0.373,AFG
+Albania,2002,0.674,ALB
+Algeria,2002,0.663,DZA
+Andorra,2002,,AND
+Angola,2002,0.406,AGO
+Antigua and Barbuda,2002,,ATG
+Argentina,2002,0.77,ARG
+Armenia,2002,0.657,ARM
+Australia,2002,0.905,AUS
+Austria,2002,0.837,AUT
+Azerbaijan,2002,0.659,AZE
+Bahamas,2002,0.783,BHS
+Bahrain,2002,0.798,BHR
+Bangladesh,2002,0.484,BGD
+Barbados,2002,0.753,BRB
+Belarus,2002,0.695,BLR
+Belgium,2002,0.878,BEL
+Belize,2002,0.684,BLZ
+Benin,2002,0.416,BEN
+Bhutan,2002,,BTN
+Bolivia (Plurinational State of),2002,0.617,BOL
+Bosnia and Herzegovina,2002,,BIH
+Botswana,2002,0.567,BWA
+Brazil,2002,0.699,BRA
+Brunei Darussalam,2002,0.823,BRN
+Bulgaria,2002,0.729,BGR
+Burkina Faso,2002,,BFA
+Burundi,2002,0.276,BDI
+Cabo Verde,2002,0.572,CPV
+Cambodia,2002,0.445,KHM
+Cameroon,2002,0.452,CMR
+Canada,2002,0.877,CAN
+Central African Republic,2002,0.316,CAF
+Chad,2002,0.284,TCD
+Chile,2002,0.775,CHL
+China,2002,0.61,CHN
+Colombia,2002,0.659,COL
+Comoros,2002,,COM
+Congo,2002,0.492,COG
+Congo (Democratic Republic of the),2002,0.339,COD
+Costa Rica,2002,0.715,CRI
+Croatia,2002,0.765,HRV
+Cuba,2002,0.694,CUB
+Cyprus,2002,0.815,CYP
+Czech Republic,2002,0.833,CZE
+Cü¾†˜¼te d'Ivoire,2002,0.398,CIV
+Denmark,2002,0.882,DNK
+Djibouti,2002,0.378,DJI
+Dominica,2002,0.698,DMA
+Dominican Republic,2002,0.665,DOM
+Ecuador,2002,0.679,ECU
+Egypt,2002,0.621,EGY
+El Salvador,2002,0.628,SLV
+Equatorial Guinea,2002,0.554,GNQ
+Eritrea,2002,,ERI
+Estonia,2002,0.798,EST
+Ethiopia,2002,0.306,ETH
+Fiji,2002,0.689,FJI
+Finland,2002,0.866,FIN
+France,2002,0.852,FRA
+Gabon,2002,0.638,GAB
+Gambia,2002,0.395,GMB
+Georgia,2002,0.684,GEO
+Germany,2002,0.872,DEU
+Ghana,2002,0.489,GHA
+Greece,2002,0.823,GRC
+Grenada,2002,,GRD
+Guatemala,2002,0.56,GTM
+Guinea,2002,0.338,GIN
+Guinea-Bissau,2002,,GNB
+Guyana,2002,0.611,GUY
+Haiti,2002,0.447,HTI
+Honduras,2002,0.566,HND
+"Hong Kong, China (SAR)",2002,0.841,HKG
+Hungary,2002,0.784,HUN
+Iceland,2002,0.866,ISL
+India,2002,0.505,IND
+Indonesia,2002,0.613,IDN
+Iran (Islamic Republic of),2002,0.679,IRN
+Iraq,2002,0.616,IRQ
+Ireland,2002,0.87,IRL
+Israel,2002,0.863,ISR
+Italy,2002,0.841,ITA
+Jamaica,2002,0.694,JAM
+Japan,2002,0.863,JPN
+Jordan,2002,0.717,JOR
+Kazakhstan,2002,0.714,KAZ
+Kenya,2002,0.45,KEN
+Kiribati,2002,,KIR
+Korea (Republic of),2002,0.835,KOR
+Kuwait,2002,0.788,KWT
+Kyrgyzstan,2002,0.602,KGZ
+Lao People's Democratic Republic,2002,0.477,LAO
+Latvia,2002,0.761,LVA
+Lebanon,2002,,LBN
+Lesotho,2002,0.44,LSO
+Liberia,2002,0.373,LBR
+Libya,2002,0.74,LBY
+Liechtenstein,2002,0.873,LIE
+Lithuania,2002,0.78,LTU
+Luxembourg,2002,0.865,LUX
+Madagascar,2002,0.457,MDG
+Malawi,2002,0.362,MWI
+Malaysia,2002,0.724,MYS
+Maldives,2002,0.601,MDV
+Mali,2002,0.318,MLI
+Malta,2002,0.79,MLT
+Mauritania,2002,0.447,MRT
+Mauritius,2002,0.687,MUS
+Mexico,2002,0.708,MEX
+Micronesia (Federated States of),2002,0.612,FSM
+Moldova (Republic of),2002,0.617,MDA
+Mongolia,2002,0.609,MNG
+Montenegro,2002,,MNE
+Morocco,2002,0.551,MAR
+Mozambique,2002,0.318,MOZ
+Myanmar,2002,0.445,MMR
+Namibia,2002,0.554,NAM
+Nepal,2002,0.457,NPL
+Netherlands,2002,0.881,NLD
+New Zealand,2002,0.881,NZL
+Nicaragua,2002,0.583,NIC
+Niger,2002,0.266,NER
+Nigeria,2002,,NGA
+Norway,2002,0.918,NOR
+Oman,2002,0.725,OMN
+Pakistan,2002,0.465,PAK
+Palau,2002,0.751,PLW
+"Palestine, State of",2002,,
+Panama,2002,0.728,PAN
+Papua New Guinea,2002,0.433,PNG
+Paraguay,2002,0.642,PRY
+Peru,2002,0.686,PER
+Philippines,2002,0.631,PHL
+Poland,2002,0.796,POL
+Portugal,2002,0.789,PRT
+Qatar,2002,0.815,QAT
+Romania,2002,0.722,ROU
+Russian Federation,2002,0.733,RUS
+Rwanda,2002,0.359,RWA
+Saint Kitts and Nevis,2002,,KNA
+Saint Lucia,2002,0.684,LCA
+Saint Vincent and the Grenadines,2002,0.682,VCT
+Samoa,2002,0.659,WSM
+Sao Tome and Principe,2002,0.504,STP
+Saudi Arabia,2002,0.747,SAU
+Senegal,2002,0.401,SEN
+Serbia,2002,0.715,SRB
+Seychelles,2002,0.713,SYC
+Sierra Leone,2002,0.322,SLE
+Singapore,2002,0.819,SGP
+Slovakia,2002,0.771,SVK
+Slovenia,2002,0.843,SVN
+Solomon Islands,2002,0.453,SLB
+South Africa,2002,0.613,ZAF
+South Sudan,2002,,SSD
+Spain,2002,0.83,ESP
+Sri Lanka,2002,0.697,LKA
+Sudan,2002,0.409,SDN
+Suriname,2002,,SUR
+Swaziland,2002,0.493,
+Sweden,2002,0.882,SWE
+Switzerland,2002,0.889,CHE
+Syrian Arab Republic,2002,0.599,SYR
+Tajikistan,2002,0.553,TJK
+Tanzania (United Republic of),2002,0.41,TZA
+Thailand,2002,0.666,THA
+The former Yugoslav Republic of Macedonia,2002,,MKD
+Timor-Leste,2002,0.485,TLS
+Togo,2002,0.428,TGO
+Tonga,2002,0.683,TON
+Trinidad and Tobago,2002,0.729,TTO
+Tunisia,2002,0.667,TUN
+Turkey,2002,0.668,
+Turkmenistan,2002,,TKM
+Uganda,2002,0.418,UGA
+Ukraine,2002,0.691,UKR
+United Arab Emirates,2002,0.808,ARE
+United Kingdom,2002,0.874,GBR
+United States,2002,0.889,USA
+Uruguay,2002,0.747,URY
+Uzbekistan,2002,0.607,UZB
+Vanuatu,2002,,VUT
+Venezuela (Bolivarian Republic of),2002,0.688,VEN
+Viet Nam,2002,0.592,VNM
+Yemen,2002,0.457,YEM
+Zambia,2002,0.443,ZMB
+Zimbabwe,2002,0.418,ZWE
+Afghanistan,2003,0.381,AFG
+Albania,2003,0.681,ALB
+Algeria,2003,0.673,DZA
+Andorra,2003,,AND
+Angola,2003,0.415,AGO
+Antigua and Barbuda,2003,,ATG
+Argentina,2003,0.775,ARG
+Armenia,2003,0.668,ARM
+Australia,2003,0.908,AUS
+Austria,2003,0.841,AUT
+Azerbaijan,2003,0.668,AZE
+Bahamas,2003,0.784,BHS
+Bahrain,2003,0.803,BHR
+Bangladesh,2003,0.491,BGD
+Barbados,2003,0.757,BRB
+Belarus,2003,0.703,BLR
+Belgium,2003,0.88,BEL
+Belize,2003,0.691,BLZ
+Benin,2003,0.423,BEN
+Bhutan,2003,,BTN
+Bolivia (Plurinational State of),2003,0.62,BOL
+Bosnia and Herzegovina,2003,,BIH
+Botswana,2003,0.58,BWA
+Brazil,2003,0.695,BRA
+Brunei Darussalam,2003,0.828,BRN
+Bulgaria,2003,0.738,BGR
+Burkina Faso,2003,,BFA
+Burundi,2003,0.279,BDI
+Cabo Verde,2003,0.574,CPV
+Cambodia,2003,0.458,KHM
+Cameroon,2003,0.455,CMR
+Canada,2003,0.881,CAN
+Central African Republic,2003,0.315,CAF
+Chad,2003,0.301,TCD
+Chile,2003,0.781,CHL
+China,2003,0.622,CHN
+Colombia,2003,0.658,COL
+Comoros,2003,,COM
+Congo,2003,0.497,COG
+Congo (Democratic Republic of the),2003,0.347,COD
+Costa Rica,2003,0.719,CRI
+Croatia,2003,0.771,HRV
+Cuba,2003,0.705,CUB
+Cyprus,2003,0.823,CYP
+Czech Republic,2003,0.839,CZE
+Cü¾†˜¼te d'Ivoire,2003,0.4,CIV
+Denmark,2003,0.893,DNK
+Djibouti,2003,0.388,DJI
+Dominica,2003,0.704,DMA
+Dominican Republic,2003,0.666,DOM
+Ecuador,2003,0.682,ECU
+Egypt,2003,0.623,EGY
+El Salvador,2003,0.636,SLV
+Equatorial Guinea,2003,0.553,GNQ
+Eritrea,2003,,ERI
+Estonia,2003,0.805,EST
+Ethiopia,2003,0.31,ETH
+Fiji,2003,0.691,FJI
+Finland,2003,0.869,FIN
+France,2003,0.857,FRA
+Gabon,2003,0.64,GAB
+Gambia,2003,0.404,GMB
+Georgia,2003,0.694,GEO
+Germany,2003,0.877,DEU
+Ghana,2003,0.491,GHA
+Greece,2003,0.83,GRC
+Grenada,2003,,GRD
+Guatemala,2003,0.564,GTM
+Guinea,2003,0.325,GIN
+Guinea-Bissau,2003,,GNB
+Guyana,2003,0.613,GUY
+Haiti,2003,0.45,HTI
+Honduras,2003,0.571,HND
+"Hong Kong, China (SAR)",2003,0.851,HKG
+Hungary,2003,0.793,HUN
+Iceland,2003,0.873,ISL
+India,2003,0.518,IND
+Indonesia,2003,0.624,IDN
+Iran (Islamic Republic of),2003,0.686,IRN
+Iraq,2003,0.603,IRQ
+Ireland,2003,0.88,IRL
+Israel,2003,0.863,ISR
+Italy,2003,0.846,ITA
+Jamaica,2003,0.689,JAM
+Japan,2003,0.866,JPN
+Jordan,2003,0.723,JOR
+Kazakhstan,2003,0.725,KAZ
+Kenya,2003,0.461,KEN
+Kiribati,2003,,KIR
+Korea (Republic of),2003,0.843,KOR
+Kuwait,2003,0.791,KWT
+Kyrgyzstan,2003,0.609,KGZ
+Lao People's Democratic Republic,2003,0.485,LAO
+Latvia,2003,0.776,LVA
+Lebanon,2003,,LBN
+Lesotho,2003,0.439,LSO
+Liberia,2003,0.335,LBR
+Libya,2003,0.747,LBY
+Liechtenstein,2003,0.878,LIE
+Lithuania,2003,0.792,LTU
+Luxembourg,2003,0.867,LUX
+Madagascar,2003,0.466,MDG
+Malawi,2003,0.366,MWI
+Malaysia,2003,0.731,MYS
+Maldives,2003,0.617,MDV
+Mali,2003,0.333,MLI
+Malta,2003,0.797,MLT
+Mauritania,2003,0.451,MRT
+Mauritius,2003,0.696,MUS
+Mexico,2003,0.714,MEX
+Micronesia (Federated States of),2003,0.616,FSM
+Moldova (Republic of),2003,0.63,MDA
+Mongolia,2003,0.621,MNG
+Montenegro,2003,0.74,MNE
+Morocco,2003,0.561,MAR
+Mozambique,2003,0.332,MOZ
+Myanmar,2003,0.455,MMR
+Namibia,2003,0.559,NAM
+Nepal,2003,0.463,NPL
+Netherlands,2003,0.885,NLD
+New Zealand,2003,0.884,NZL
+Nicaragua,2003,0.587,NIC
+Niger,2003,0.27,NER
+Nigeria,2003,0.445,NGA
+Norway,2003,0.924,NOR
+Oman,2003,0.734,OMN
+Pakistan,2003,0.474,PAK
+Palau,2003,0.754,PLW
+"Palestine, State of",2003,,
+Panama,2003,0.733,PAN
+Papua New Guinea,2003,0.439,PNG
+Paraguay,2003,0.639,PRY
+Peru,2003,0.685,PER
+Philippines,2003,0.636,PHL
+Poland,2003,0.8,POL
+Portugal,2003,0.792,PRT
+Qatar,2003,0.826,QAT
+Romania,2003,0.733,ROU
+Russian Federation,2003,0.741,RUS
+Rwanda,2003,0.371,RWA
+Saint Kitts and Nevis,2003,,KNA
+Saint Lucia,2003,0.686,LCA
+Saint Vincent and the Grenadines,2003,0.689,VCT
+Samoa,2003,0.665,WSM
+Sao Tome and Principe,2003,0.509,STP
+Saudi Arabia,2003,0.754,SAU
+Senegal,2003,0.408,SEN
+Serbia,2003,0.72,SRB
+Seychelles,2003,0.715,SYC
+Sierra Leone,2003,0.332,SLE
+Singapore,2003,0.82,SGP
+Slovakia,2003,0.776,SVK
+Slovenia,2003,0.85,SVN
+Solomon Islands,2003,0.459,SLB
+South Africa,2003,0.611,ZAF
+South Sudan,2003,,SSD
+Spain,2003,0.833,ESP
+Sri Lanka,2003,0.705,LKA
+Sudan,2003,0.415,SDN
+Suriname,2003,,SUR
+Swaziland,2003,0.492,
+Sweden,2003,0.888,SWE
+Switzerland,2003,0.895,CHE
+Syrian Arab Republic,2003,0.61,SYR
+Tajikistan,2003,0.563,TJK
+Tanzania (United Republic of),2003,0.42,TZA
+Thailand,2003,0.674,THA
+The former Yugoslav Republic of Macedonia,2003,,MKD
+Timor-Leste,2003,0.484,TLS
+Togo,2003,0.432,TGO
+Tonga,2003,0.693,TON
+Trinidad and Tobago,2003,0.736,TTO
+Tunisia,2003,0.673,TUN
+Turkey,2003,0.675,
+Turkmenistan,2003,,TKM
+Uganda,2003,0.427,UGA
+Ukraine,2003,0.7,UKR
+United Arab Emirates,2003,0.813,ARE
+United Kingdom,2003,0.878,GBR
+United States,2003,0.892,USA
+Uruguay,2003,0.75,URY
+Uzbekistan,2003,0.613,UZB
+Vanuatu,2003,,VUT
+Venezuela (Bolivarian Republic of),2003,0.687,VEN
+Viet Nam,2003,0.601,VNM
+Yemen,2003,0.464,YEM
+Zambia,2003,0.456,ZMB
+Zimbabwe,2003,0.407,ZWE
+Afghanistan,2004,0.396,AFG
+Albania,2004,0.685,ALB
+Algeria,2004,0.68,DZA
+Andorra,2004,,AND
+Angola,2004,0.426,AGO
+Antigua and Barbuda,2004,,ATG
+Argentina,2004,0.78,ARG
+Armenia,2004,0.679,ARM
+Australia,2004,0.91,AUS
+Austria,2004,0.848,AUT
+Azerbaijan,2004,0.675,AZE
+Bahamas,2004,0.786,BHS
+Bahrain,2004,0.806,BHR
+Bangladesh,2004,0.499,BGD
+Barbados,2004,0.761,BRB
+Belarus,2004,0.713,BLR
+Belgium,2004,0.861,BEL
+Belize,2004,0.695,BLZ
+Benin,2004,0.43,BEN
+Bhutan,2004,,BTN
+Bolivia (Plurinational State of),2004,0.622,BOL
+Bosnia and Herzegovina,2004,,BIH
+Botswana,2004,0.593,BWA
+Brazil,2004,0.694,BRA
+Brunei Darussalam,2004,0.834,BRN
+Bulgaria,2004,0.745,BGR
+Burkina Faso,2004,,BFA
+Burundi,2004,0.286,BDI
+Cabo Verde,2004,0.582,CPV
+Cambodia,2004,0.47,KHM
+Cameroon,2004,0.456,CMR
+Canada,2004,0.886,CAN
+Central African Republic,2004,0.319,CAF
+Chad,2004,0.306,TCD
+Chile,2004,0.79,CHL
+China,2004,0.634,CHN
+Colombia,2004,0.658,COL
+Comoros,2004,0.434,COM
+Congo,2004,0.496,COG
+Congo (Democratic Republic of the),2004,0.355,COD
+Costa Rica,2004,0.723,CRI
+Croatia,2004,0.777,HRV
+Cuba,2004,0.719,CUB
+Cyprus,2004,0.826,CYP
+Czech Republic,2004,0.84,CZE
+Cü¾†˜¼te d'Ivoire,2004,0.406,CIV
+Denmark,2004,0.897,DNK
+Djibouti,2004,0.396,DJI
+Dominica,2004,0.703,DMA
+Dominican Republic,2004,0.668,DOM
+Ecuador,2004,0.688,ECU
+Egypt,2004,0.629,EGY
+El Salvador,2004,0.644,SLV
+Equatorial Guinea,2004,0.563,GNQ
+Eritrea,2004,,ERI
+Estonia,2004,0.812,EST
+Ethiopia,2004,0.325,ETH
+Fiji,2004,0.699,FJI
+Finland,2004,0.864,FIN
+France,2004,0.86,FRA
+Gabon,2004,0.64,GAB
+Gambia,2004,0.412,GMB
+Georgia,2004,0.703,GEO
+Germany,2004,0.884,DEU
+Ghana,2004,0.499,GHA
+Greece,2004,0.839,GRC
+Grenada,2004,,GRD
+Guatemala,2004,0.567,GTM
+Guinea,2004,0.346,GIN
+Guinea-Bissau,2004,,GNB
+Guyana,2004,0.619,GUY
+Haiti,2004,0.452,HTI
+Honduras,2004,0.577,HND
+"Hong Kong, China (SAR)",2004,0.861,HKG
+Hungary,2004,0.795,HUN
+Iceland,2004,0.879,ISL
+India,2004,0.526,IND
+Indonesia,2004,0.629,IDN
+Iran (Islamic Republic of),2004,0.687,IRN
+Iraq,2004,0.628,IRQ
+Ireland,2004,0.889,IRL
+Israel,2004,0.866,ISR
+Italy,2004,0.851,ITA
+Jamaica,2004,0.706,JAM
+Japan,2004,0.87,JPN
+Jordan,2004,0.73,JOR
+Kazakhstan,2004,0.737,KAZ
+Kenya,2004,0.474,KEN
+Kiribati,2004,,KIR
+Korea (Republic of),2004,0.852,KOR
+Kuwait,2004,0.789,KWT
+Kyrgyzstan,2004,0.612,KGZ
+Lao People's Democratic Republic,2004,0.494,LAO
+Latvia,2004,0.791,LVA
+Lebanon,2004,,LBN
+Lesotho,2004,0.437,LSO
+Liberia,2004,0.372,LBR
+Libya,2004,0.748,LBY
+Liechtenstein,2004,0.883,LIE
+Lithuania,2004,0.798,LTU
+Luxembourg,2004,0.874,LUX
+Madagascar,2004,0.473,MDG
+Malawi,2004,0.371,MWI
+Malaysia,2004,0.734,MYS
+Maldives,2004,0.625,MDV
+Mali,2004,0.338,MLI
+Malta,2004,0.805,MLT
+Mauritania,2004,0.461,MRT
+Mauritius,2004,0.704,MUS
+Mexico,2004,0.719,MEX
+Micronesia (Federated States of),2004,0.617,FSM
+Moldova (Republic of),2004,0.64,MDA
+Mongolia,2004,0.637,MNG
+Montenegro,2004,0.746,MNE
+Morocco,2004,0.569,MAR
+Mozambique,2004,0.341,MOZ
+Myanmar,2004,0.465,MMR
+Namibia,2004,0.565,NAM
+Nepal,2004,0.469,NPL
+Netherlands,2004,0.888,NLD
+New Zealand,2004,0.886,NZL
+Nicaragua,2004,0.592,NIC
+Niger,2004,0.278,NER
+Nigeria,2004,0.463,NGA
+Norway,2004,0.929,NOR
+Oman,2004,0.742,OMN
+Pakistan,2004,0.487,PAK
+Palau,2004,0.756,PLW
+"Palestine, State of",2004,0.648,
+Panama,2004,0.74,PAN
+Papua New Guinea,2004,0.446,PNG
+Paraguay,2004,0.646,PRY
+Peru,2004,0.692,PER
+Philippines,2004,0.642,PHL
+Poland,2004,0.797,POL
+Portugal,2004,0.79,PRT
+Qatar,2004,0.83,QAT
+Romania,2004,0.745,ROU
+Russian Federation,2004,0.748,RUS
+Rwanda,2004,0.388,RWA
+Saint Kitts and Nevis,2004,,KNA
+Saint Lucia,2004,0.689,LCA
+Saint Vincent and the Grenadines,2004,0.692,VCT
+Samoa,2004,0.671,WSM
+Sao Tome and Principe,2004,0.514,STP
+Saudi Arabia,2004,0.761,SAU
+Senegal,2004,0.415,SEN
+Serbia,2004,0.73,SRB
+Seychelles,2004,0.712,SYC
+Sierra Leone,2004,0.341,SLE
+Singapore,2004,0.821,SGP
+Slovakia,2004,0.784,SVK
+Slovenia,2004,0.853,SVN
+Solomon Islands,2004,0.465,SLB
+South Africa,2004,0.609,ZAF
+South Sudan,2004,,SSD
+Spain,2004,0.837,ESP
+Sri Lanka,2004,0.712,LKA
+Sudan,2004,0.423,SDN
+Suriname,2004,0.672,SUR
+Swaziland,2004,0.495,
+Sweden,2004,0.89,SWE
+Switzerland,2004,0.899,CHE
+Syrian Arab Republic,2004,0.624,SYR
+Tajikistan,2004,0.572,TJK
+Tanzania (United Republic of),2004,0.432,TZA
+Thailand,2004,0.682,THA
+The former Yugoslav Republic of Macedonia,2004,,MKD
+Timor-Leste,2004,0.492,TLS
+Togo,2004,0.435,TGO
+Tonga,2004,0.694,TON
+Trinidad and Tobago,2004,0.745,TTO
+Tunisia,2004,0.683,TUN
+Turkey,2004,0.681,
+Turkmenistan,2004,,TKM
+Uganda,2004,0.429,UGA
+Ukraine,2004,0.707,UKR
+United Arab Emirates,2004,0.818,ARE
+United Kingdom,2004,0.886,GBR
+United States,2004,0.895,USA
+Uruguay,2004,0.753,URY
+Uzbekistan,2004,0.62,UZB
+Vanuatu,2004,,VUT
+Venezuela (Bolivarian Republic of),2004,0.7,VEN
+Viet Nam,2004,0.609,VNM
+Yemen,2004,0.47,YEM
+Zambia,2004,0.467,ZMB
+Zimbabwe,2004,0.406,ZWE
+Afghanistan,2005,0.405,AFG
+Albania,2005,0.696,ALB
+Algeria,2005,0.686,DZA
+Andorra,2005,,AND
+Angola,2005,0.439,AGO
+Antigua and Barbuda,2005,0.773,ATG
+Argentina,2005,0.782,ARG
+Armenia,2005,0.692,ARM
+Australia,2005,0.915,AUS
+Austria,2005,0.854,AUT
+Azerbaijan,2005,0.682,AZE
+Bahamas,2005,0.788,BHS
+Bahrain,2005,0.81,BHR
+Bangladesh,2005,0.506,BGD
+Barbados,2005,0.766,BRB
+Belarus,2005,0.723,BLR
+Belgium,2005,0.865,BEL
+Belize,2005,0.692,BLZ
+Benin,2005,0.434,BEN
+Bhutan,2005,,BTN
+Bolivia (Plurinational State of),2005,0.625,BOL
+Bosnia and Herzegovina,2005,0.697,BIH
+Botswana,2005,0.61,BWA
+Brazil,2005,0.698,BRA
+Brunei Darussalam,2005,0.837,BRN
+Bulgaria,2005,0.75,BGR
+Burkina Faso,2005,0.325,BFA
+Burundi,2005,0.29,BDI
+Cabo Verde,2005,0.596,CPV
+Cambodia,2005,0.483,KHM
+Cameroon,2005,0.456,CMR
+Canada,2005,0.891,CAN
+Central African Republic,2005,0.323,CAF
+Chad,2005,0.303,TCD
+Chile,2005,0.796,CHL
+China,2005,0.646,CHN
+Colombia,2005,0.669,COL
+Comoros,2005,0.451,COM
+Congo,2005,0.507,COG
+Congo (Democratic Republic of the),2005,0.364,COD
+Costa Rica,2005,0.727,CRI
+Croatia,2005,0.783,HRV
+Cuba,2005,0.732,CUB
+Cyprus,2005,0.829,CYP
+Czech Republic,2005,0.847,CZE
+Cü¾†˜¼te d'Ivoire,2005,0.413,CIV
+Denmark,2005,0.902,DNK
+Djibouti,2005,0.405,DJI
+Dominica,2005,0.705,DMA
+Dominican Republic,2005,0.677,DOM
+Ecuador,2005,0.693,ECU
+Egypt,2005,0.636,EGY
+El Salvador,2005,0.651,SLV
+Equatorial Guinea,2005,0.569,GNQ
+Eritrea,2005,0.405,ERI
+Estonia,2005,0.822,EST
+Ethiopia,2005,0.346,ETH
+Fiji,2005,0.695,FJI
+Finland,2005,0.869,FIN
+France,2005,0.87,FRA
+Gabon,2005,0.646,GAB
+Gambia,2005,0.415,GMB
+Georgia,2005,0.714,GEO
+Germany,2005,0.892,DEU
+Ghana,2005,0.51,GHA
+Greece,2005,0.85,GRC
+Grenada,2005,,GRD
+Guatemala,2005,0.57,GTM
+Guinea,2005,0.356,GIN
+Guinea-Bissau,2005,0.388,GNB
+Guyana,2005,0.622,GUY
+Haiti,2005,0.455,HTI
+Honduras,2005,0.583,HND
+"Hong Kong, China (SAR)",2005,0.87,HKG
+Hungary,2005,0.802,HUN
+Iceland,2005,0.884,ISL
+India,2005,0.536,IND
+Indonesia,2005,0.632,IDN
+Iran (Islamic Republic of),2005,0.692,IRN
+Iraq,2005,0.631,IRQ
+Ireland,2005,0.896,IRL
+Israel,2005,0.87,ISR
+Italy,2005,0.856,ITA
+Jamaica,2005,0.709,JAM
+Japan,2005,0.873,JPN
+Jordan,2005,0.733,JOR
+Kazakhstan,2005,0.747,KAZ
+Kenya,2005,0.483,KEN
+Kiribati,2005,0.576,KIR
+Korea (Republic of),2005,0.86,KOR
+Kuwait,2005,0.787,KWT
+Kyrgyzstan,2005,0.613,KGZ
+Lao People's Democratic Republic,2005,0.503,LAO
+Latvia,2005,0.807,LVA
+Lebanon,2005,0.733,LBN
+Lesotho,2005,0.437,LSO
+Liberia,2005,0.377,LBR
+Libya,2005,0.752,LBY
+Liechtenstein,2005,0.886,LIE
+Lithuania,2005,0.807,LTU
+Luxembourg,2005,0.88,LUX
+Madagascar,2005,0.478,MDG
+Malawi,2005,0.377,MWI
+Malaysia,2005,0.732,MYS
+Maldives,2005,0.622,MDV
+Mali,2005,0.35,MLI
+Malta,2005,0.809,MLT
+Mauritania,2005,0.466,MRT
+Mauritius,2005,0.713,MUS
+Mexico,2005,0.723,MEX
+Micronesia (Federated States of),2005,0.622,FSM
+Moldova (Republic of),2005,0.648,MDA
+Mongolia,2005,0.649,MNG
+Montenegro,2005,0.751,MNE
+Morocco,2005,0.575,MAR
+Mozambique,2005,0.353,MOZ
+Myanmar,2005,0.474,MMR
+Namibia,2005,0.57,NAM
+Nepal,2005,0.476,NPL
+Netherlands,2005,0.893,NLD
+New Zealand,2005,0.888,NZL
+Nicaragua,2005,0.597,NIC
+Niger,2005,0.286,NER
+Nigeria,2005,0.466,NGA
+Norway,2005,0.931,NOR
+Oman,2005,0.748,OMN
+Pakistan,2005,0.501,PAK
+Palau,2005,0.758,PLW
+"Palestine, State of",2005,0.656,
+Panama,2005,0.744,PAN
+Papua New Guinea,2005,0.454,PNG
+Paraguay,2005,0.648,PRY
+Peru,2005,0.693,PER
+Philippines,2005,0.646,PHL
+Poland,2005,0.803,POL
+Portugal,2005,0.793,PRT
+Qatar,2005,0.835,QAT
+Romania,2005,0.755,ROU
+Russian Federation,2005,0.754,RUS
+Rwanda,2005,0.404,RWA
+Saint Kitts and Nevis,2005,,KNA
+Saint Lucia,2005,0.694,LCA
+Saint Vincent and the Grenadines,2005,0.695,VCT
+Samoa,2005,0.677,WSM
+Sao Tome and Principe,2005,0.521,STP
+Saudi Arabia,2005,0.767,SAU
+Senegal,2005,0.422,SEN
+Serbia,2005,0.739,SRB
+Seychelles,2005,0.728,SYC
+Sierra Leone,2005,0.348,SLE
+Singapore,2005,0.839,SGP
+Slovakia,2005,0.793,SVK
+Slovenia,2005,0.858,SVN
+Solomon Islands,2005,0.47,SLB
+South Africa,2005,0.609,ZAF
+South Sudan,2005,,SSD
+Spain,2005,0.844,ESP
+Sri Lanka,2005,0.718,LKA
+Sudan,2005,0.43,SDN
+Suriname,2005,0.678,SUR
+Swaziland,2005,0.502,
+Sweden,2005,0.892,SWE
+Switzerland,2005,0.904,CHE
+Syrian Arab Republic,2005,0.636,SYR
+Tajikistan,2005,0.579,TJK
+Tanzania (United Republic of),2005,0.446,TZA
+Thailand,2005,0.686,THA
+The former Yugoslav Republic of Macedonia,2005,0.703,MKD
+Timor-Leste,2005,0.511,TLS
+Togo,2005,0.436,TGO
+Tonga,2005,0.695,TON
+Trinidad and Tobago,2005,0.751,TTO
+Tunisia,2005,0.689,TUN
+Turkey,2005,0.687,
+Turkmenistan,2005,,TKM
+Uganda,2005,0.434,UGA
+Ukraine,2005,0.716,UKR
+United Arab Emirates,2005,0.823,ARE
+United Kingdom,2005,0.89,GBR
+United States,2005,0.898,USA
+Uruguay,2005,0.756,URY
+Uzbekistan,2005,0.626,UZB
+Vanuatu,2005,0.572,VUT
+Venezuela (Bolivarian Republic of),2005,0.714,VEN
+Viet Nam,2005,0.618,VNM
+Yemen,2005,0.475,YEM
+Zambia,2005,0.479,ZMB
+Zimbabwe,2005,0.408,ZWE
+Afghanistan,2006,0.415,AFG
+Albania,2006,0.703,ALB
+Algeria,2006,0.69,DZA
+Andorra,2006,,AND
+Angola,2006,0.454,AGO
+Antigua and Barbuda,2006,0.781,ATG
+Argentina,2006,0.788,ARG
+Armenia,2006,0.707,ARM
+Australia,2006,0.918,AUS
+Austria,2006,0.86,AUT
+Azerbaijan,2006,0.708,AZE
+Bahamas,2006,0.79,BHS
+Bahrain,2006,0.813,BHR
+Bangladesh,2006,0.513,BGD
+Barbados,2006,0.771,BRB
+Belarus,2006,0.739,BLR
+Belgium,2006,0.871,BEL
+Belize,2006,0.7,BLZ
+Benin,2006,0.438,BEN
+Bhutan,2006,,BTN
+Bolivia (Plurinational State of),2006,0.626,BOL
+Bosnia and Herzegovina,2006,0.703,BIH
+Botswana,2006,0.63,BWA
+Brazil,2006,0.7,BRA
+Brunei Darussalam,2006,0.84,BRN
+Bulgaria,2006,0.755,BGR
+Burkina Faso,2006,0.334,BFA
+Burundi,2006,0.309,BDI
+Cabo Verde,2006,0.602,CPV
+Cambodia,2006,0.495,KHM
+Cameroon,2006,0.456,CMR
+Canada,2006,0.894,CAN
+Central African Republic,2006,0.33,CAF
+Chad,2006,0.306,TCD
+Chile,2006,0.797,CHL
+China,2006,0.659,CHN
+Colombia,2006,0.675,COL
+Comoros,2006,0.459,COM
+Congo,2006,0.517,COG
+Congo (Democratic Republic of the),2006,0.37,COD
+Costa Rica,2006,0.734,CRI
+Croatia,2006,0.793,HRV
+Cuba,2006,0.754,CUB
+Cyprus,2006,0.836,CYP
+Czech Republic,2006,0.851,CZE
+Cü¾†˜¼te d'Ivoire,2006,0.418,CIV
+Denmark,2006,0.904,DNK
+Djibouti,2006,0.416,DJI
+Dominica,2006,0.711,DMA
+Dominican Republic,2006,0.685,DOM
+Ecuador,2006,0.696,ECU
+Egypt,2006,0.644,EGY
+El Salvador,2006,0.657,SLV
+Equatorial Guinea,2006,0.587,GNQ
+Eritrea,2006,0.405,ERI
+Estonia,2006,0.829,EST
+Ethiopia,2006,0.362,ETH
+Fiji,2006,0.698,FJI
+Finland,2006,0.873,FIN
+France,2006,0.873,FRA
+Gabon,2006,0.645,GAB
+Gambia,2006,0.42,GMB
+Georgia,2006,0.722,GEO
+Germany,2006,0.898,DEU
+Ghana,2006,0.519,GHA
+Greece,2006,0.855,GRC
+Grenada,2006,,GRD
+Guatemala,2006,0.578,GTM
+Guinea,2006,0.364,GIN
+Guinea-Bissau,2006,0.394,GNB
+Guyana,2006,0.62,GUY
+Haiti,2006,0.458,HTI
+Honduras,2006,0.59,HND
+"Hong Kong, China (SAR)",2006,0.881,HKG
+Hungary,2006,0.809,HUN
+Iceland,2006,0.887,ISL
+India,2006,0.546,IND
+Indonesia,2006,0.638,IDN
+Iran (Islamic Republic of),2006,0.704,IRN
+Iraq,2006,0.636,IRQ
+Ireland,2006,0.902,IRL
+Israel,2006,0.872,ISR
+Italy,2006,0.862,ITA
+Jamaica,2006,0.714,JAM
+Japan,2006,0.877,JPN
+Jordan,2006,0.736,JOR
+Kazakhstan,2006,0.754,KAZ
+Kenya,2006,0.494,KEN
+Kiribati,2006,0.574,KIR
+Korea (Republic of),2006,0.867,KOR
+Kuwait,2006,0.787,KWT
+Kyrgyzstan,2006,0.618,KGZ
+Lao People's Democratic Republic,2006,0.509,LAO
+Latvia,2006,0.814,LVA
+Lebanon,2006,0.731,LBN
+Lesotho,2006,0.44,LSO
+Liberia,2006,0.383,LBR
+Libya,2006,0.756,LBY
+Liechtenstein,2006,0.89,LIE
+Lithuania,2006,0.812,LTU
+Luxembourg,2006,0.877,LUX
+Madagascar,2006,0.483,MDG
+Malawi,2006,0.387,MWI
+Malaysia,2006,0.736,MYS
+Maldives,2006,0.632,MDV
+Mali,2006,0.363,MLI
+Malta,2006,0.808,MLT
+Mauritania,2006,0.475,MRT
+Mauritius,2006,0.72,MUS
+Mexico,2006,0.731,MEX
+Micronesia (Federated States of),2006,0.625,FSM
+Moldova (Republic of),2006,0.656,MDA
+Mongolia,2006,0.661,MNG
+Montenegro,2006,0.762,MNE
+Morocco,2006,0.581,MAR
+Mozambique,2006,0.36,MOZ
+Myanmar,2006,0.484,MMR
+Namibia,2006,0.578,NAM
+Nepal,2006,0.486,NPL
+Netherlands,2006,0.899,NLD
+New Zealand,2006,0.891,NZL
+Nicaragua,2006,0.601,NIC
+Niger,2006,0.293,NER
+Nigeria,2006,0.477,NGA
+Norway,2006,0.934,NOR
+Oman,2006,0.753,OMN
+Pakistan,2006,0.505,PAK
+Palau,2006,0.765,PLW
+"Palestine, State of",2006,0.656,
+Panama,2006,0.743,PAN
+Papua New Guinea,2006,0.461,PNG
+Paraguay,2006,0.649,PRY
+Peru,2006,0.696,PER
+Philippines,2006,0.648,PHL
+Poland,2006,0.808,POL
+Portugal,2006,0.797,PRT
+Qatar,2006,0.83,QAT
+Romania,2006,0.766,ROU
+Russian Federation,2006,0.761,RUS
+Rwanda,2006,0.424,RWA
+Saint Kitts and Nevis,2006,,KNA
+Saint Lucia,2006,0.707,LCA
+Saint Vincent and the Grenadines,2006,0.702,VCT
+Samoa,2006,0.682,WSM
+Sao Tome and Principe,2006,0.527,STP
+Saudi Arabia,2006,0.773,SAU
+Senegal,2006,0.425,SEN
+Serbia,2006,0.743,SRB
+Seychelles,2006,0.733,SYC
+Sierra Leone,2006,0.357,SLE
+Singapore,2006,0.873,SGP
+Slovakia,2006,0.802,SVK
+Slovenia,2006,0.865,SVN
+Solomon Islands,2006,0.482,SLB
+South Africa,2006,0.612,ZAF
+South Sudan,2006,,SSD
+Spain,2006,0.849,ESP
+Sri Lanka,2006,0.725,LKA
+Sudan,2006,0.44,SDN
+Suriname,2006,0.684,SUR
+Swaziland,2006,0.508,
+Sweden,2006,0.895,SWE
+Switzerland,2006,0.911,CHE
+Syrian Arab Republic,2006,0.644,SYR
+Tajikistan,2006,0.586,TJK
+Tanzania (United Republic of),2006,0.457,TZA
+Thailand,2006,0.687,THA
+The former Yugoslav Republic of Macedonia,2006,0.709,MKD
+Timor-Leste,2006,0.541,TLS
+Togo,2006,0.443,TGO
+Tonga,2006,0.698,TON
+Trinidad and Tobago,2006,0.76,TTO
+Tunisia,2006,0.695,TUN
+Turkey,2006,0.697,
+Turkmenistan,2006,,TKM
+Uganda,2006,0.442,UGA
+Ukraine,2006,0.723,UKR
+United Arab Emirates,2006,0.826,ARE
+United Kingdom,2006,0.889,GBR
+United States,2006,0.901,USA
+Uruguay,2006,0.76,URY
+Uzbekistan,2006,0.631,UZB
+Vanuatu,2006,0.579,VUT
+Venezuela (Bolivarian Republic of),2006,0.728,VEN
+Viet Nam,2006,0.625,VNM
+Yemen,2006,0.477,YEM
+Zambia,2006,0.492,ZMB
+Zimbabwe,2006,0.414,ZWE
+Afghanistan,2007,0.433,AFG
+Albania,2007,0.713,ALB
+Algeria,2007,0.697,DZA
+Andorra,2007,,AND
+Angola,2007,0.468,AGO
+Antigua and Barbuda,2007,0.786,ATG
+Argentina,2007,0.792,ARG
+Armenia,2007,0.721,ARM
+Australia,2007,0.921,AUS
+Austria,2007,0.864,AUT
+Azerbaijan,2007,0.719,AZE
+Bahamas,2007,0.791,BHS
+Bahrain,2007,0.815,BHR
+Bangladesh,2007,0.52,BGD
+Barbados,2007,0.775,BRB
+Belarus,2007,0.755,BLR
+Belgium,2007,0.874,BEL
+Belize,2007,0.699,BLZ
+Benin,2007,0.444,BEN
+Bhutan,2007,,BTN
+Bolivia (Plurinational State of),2007,0.632,BOL
+Bosnia and Herzegovina,2007,0.71,BIH
+Botswana,2007,0.646,BWA
+Brazil,2007,0.704,BRA
+Brunei Darussalam,2007,0.84,BRN
+Bulgaria,2007,0.761,BGR
+Burkina Faso,2007,0.345,BFA
+Burundi,2007,0.319,BDI
+Cabo Verde,2007,0.615,CPV
+Cambodia,2007,0.511,KHM
+Cameroon,2007,0.466,CMR
+Canada,2007,0.897,CAN
+Central African Republic,2007,0.338,CAF
+Chad,2007,0.338,TCD
+Chile,2007,0.804,CHL
+China,2007,0.672,CHN
+Colombia,2007,0.683,COL
+Comoros,2007,0.461,COM
+Congo,2007,0.527,COG
+Congo (Democratic Republic of the),2007,0.377,COD
+Costa Rica,2007,0.74,CRI
+Croatia,2007,0.8,HRV
+Cuba,2007,0.771,CUB
+Cyprus,2007,0.844,CYP
+Czech Republic,2007,0.856,CZE
+Cü¾†˜¼te d'Ivoire,2007,0.423,CIV
+Denmark,2007,0.906,DNK
+Djibouti,2007,0.427,DJI
+Dominica,2007,0.714,DMA
+Dominican Republic,2007,0.692,DOM
+Ecuador,2007,0.698,ECU
+Egypt,2007,0.651,EGY
+El Salvador,2007,0.659,SLV
+Equatorial Guinea,2007,0.592,GNQ
+Eritrea,2007,0.406,ERI
+Estonia,2007,0.835,EST
+Ethiopia,2007,0.378,ETH
+Fiji,2007,0.7,FJI
+Finland,2007,0.876,FIN
+France,2007,0.877,FRA
+Gabon,2007,0.651,GAB
+Gambia,2007,0.426,GMB
+Georgia,2007,0.735,GEO
+Germany,2007,0.903,DEU
+Ghana,2007,0.53,GHA
+Greece,2007,0.853,GRC
+Grenada,2007,,GRD
+Guatemala,2007,0.589,GTM
+Guinea,2007,0.371,GIN
+Guinea-Bissau,2007,0.398,GNB
+Guyana,2007,0.618,GUY
+Haiti,2007,0.462,HTI
+Honduras,2007,0.597,HND
+"Hong Kong, China (SAR)",2007,0.887,HKG
+Hungary,2007,0.812,HUN
+Iceland,2007,0.892,ISL
+India,2007,0.556,IND
+Indonesia,2007,0.641,IDN
+Iran (Islamic Republic of),2007,0.716,IRN
+Iraq,2007,0.638,IRQ
+Ireland,2007,0.908,IRL
+Israel,2007,0.877,ISR
+Italy,2007,0.866,ITA
+Jamaica,2007,0.718,JAM
+Japan,2007,0.88,JPN
+Jordan,2007,0.739,JOR
+Kazakhstan,2007,0.758,KAZ
+Kenya,2007,0.506,KEN
+Kiribati,2007,0.572,KIR
+Korea (Republic of),2007,0.873,KOR
+Kuwait,2007,0.787,KWT
+Kyrgyzstan,2007,0.624,KGZ
+Lao People's Democratic Republic,2007,0.518,LAO
+Latvia,2007,0.819,LVA
+Lebanon,2007,0.74,LBN
+Lesotho,2007,0.447,LSO
+Liberia,2007,0.394,LBR
+Libya,2007,0.757,LBY
+Liechtenstein,2007,0.893,LIE
+Lithuania,2007,0.82,LTU
+Luxembourg,2007,0.887,LUX
+Madagascar,2007,0.491,MDG
+Malawi,2007,0.4,MWI
+Malaysia,2007,0.747,MYS
+Maldives,2007,0.641,MDV
+Mali,2007,0.36,MLI
+Malta,2007,0.813,MLT
+Mauritania,2007,0.475,MRT
+Mauritius,2007,0.728,MUS
+Mexico,2007,0.735,MEX
+Micronesia (Federated States of),2007,0.628,FSM
+Moldova (Republic of),2007,0.661,MDA
+Mongolia,2007,0.673,MNG
+Montenegro,2007,0.774,MNE
+Morocco,2007,0.589,MAR
+Mozambique,2007,0.372,MOZ
+Myanmar,2007,0.493,MMR
+Namibia,2007,0.589,NAM
+Nepal,2007,0.492,NPL
+Netherlands,2007,0.905,NLD
+New Zealand,2007,0.894,NZL
+Nicaragua,2007,0.607,NIC
+Niger,2007,0.298,NER
+Nigeria,2007,0.481,NGA
+Norway,2007,0.936,NOR
+Oman,2007,0.765,OMN
+Pakistan,2007,0.513,PAK
+Palau,2007,0.767,PLW
+"Palestine, State of",2007,0.661,
+Panama,2007,0.75,PAN
+Papua New Guinea,2007,0.469,PNG
+Paraguay,2007,0.654,PRY
+Peru,2007,0.7,PER
+Philippines,2007,0.655,PHL
+Poland,2007,0.813,POL
+Portugal,2007,0.804,PRT
+Qatar,2007,0.825,QAT
+Romania,2007,0.78,ROU
+Russian Federation,2007,0.769,RUS
+Rwanda,2007,0.438,RWA
+Saint Kitts and Nevis,2007,,KNA
+Saint Lucia,2007,0.71,LCA
+Saint Vincent and the Grenadines,2007,0.704,VCT
+Samoa,2007,0.688,WSM
+Sao Tome and Principe,2007,0.531,STP
+Saudi Arabia,2007,0.779,SAU
+Senegal,2007,0.435,SEN
+Serbia,2007,0.749,SRB
+Seychelles,2007,0.739,SYC
+Sierra Leone,2007,0.367,SLE
+Singapore,2007,0.88,SGP
+Slovakia,2007,0.813,SVK
+Slovenia,2007,0.869,SVN
+Solomon Islands,2007,0.489,SLB
+South Africa,2007,0.616,ZAF
+South Sudan,2007,,SSD
+Spain,2007,0.854,ESP
+Sri Lanka,2007,0.731,LKA
+Sudan,2007,0.444,SDN
+Suriname,2007,0.691,SUR
+Swaziland,2007,0.514,
+Sweden,2007,0.897,SWE
+Switzerland,2007,0.914,CHE
+Syrian Arab Republic,2007,0.651,SYR
+Tajikistan,2007,0.592,TJK
+Tanzania (United Republic of),2007,0.468,TZA
+Thailand,2007,0.7,THA
+The former Yugoslav Republic of Macedonia,2007,0.714,MKD
+Timor-Leste,2007,0.566,TLS
+Togo,2007,0.441,TGO
+Tonga,2007,0.698,TON
+Trinidad and Tobago,2007,0.767,TTO
+Tunisia,2007,0.701,TUN
+Turkey,2007,0.705,
+Turkmenistan,2007,,TKM
+Uganda,2007,0.453,UGA
+Ukraine,2007,0.73,UKR
+United Arab Emirates,2007,0.829,ARE
+United Kingdom,2007,0.892,GBR
+United States,2007,0.905,USA
+Uruguay,2007,0.77,URY
+Uzbekistan,2007,0.644,UZB
+Vanuatu,2007,0.582,VUT
+Venezuela (Bolivarian Republic of),2007,0.745,VEN
+Viet Nam,2007,0.633,VNM
+Yemen,2007,0.48,YEM
+Zambia,2007,0.504,ZMB
+Zimbabwe,2007,0.421,ZWE
+Afghanistan,2008,0.434,AFG
+Albania,2008,0.721,ALB
+Algeria,2008,0.705,DZA
+Andorra,2008,,AND
+Angola,2008,0.48,AGO
+Antigua and Barbuda,2008,0.788,ATG
+Argentina,2008,0.794,ARG
+Armenia,2008,0.725,ARM
+Australia,2008,0.925,AUS
+Austria,2008,0.87,AUT
+Azerbaijan,2008,0.728,AZE
+Bahamas,2008,0.791,BHS
+Bahrain,2008,0.814,BHR
+Bangladesh,2008,0.523,BGD
+Barbados,2008,0.779,BRB
+Belarus,2008,0.771,BLR
+Belgium,2008,0.876,BEL
+Belize,2008,0.7,BLZ
+Benin,2008,0.448,BEN
+Bhutan,2008,,BTN
+Bolivia (Plurinational State of),2008,0.636,BOL
+Bosnia and Herzegovina,2008,0.716,BIH
+Botswana,2008,0.661,BWA
+Brazil,2008,0.714,BRA
+Brunei Darussalam,2008,0.841,BRN
+Bulgaria,2008,0.768,BGR
+Burkina Faso,2008,0.356,BFA
+Burundi,2008,0.336,BDI
+Cabo Verde,2008,0.621,CPV
+Cambodia,2008,0.52,KHM
+Cameroon,2008,0.473,CMR
+Canada,2008,0.898,CAN
+Central African Republic,2008,0.345,CAF
+Chad,2008,0.343,TCD
+Chile,2008,0.816,CHL
+China,2008,0.682,CHN
+Colombia,2008,0.691,COL
+Comoros,2008,0.465,COM
+Congo,2008,0.545,COG
+Congo (Democratic Republic of the),2008,0.389,COD
+Costa Rica,2008,0.747,CRI
+Croatia,2008,0.803,HRV
+Cuba,2008,0.782,CUB
+Cyprus,2008,0.849,CYP
+Czech Republic,2008,0.858,CZE
+Cü¾†˜¼te d'Ivoire,2008,0.431,CIV
+Denmark,2008,0.906,DNK
+Djibouti,2008,0.436,DJI
+Dominica,2008,0.72,DMA
+Dominican Republic,2008,0.695,DOM
+Ecuador,2008,0.702,ECU
+Egypt,2008,0.659,EGY
+El Salvador,2008,0.662,SLV
+Equatorial Guinea,2008,0.59,GNQ
+Eritrea,2008,0.402,ERI
+Estonia,2008,0.836,EST
+Ethiopia,2008,0.393,ETH
+Fiji,2008,0.704,FJI
+Finland,2008,0.878,FIN
+France,2008,0.879,FRA
+Gabon,2008,0.652,GAB
+Gambia,2008,0.434,GMB
+Georgia,2008,0.734,GEO
+Germany,2008,0.906,DEU
+Ghana,2008,0.542,GHA
+Greece,2008,0.857,GRC
+Grenada,2008,,GRD
+Guatemala,2008,0.596,GTM
+Guinea,2008,0.376,GIN
+Guinea-Bissau,2008,0.401,GNB
+Guyana,2008,0.618,GUY
+Haiti,2008,0.466,HTI
+Honduras,2008,0.603,HND
+"Hong Kong, China (SAR)",2008,0.892,HKG
+Hungary,2008,0.816,HUN
+Iceland,2008,0.894,ISL
+India,2008,0.563,IND
+Indonesia,2008,0.645,IDN
+Iran (Islamic Republic of),2008,0.728,IRN
+Iraq,2008,0.643,IRQ
+Ireland,2008,0.909,IRL
+Israel,2008,0.876,ISR
+Italy,2008,0.868,ITA
+Jamaica,2008,0.721,JAM
+Japan,2008,0.881,JPN
+Jordan,2008,0.742,JOR
+Kazakhstan,2008,0.758,KAZ
+Kenya,2008,0.514,KEN
+Kiribati,2008,0.576,KIR
+Korea (Republic of),2008,0.876,KOR
+Kuwait,2008,0.788,KWT
+Kyrgyzstan,2008,0.629,KGZ
+Lao People's Democratic Republic,2008,0.525,LAO
+Latvia,2008,0.821,LVA
+Lebanon,2008,0.746,LBN
+Lesotho,2008,0.453,LSO
+Liberia,2008,0.4,LBR
+Libya,2008,0.757,LBY
+Liechtenstein,2008,0.899,LIE
+Lithuania,2008,0.825,LTU
+Luxembourg,2008,0.888,LUX
+Madagascar,2008,0.5,MDG
+Malawi,2008,0.415,MWI
+Malaysia,2008,0.756,MYS
+Maldives,2008,0.651,MDV
+Mali,2008,0.385,MLI
+Malta,2008,0.815,MLT
+Mauritania,2008,0.476,MRT
+Mauritius,2008,0.734,MUS
+Mexico,2008,0.738,MEX
+Micronesia (Federated States of),2008,0.629,FSM
+Moldova (Republic of),2008,0.668,MDA
+Mongolia,2008,0.686,MNG
+Montenegro,2008,0.785,MNE
+Morocco,2008,0.596,MAR
+Mozambique,2008,0.382,MOZ
+Myanmar,2008,0.504,MMR
+Namibia,2008,0.598,NAM
+Nepal,2008,0.502,NPL
+Netherlands,2008,0.906,NLD
+New Zealand,2008,0.895,NZL
+Nicaragua,2008,0.613,NIC
+Niger,2008,0.307,NER
+Nigeria,2008,0.487,NGA
+Norway,2008,0.936,NOR
+Oman,2008,0.782,OMN
+Pakistan,2008,0.514,PAK
+Palau,2008,0.77,PLW
+"Palestine, State of",2008,0.656,
+Panama,2008,0.755,PAN
+Papua New Guinea,2008,0.477,PNG
+Paraguay,2008,0.663,PRY
+Peru,2008,0.706,PER
+Philippines,2008,0.661,PHL
+Poland,2008,0.818,POL
+Portugal,2008,0.809,PRT
+Qatar,2008,0.828,QAT
+Romania,2008,0.795,ROU
+Russian Federation,2008,0.776,RUS
+Rwanda,2008,0.447,RWA
+Saint Kitts and Nevis,2008,,KNA
+Saint Lucia,2008,0.717,LCA
+Saint Vincent and the Grenadines,2008,0.709,VCT
+Samoa,2008,0.691,WSM
+Sao Tome and Principe,2008,0.533,STP
+Saudi Arabia,2008,0.787,SAU
+Senegal,2008,0.444,SEN
+Serbia,2008,0.754,SRB
+Seychelles,2008,0.739,SYC
+Sierra Leone,2008,0.375,SLE
+Singapore,2008,0.887,SGP
+Slovakia,2008,0.82,SVK
+Slovenia,2008,0.873,SVN
+Solomon Islands,2008,0.494,SLB
+South Africa,2008,0.622,ZAF
+South Sudan,2008,,SSD
+Spain,2008,0.858,ESP
+Sri Lanka,2008,0.735,LKA
+Sudan,2008,0.456,SDN
+Suriname,2008,0.696,SUR
+Swaziland,2008,0.519,
+Sweden,2008,0.898,SWE
+Switzerland,2008,0.916,CHE
+Syrian Arab Republic,2008,0.648,SYR
+Tajikistan,2008,0.601,TJK
+Tanzania (United Republic of),2008,0.478,TZA
+Thailand,2008,0.706,THA
+The former Yugoslav Republic of Macedonia,2008,0.73,MKD
+Timor-Leste,2008,0.599,TLS
+Togo,2008,0.442,TGO
+Tonga,2008,0.703,TON
+Trinidad and Tobago,2008,0.773,TTO
+Tunisia,2008,0.706,TUN
+Turkey,2008,0.709,
+Turkmenistan,2008,,TKM
+Uganda,2008,0.464,UGA
+Ukraine,2008,0.734,UKR
+United Arab Emirates,2008,0.831,ARE
+United Kingdom,2008,0.895,GBR
+United States,2008,0.907,USA
+Uruguay,2008,0.774,URY
+Uzbekistan,2008,0.651,UZB
+Vanuatu,2008,0.589,VUT
+Venezuela (Bolivarian Republic of),2008,0.754,VEN
+Viet Nam,2008,0.641,VNM
+Yemen,2008,0.483,YEM
+Zambia,2008,0.518,ZMB
+Zimbabwe,2008,0.419,ZWE
+Afghanistan,2009,0.448,AFG
+Albania,2009,0.725,ALB
+Algeria,2009,0.714,DZA
+Andorra,2009,,AND
+Angola,2009,0.488,AGO
+Antigua and Barbuda,2009,0.783,ATG
+Argentina,2009,0.802,ARG
+Armenia,2009,0.72,ARM
+Australia,2009,0.927,AUS
+Austria,2009,0.872,AUT
+Azerbaijan,2009,0.737,AZE
+Bahamas,2009,0.788,BHS
+Bahrain,2009,0.81,BHR
+Bangladesh,2009,0.535,BGD
+Barbados,2009,0.781,BRB
+Belarus,2009,0.78,BLR
+Belgium,2009,0.878,BEL
+Belize,2009,0.7,BLZ
+Benin,2009,0.451,BEN
+Bhutan,2009,,BTN
+Bolivia (Plurinational State of),2009,0.643,BOL
+Bosnia and Herzegovina,2009,0.717,BIH
+Botswana,2009,0.669,BWA
+Brazil,2009,0.716,BRA
+Brunei Darussalam,2009,0.845,BRN
+Bulgaria,2009,0.77,BGR
+Burkina Faso,2009,0.365,BFA
+Burundi,2009,0.361,BDI
+Cabo Verde,2009,0.627,CPV
+Cambodia,2009,0.519,KHM
+Cameroon,2009,0.48,CMR
+Canada,2009,0.898,CAN
+Central African Republic,2009,0.352,CAF
+Chad,2009,0.36,TCD
+Chile,2009,0.815,CHL
+China,2009,0.691,CHN
+Colombia,2009,0.695,COL
+Comoros,2009,0.476,COM
+Congo,2009,0.548,COG
+Congo (Democratic Republic of the),2009,0.395,COD
+Costa Rica,2009,0.749,CRI
+Croatia,2009,0.803,HRV
+Cuba,2009,0.784,CUB
+Cyprus,2009,0.853,CYP
+Czech Republic,2009,0.859,CZE
+Cü¾†˜¼te d'Ivoire,2009,0.436,CIV
+Denmark,2009,0.906,DNK
+Djibouti,2009,0.441,DJI
+Dominica,2009,0.721,DMA
+Dominican Republic,2009,0.697,DOM
+Ecuador,2009,0.703,ECU
+Egypt,2009,0.665,EGY
+El Salvador,2009,0.662,SLV
+Equatorial Guinea,2009,0.589,GNQ
+Eritrea,2009,0.404,ERI
+Estonia,2009,0.833,EST
+Ethiopia,2009,0.401,ETH
+Fiji,2009,0.706,FJI
+Finland,2009,0.874,FIN
+France,2009,0.879,FRA
+Gabon,2009,0.66,GAB
+Gambia,2009,0.439,GMB
+Georgia,2009,0.738,GEO
+Germany,2009,0.907,DEU
+Ghana,2009,0.547,GHA
+Greece,2009,0.859,GRC
+Grenada,2009,,GRD
+Guatemala,2009,0.602,GTM
+Guinea,2009,0.38,GIN
+Guinea-Bissau,2009,0.405,GNB
+Guyana,2009,0.618,GUY
+Haiti,2009,0.47,HTI
+Honduras,2009,0.606,HND
+"Hong Kong, China (SAR)",2009,0.894,HKG
+Hungary,2009,0.817,HUN
+Iceland,2009,0.894,ISL
+India,2009,0.569,IND
+Indonesia,2009,0.656,IDN
+Iran (Islamic Republic of),2009,0.735,IRN
+Iraq,2009,0.646,IRQ
+Ireland,2009,0.907,IRL
+Israel,2009,0.878,ISR
+Italy,2009,0.869,ITA
+Jamaica,2009,0.721,JAM
+Japan,2009,0.879,JPN
+Jordan,2009,0.739,JOR
+Kazakhstan,2009,0.763,KAZ
+Kenya,2009,0.523,KEN
+Kiribati,2009,0.584,KIR
+Korea (Republic of),2009,0.87,KOR
+Kuwait,2009,0.79,KWT
+Kyrgyzstan,2009,0.631,KGZ
+Lao People's Democratic Republic,2009,0.535,LAO
+Latvia,2009,0.815,LVA
+Lebanon,2009,0.752,LBN
+Lesotho,2009,0.464,LSO
+Liberia,2009,0.403,LBR
+Libya,2009,0.755,LBY
+Liechtenstein,2009,0.899,LIE
+Lithuania,2009,0.824,LTU
+Luxembourg,2009,0.884,LUX
+Madagascar,2009,0.503,MDG
+Malawi,2009,0.43,MWI
+Malaysia,2009,0.764,MYS
+Maldives,2009,0.653,MDV
+Mali,2009,0.396,MLI
+Malta,2009,0.819,MLT
+Mauritania,2009,0.484,MRT
+Mauritius,2009,0.74,MUS
+Mexico,2009,0.739,MEX
+Micronesia (Federated States of),2009,0.633,FSM
+Moldova (Republic of),2009,0.664,MDA
+Mongolia,2009,0.693,MNG
+Montenegro,2009,0.787,MNE
+Morocco,2009,0.603,MAR
+Mozambique,2009,0.39,MOZ
+Myanmar,2009,0.515,MMR
+Namibia,2009,0.604,NAM
+Nepal,2009,0.515,NPL
+Netherlands,2009,0.906,NLD
+New Zealand,2009,0.899,NZL
+Nicaragua,2009,0.614,NIC
+Niger,2009,0.312,NER
+Nigeria,2009,0.492,NGA
+Norway,2009,0.936,NOR
+Oman,2009,0.797,OMN
+Pakistan,2009,0.521,PAK
+Palau,2009,0.77,PLW
+"Palestine, State of",2009,0.667,
+Panama,2009,0.756,PAN
+Papua New Guinea,2009,0.485,PNG
+Paraguay,2009,0.664,PRY
+Peru,2009,0.708,PER
+Philippines,2009,0.662,PHL
+Poland,2009,0.822,POL
+Portugal,2009,0.812,PRT
+Qatar,2009,0.825,QAT
+Romania,2009,0.797,ROU
+Russian Federation,2009,0.773,RUS
+Rwanda,2009,0.454,RWA
+Saint Kitts and Nevis,2009,,KNA
+Saint Lucia,2009,0.724,LCA
+Saint Vincent and the Grenadines,2009,0.711,VCT
+Samoa,2009,0.69,WSM
+Sao Tome and Principe,2009,0.542,STP
+Saudi Arabia,2009,0.792,SAU
+Senegal,2009,0.449,SEN
+Serbia,2009,0.755,SRB
+Seychelles,2009,0.74,SYC
+Sierra Leone,2009,0.384,SLE
+Singapore,2009,0.889,SGP
+Slovakia,2009,0.822,SVK
+Slovenia,2009,0.872,SVN
+Solomon Islands,2009,0.492,SLB
+South Africa,2009,0.63,ZAF
+South Sudan,2009,,SSD
+Spain,2009,0.86,ESP
+Sri Lanka,2009,0.739,LKA
+Sudan,2009,0.461,SDN
+Suriname,2009,0.7,SUR
+Swaziland,2009,0.523,
+Sweden,2009,0.895,SWE
+Switzerland,2009,0.92,CHE
+Syrian Arab Republic,2009,0.65,SYR
+Tajikistan,2009,0.603,TJK
+Tanzania (United Republic of),2009,0.488,TZA
+Thailand,2009,0.711,THA
+The former Yugoslav Republic of Macedonia,2009,0.732,MKD
+Timor-Leste,2009,0.599,TLS
+Togo,2009,0.449,TGO
+Tonga,2009,0.707,TON
+Trinidad and Tobago,2009,0.772,TTO
+Tunisia,2009,0.71,TUN
+Turkey,2009,0.715,
+Turkmenistan,2009,,TKM
+Uganda,2009,0.473,UGA
+Ukraine,2009,0.728,UKR
+United Arab Emirates,2009,0.826,ARE
+United Kingdom,2009,0.895,GBR
+United States,2009,0.907,USA
+Uruguay,2009,0.777,URY
+Uzbekistan,2009,0.657,UZB
+Vanuatu,2009,0.59,VUT
+Venezuela (Bolivarian Republic of),2009,0.754,VEN
+Viet Nam,2009,0.647,VNM
+Yemen,2009,0.488,YEM
+Zambia,2009,0.533,ZMB
+Zimbabwe,2009,0.436,ZWE
+Afghanistan,2010,0.454,AFG
+Albania,2010,0.738,ALB
+Algeria,2010,0.724,DZA
+Andorra,2010,0.819,AND
+Angola,2010,0.495,AGO
+Antigua and Barbuda,2010,0.782,ATG
+Argentina,2010,0.816,ARG
+Armenia,2010,0.729,ARM
+Australia,2010,0.927,AUS
+Austria,2010,0.88,AUT
+Azerbaijan,2010,0.741,AZE
+Bahamas,2010,0.788,BHS
+Bahrain,2010,0.812,BHR
+Bangladesh,2010,0.545,BGD
+Barbados,2010,0.78,BRB
+Belarus,2010,0.787,BLR
+Belgium,2010,0.884,BEL
+Belize,2010,0.7,BLZ
+Benin,2010,0.454,BEN
+Bhutan,2010,0.572,BTN
+Bolivia (Plurinational State of),2010,0.649,BOL
+Bosnia and Herzegovina,2010,0.711,BIH
+Botswana,2010,0.678,BWA
+Brazil,2010,0.724,BRA
+Brunei Darussalam,2010,0.846,BRN
+Bulgaria,2010,0.775,BGR
+Burkina Faso,2010,0.377,BFA
+Burundi,2010,0.385,BDI
+Cabo Verde,2010,0.632,CPV
+Cambodia,2010,0.533,KHM
+Cameroon,2010,0.486,CMR
+Canada,2010,0.903,CAN
+Central African Republic,2010,0.361,CAF
+Chad,2010,0.37,TCD
+Chile,2010,0.82,CHL
+China,2010,0.7,CHN
+Colombia,2010,0.7,COL
+Comoros,2010,0.479,COM
+Congo,2010,0.558,COG
+Congo (Democratic Republic of the),2010,0.398,COD
+Costa Rica,2010,0.752,CRI
+Croatia,2010,0.808,HRV
+Cuba,2010,0.78,CUB
+Cyprus,2010,0.847,CYP
+Czech Republic,2010,0.861,CZE
+Cü¾†˜¼te d'Ivoire,2010,0.441,CIV
+Denmark,2010,0.91,DNK
+Djibouti,2010,0.451,DJI
+Dominica,2010,0.722,DMA
+Dominican Republic,2010,0.703,DOM
+Ecuador,2010,0.71,ECU
+Egypt,2010,0.671,EGY
+El Salvador,2010,0.666,SLV
+Equatorial Guinea,2010,0.58,GNQ
+Eritrea,2010,0.405,ERI
+Estonia,2010,0.838,EST
+Ethiopia,2010,0.411,ETH
+Fiji,2010,0.709,FJI
+Finland,2010,0.878,FIN
+France,2010,0.882,FRA
+Gabon,2010,0.664,GAB
+Gambia,2010,0.441,GMB
+Georgia,2010,0.742,GEO
+Germany,2010,0.912,DEU
+Ghana,2010,0.554,GHA
+Greece,2010,0.86,GRC
+Grenada,2010,0.741,GRD
+Guatemala,2010,0.609,GTM
+Guinea,2010,0.385,GIN
+Guinea-Bissau,2010,0.41,GNB
+Guyana,2010,0.624,GUY
+Haiti,2010,0.47,HTI
+Honduras,2010,0.611,HND
+"Hong Kong, China (SAR)",2010,0.898,HKG
+Hungary,2010,0.821,HUN
+Iceland,2010,0.894,ISL
+India,2010,0.58,IND
+Indonesia,2010,0.662,IDN
+Iran (Islamic Republic of),2010,0.745,IRN
+Iraq,2010,0.649,IRQ
+Ireland,2010,0.909,IRL
+Israel,2010,0.883,ISR
+Italy,2010,0.872,ITA
+Jamaica,2010,0.722,JAM
+Japan,2010,0.884,JPN
+Jordan,2010,0.737,JOR
+Kazakhstan,2010,0.766,KAZ
+Kenya,2010,0.53,KEN
+Kiribati,2010,0.585,KIR
+Korea (Republic of),2010,0.884,KOR
+Kuwait,2010,0.792,KWT
+Kyrgyzstan,2010,0.632,KGZ
+Lao People's Democratic Republic,2010,0.542,LAO
+Latvia,2010,0.81,LVA
+Lebanon,2010,0.758,LBN
+Lesotho,2010,0.469,LSO
+Liberia,2010,0.406,LBR
+Libya,2010,0.756,LBY
+Liechtenstein,2010,0.904,LIE
+Lithuania,2010,0.826,LTU
+Luxembourg,2010,0.894,LUX
+Madagascar,2010,0.504,MDG
+Malawi,2010,0.444,MWI
+Malaysia,2010,0.774,MYS
+Maldives,2010,0.663,MDV
+Mali,2010,0.404,MLI
+Malta,2010,0.826,MLT
+Mauritania,2010,0.487,MRT
+Mauritius,2010,0.748,MUS
+Mexico,2010,0.745,MEX
+Micronesia (Federated States of),2010,0.638,FSM
+Moldova (Republic of),2010,0.672,MDA
+Mongolia,2010,0.701,MNG
+Montenegro,2010,0.792,MNE
+Morocco,2010,0.612,MAR
+Mozambique,2010,0.397,MOZ
+Myanmar,2010,0.526,MMR
+Namibia,2010,0.612,NAM
+Nepal,2010,0.529,NPL
+Netherlands,2010,0.911,NLD
+New Zealand,2010,0.901,NZL
+Nicaragua,2010,0.62,NIC
+Niger,2010,0.323,NER
+Nigeria,2010,0.5,NGA
+Norway,2010,0.939,NOR
+Oman,2010,0.797,OMN
+Pakistan,2010,0.525,PAK
+Palau,2010,0.77,PLW
+"Palestine, State of",2010,0.669,
+Panama,2010,0.758,PAN
+Papua New Guinea,2010,0.494,PNG
+Paraguay,2010,0.675,PRY
+Peru,2010,0.721,PER
+Philippines,2010,0.669,PHL
+Poland,2010,0.829,POL
+Portugal,2010,0.818,PRT
+Qatar,2010,0.827,QAT
+Romania,2010,0.798,ROU
+Russian Federation,2010,0.785,RUS
+Rwanda,2010,0.464,RWA
+Saint Kitts and Nevis,2010,0.741,KNA
+Saint Lucia,2010,0.733,LCA
+Saint Vincent and the Grenadines,2010,0.712,VCT
+Samoa,2010,0.693,WSM
+Sao Tome and Principe,2010,0.546,STP
+Saudi Arabia,2010,0.804,SAU
+Senegal,2010,0.455,SEN
+Serbia,2010,0.757,SRB
+Seychelles,2010,0.744,SYC
+Sierra Leone,2010,0.392,SLE
+Singapore,2010,0.911,SGP
+Slovakia,2010,0.829,SVK
+Slovenia,2010,0.876,SVN
+Solomon Islands,2010,0.497,SLB
+South Africa,2010,0.638,ZAF
+South Sudan,2010,0.429,SSD
+Spain,2010,0.867,ESP
+Sri Lanka,2010,0.746,LKA
+Sudan,2010,0.463,SDN
+Suriname,2010,0.704,SUR
+Swaziland,2010,0.526,
+Sweden,2010,0.901,SWE
+Switzerland,2010,0.932,CHE
+Syrian Arab Republic,2010,0.646,SYR
+Tajikistan,2010,0.608,TJK
+Tanzania (United Republic of),2010,0.498,TZA
+Thailand,2010,0.72,THA
+The former Yugoslav Republic of Macedonia,2010,0.735,MKD
+Timor-Leste,2010,0.607,TLS
+Togo,2010,0.457,TGO
+Tonga,2010,0.712,TON
+Trinidad and Tobago,2010,0.774,TTO
+Tunisia,2010,0.714,TUN
+Turkey,2010,0.737,
+Turkmenistan,2010,0.665,TKM
+Uganda,2010,0.477,UGA
+Ukraine,2010,0.734,UKR
+United Arab Emirates,2010,0.824,ARE
+United Kingdom,2010,0.902,GBR
+United States,2010,0.91,USA
+Uruguay,2010,0.78,URY
+Uzbekistan,2010,0.664,UZB
+Vanuatu,2010,0.591,VUT
+Venezuela (Bolivarian Republic of),2010,0.756,VEN
+Viet Nam,2010,0.655,VNM
+Yemen,2010,0.493,YEM
+Zambia,2010,0.543,ZMB
+Zimbabwe,2010,0.452,ZWE
+Afghanistan,2011,0.463,AFG
+Albania,2011,0.752,ALB
+Algeria,2011,0.732,DZA
+Andorra,2011,0.819,AND
+Angola,2011,0.508,AGO
+Antigua and Barbuda,2011,0.778,ATG
+Argentina,2011,0.822,ARG
+Armenia,2011,0.732,ARM
+Australia,2011,0.93,AUS
+Austria,2011,0.884,AUT
+Azerbaijan,2011,0.742,AZE
+Bahamas,2011,0.789,BHS
+Bahrain,2011,0.812,BHR
+Bangladesh,2011,0.557,BGD
+Barbados,2011,0.785,BRB
+Belarus,2011,0.793,BLR
+Belgium,2011,0.886,BEL
+Belize,2011,0.702,BLZ
+Benin,2011,0.458,BEN
+Bhutan,2011,0.581,BTN
+Bolivia (Plurinational State of),2011,0.655,BOL
+Bosnia and Herzegovina,2011,0.728,BIH
+Botswana,2011,0.687,BWA
+Brazil,2011,0.73,BRA
+Brunei Darussalam,2011,0.852,BRN
+Bulgaria,2011,0.778,BGR
+Burkina Faso,2011,0.384,BFA
+Burundi,2011,0.393,BDI
+Cabo Verde,2011,0.636,CPV
+Cambodia,2011,0.54,KHM
+Cameroon,2011,0.496,CMR
+Canada,2011,0.907,CAN
+Central African Republic,2011,0.366,CAF
+Chad,2011,0.381,TCD
+Chile,2011,0.826,CHL
+China,2011,0.703,CHN
+Colombia,2011,0.707,COL
+Comoros,2011,0.484,COM
+Congo,2011,0.557,COG
+Congo (Democratic Republic of the),2011,0.407,COD
+Costa Rica,2011,0.758,CRI
+Croatia,2011,0.815,HRV
+Cuba,2011,0.778,CUB
+Cyprus,2011,0.85,CYP
+Czech Republic,2011,0.864,CZE
+Cü¾†˜¼te d'Ivoire,2011,0.444,CIV
+Denmark,2011,0.922,DNK
+Djibouti,2011,0.46,DJI
+Dominica,2011,0.722,DMA
+Dominican Republic,2011,0.706,DOM
+Ecuador,2011,0.717,ECU
+Egypt,2011,0.673,EGY
+El Salvador,2011,0.67,SLV
+Equatorial Guinea,2011,0.583,GNQ
+Eritrea,2011,0.41,ERI
+Estonia,2011,0.85,EST
+Ethiopia,2011,0.422,ETH
+Fiji,2011,0.714,FJI
+Finland,2011,0.884,FIN
+France,2011,0.885,FRA
+Gabon,2011,0.669,GAB
+Gambia,2011,0.44,GMB
+Georgia,2011,0.749,GEO
+Germany,2011,0.916,DEU
+Ghana,2011,0.563,GHA
+Greece,2011,0.858,GRC
+Grenada,2011,0.744,GRD
+Guatemala,2011,0.616,GTM
+Guinea,2011,0.396,GIN
+Guinea-Bissau,2011,0.416,GNB
+Guyana,2011,0.63,GUY
+Haiti,2011,0.477,HTI
+Honduras,2011,0.614,HND
+"Hong Kong, China (SAR)",2011,0.905,HKG
+Hungary,2011,0.823,HUN
+Iceland,2011,0.901,ISL
+India,2011,0.59,IND
+Indonesia,2011,0.669,IDN
+Iran (Islamic Republic of),2011,0.755,IRN
+Iraq,2011,0.656,IRQ
+Ireland,2011,0.895,IRL
+Israel,2011,0.889,ISR
+Italy,2011,0.877,ITA
+Jamaica,2011,0.725,JAM
+Japan,2011,0.889,JPN
+Jordan,2011,0.735,JOR
+Kazakhstan,2011,0.774,KAZ
+Kenya,2011,0.536,KEN
+Kiribati,2011,0.581,KIR
+Korea (Republic of),2011,0.889,KOR
+Kuwait,2011,0.794,KWT
+Kyrgyzstan,2011,0.638,KGZ
+Lao People's Democratic Republic,2011,0.554,LAO
+Latvia,2011,0.812,LVA
+Lebanon,2011,0.763,LBN
+Lesotho,2011,0.479,LSO
+Liberia,2011,0.416,LBR
+Libya,2011,0.706,LBY
+Liechtenstein,2011,0.909,LIE
+Lithuania,2011,0.83,LTU
+Luxembourg,2011,0.892,LUX
+Madagascar,2011,0.506,MDG
+Malawi,2011,0.454,MWI
+Malaysia,2011,0.776,MYS
+Maldives,2011,0.675,MDV
+Mali,2011,0.411,MLI
+Malta,2011,0.821,MLT
+Mauritania,2011,0.491,MRT
+Mauritius,2011,0.756,MUS
+Mexico,2011,0.748,MEX
+Micronesia (Federated States of),2011,0.64,FSM
+Moldova (Republic of),2011,0.679,MDA
+Mongolia,2011,0.712,MNG
+Montenegro,2011,0.797,MNE
+Morocco,2011,0.623,MAR
+Mozambique,2011,0.4,MOZ
+Myanmar,2011,0.533,MMR
+Namibia,2011,0.619,NAM
+Nepal,2011,0.538,NPL
+Netherlands,2011,0.921,NLD
+New Zealand,2011,0.904,NZL
+Nicaragua,2011,0.625,NIC
+Niger,2011,0.331,NER
+Nigeria,2011,0.507,NGA
+Norway,2011,0.941,NOR
+Oman,2011,0.797,OMN
+Pakistan,2011,0.529,PAK
+Palau,2011,0.775,PLW
+"Palestine, State of",2011,0.674,
+Panama,2011,0.765,PAN
+Papua New Guinea,2011,0.501,PNG
+Paraguay,2011,0.679,PRY
+Peru,2011,0.725,PER
+Philippines,2011,0.666,PHL
+Poland,2011,0.834,POL
+Portugal,2011,0.824,PRT
+Qatar,2011,0.837,QAT
+Romania,2011,0.797,ROU
+Russian Federation,2011,0.792,RUS
+Rwanda,2011,0.475,RWA
+Saint Kitts and Nevis,2011,0.746,KNA
+Saint Lucia,2011,0.735,LCA
+Saint Vincent and the Grenadines,2011,0.713,VCT
+Samoa,2011,0.698,WSM
+Sao Tome and Principe,2011,0.553,STP
+Saudi Arabia,2011,0.818,SAU
+Senegal,2011,0.463,SEN
+Serbia,2011,0.767,SRB
+Seychelles,2011,0.755,SYC
+Sierra Leone,2011,0.401,SLE
+Singapore,2011,0.917,SGP
+Slovakia,2011,0.835,SVK
+Slovenia,2011,0.877,SVN
+Solomon Islands,2011,0.505,SLB
+South Africa,2011,0.644,ZAF
+South Sudan,2011,0.419,SSD
+Spain,2011,0.871,ESP
+Sri Lanka,2011,0.752,LKA
+Sudan,2011,0.468,SDN
+Suriname,2011,0.708,SUR
+Swaziland,2011,0.534,
+Sweden,2011,0.903,SWE
+Switzerland,2011,0.932,CHE
+Syrian Arab Republic,2011,0.645,SYR
+Tajikistan,2011,0.613,TJK
+Tanzania (United Republic of),2011,0.504,TZA
+Thailand,2011,0.729,THA
+The former Yugoslav Republic of Macedonia,2011,0.739,MKD
+Timor-Leste,2011,0.618,TLS
+Togo,2011,0.464,TGO
+Tonga,2011,0.717,TON
+Trinidad and Tobago,2011,0.772,TTO
+Tunisia,2011,0.717,TUN
+Turkey,2011,0.75,
+Turkmenistan,2011,0.672,TKM
+Uganda,2011,0.477,UGA
+Ukraine,2011,0.739,UKR
+United Arab Emirates,2011,0.826,ARE
+United Kingdom,2011,0.898,GBR
+United States,2011,0.913,USA
+Uruguay,2011,0.784,URY
+Uzbekistan,2011,0.673,UZB
+Vanuatu,2011,0.592,VUT
+Venezuela (Bolivarian Republic of),2011,0.767,VEN
+Viet Nam,2011,0.662,VNM
+Yemen,2011,0.494,YEM
+Zambia,2011,0.554,ZMB
+Zimbabwe,2011,0.464,ZWE
+Afghanistan,2012,0.47,AFG
+Albania,2012,0.759,ALB
+Algeria,2012,0.737,DZA
+Andorra,2012,0.843,AND
+Angola,2012,0.523,AGO
+Antigua and Barbuda,2012,0.781,ATG
+Argentina,2012,0.823,ARG
+Armenia,2012,0.736,ARM
+Australia,2012,0.933,AUS
+Austria,2012,0.887,AUT
+Azerbaijan,2012,0.745,AZE
+Bahamas,2012,0.79,BHS
+Bahrain,2012,0.815,BHR
+Bangladesh,2012,0.565,BGD
+Barbados,2012,0.792,BRB
+Belarus,2012,0.796,BLR
+Belgium,2012,0.889,BEL
+Belize,2012,0.706,BLZ
+Benin,2012,0.466,BEN
+Bhutan,2012,0.589,BTN
+Bolivia (Plurinational State of),2012,0.661,BOL
+Bosnia and Herzegovina,2012,0.735,BIH
+Botswana,2012,0.693,BWA
+Brazil,2012,0.734,BRA
+Brunei Darussalam,2012,0.86,BRN
+Bulgaria,2012,0.781,BGR
+Burkina Faso,2012,0.392,BFA
+Burundi,2012,0.398,BDI
+Cabo Verde,2012,0.643,CPV
+Cambodia,2012,0.546,KHM
+Cameroon,2012,0.501,CMR
+Canada,2012,0.909,CAN
+Central African Republic,2012,0.37,CAF
+Chad,2012,0.387,TCD
+Chile,2012,0.831,CHL
+China,2012,0.713,CHN
+Colombia,2012,0.712,COL
+Comoros,2012,0.49,COM
+Congo,2012,0.576,COG
+Congo (Democratic Republic of the),2012,0.412,COD
+Costa Rica,2012,0.762,CRI
+Croatia,2012,0.817,HRV
+Cuba,2012,0.773,CUB
+Cyprus,2012,0.85,CYP
+Czech Republic,2012,0.865,CZE
+Cü¾†˜¼te d'Ivoire,2012,0.452,CIV
+Denmark,2012,0.924,DNK
+Djibouti,2012,0.464,DJI
+Dominica,2012,0.721,DMA
+Dominican Republic,2012,0.709,DOM
+Ecuador,2012,0.725,ECU
+Egypt,2012,0.681,EGY
+El Salvador,2012,0.675,SLV
+Equatorial Guinea,2012,0.586,GNQ
+Eritrea,2012,0.414,ERI
+Estonia,2012,0.856,EST
+Ethiopia,2012,0.427,ETH
+Fiji,2012,0.719,FJI
+Finland,2012,0.887,FIN
+France,2012,0.887,FRA
+Gabon,2012,0.678,GAB
+Gambia,2012,0.445,GMB
+Georgia,2012,0.755,GEO
+Germany,2012,0.919,DEU
+Ghana,2012,0.57,GHA
+Greece,2012,0.86,GRC
+Grenada,2012,0.746,GRD
+Guatemala,2012,0.611,GTM
+Guinea,2012,0.406,GIN
+Guinea-Bissau,2012,0.415,GNB
+Guyana,2012,0.633,GUY
+Haiti,2012,0.483,HTI
+Honduras,2012,0.614,HND
+"Hong Kong, China (SAR)",2012,0.907,HKG
+Hungary,2012,0.824,HUN
+Iceland,2012,0.907,ISL
+India,2012,0.599,IND
+Indonesia,2012,0.677,IDN
+Iran (Islamic Republic of),2012,0.769,IRN
+Iraq,2012,0.659,IRQ
+Ireland,2012,0.902,IRL
+Israel,2012,0.891,ISR
+Italy,2012,0.876,ITA
+Jamaica,2012,0.727,JAM
+Japan,2012,0.894,JPN
+Jordan,2012,0.737,JOR
+Kazakhstan,2012,0.782,KAZ
+Kenya,2012,0.541,KEN
+Kiribati,2012,0.589,KIR
+Korea (Republic of),2012,0.891,KOR
+Kuwait,2012,0.796,KWT
+Kyrgyzstan,2012,0.647,KGZ
+Lao People's Democratic Republic,2012,0.563,LAO
+Latvia,2012,0.814,LVA
+Lebanon,2012,0.766,LBN
+Lesotho,2012,0.484,LSO
+Liberia,2012,0.419,LBR
+Libya,2012,0.735,LBY
+Liechtenstein,2012,0.908,LIE
+Lithuania,2012,0.834,LTU
+Luxembourg,2012,0.892,LUX
+Madagascar,2012,0.508,MDG
+Malawi,2012,0.459,MWI
+Malaysia,2012,0.779,MYS
+Maldives,2012,0.683,MDV
+Mali,2012,0.421,MLI
+Malta,2012,0.828,MLT
+Mauritania,2012,0.501,MRT
+Mauritius,2012,0.765,MUS
+Mexico,2012,0.753,MEX
+Micronesia (Federated States of),2012,0.641,FSM
+Moldova (Republic of),2012,0.686,MDA
+Mongolia,2012,0.72,MNG
+Montenegro,2012,0.799,MNE
+Morocco,2012,0.634,MAR
+Mozambique,2012,0.405,MOZ
+Myanmar,2012,0.54,MMR
+Namibia,2012,0.625,NAM
+Nepal,2012,0.545,NPL
+Netherlands,2012,0.922,NLD
+New Zealand,2012,0.908,NZL
+Nicaragua,2012,0.63,NIC
+Niger,2012,0.341,NER
+Nigeria,2012,0.514,NGA
+Norway,2012,0.942,NOR
+Oman,2012,0.796,OMN
+Pakistan,2012,0.538,PAK
+Palau,2012,0.779,PLW
+"Palestine, State of",2012,0.684,
+Panama,2012,0.773,PAN
+Papua New Guinea,2012,0.506,PNG
+Paraguay,2012,0.679,PRY
+Peru,2012,0.731,PER
+Philippines,2012,0.671,PHL
+Poland,2012,0.838,POL
+Portugal,2012,0.827,PRT
+Qatar,2012,0.843,QAT
+Romania,2012,0.794,ROU
+Russian Federation,2012,0.799,RUS
+Rwanda,2012,0.485,RWA
+Saint Kitts and Nevis,2012,0.749,KNA
+Saint Lucia,2012,0.734,LCA
+Saint Vincent and the Grenadines,2012,0.717,VCT
+Samoa,2012,0.7,WSM
+Sao Tome and Principe,2012,0.559,STP
+Saudi Arabia,2012,0.83,SAU
+Senegal,2012,0.474,SEN
+Serbia,2012,0.766,SRB
+Seychelles,2012,0.762,SYC
+Sierra Leone,2012,0.413,SLE
+Singapore,2012,0.92,SGP
+Slovakia,2012,0.838,SVK
+Slovenia,2012,0.878,SVN
+Solomon Islands,2012,0.509,SLB
+South Africa,2012,0.652,ZAF
+South Sudan,2012,0.417,SSD
+Spain,2012,0.874,ESP
+Sri Lanka,2012,0.757,LKA
+Sudan,2012,0.478,SDN
+Suriname,2012,0.719,SUR
+Swaziland,2012,0.539,
+Sweden,2012,0.904,SWE
+Switzerland,2012,0.934,CHE
+Syrian Arab Republic,2012,0.635,SYR
+Tajikistan,2012,0.617,TJK
+Tanzania (United Republic of),2012,0.513,TZA
+Thailand,2012,0.733,THA
+The former Yugoslav Republic of Macedonia,2012,0.741,MKD
+Timor-Leste,2012,0.62,TLS
+Togo,2012,0.47,TGO
+Tonga,2012,0.718,TON
+Trinidad and Tobago,2012,0.773,TTO
+Tunisia,2012,0.72,TUN
+Turkey,2012,0.754,
+Turkmenistan,2012,0.678,TKM
+Uganda,2012,0.478,UGA
+Ukraine,2012,0.744,UKR
+United Arab Emirates,2012,0.829,ARE
+United Kingdom,2012,0.899,GBR
+United States,2012,0.915,USA
+Uruguay,2012,0.788,URY
+Uzbekistan,2012,0.681,UZB
+Vanuatu,2012,0.591,VUT
+Venezuela (Bolivarian Republic of),2012,0.77,VEN
+Viet Nam,2012,0.668,VNM
+Yemen,2012,0.498,YEM
+Zambia,2012,0.565,ZMB
+Zimbabwe,2012,0.488,ZWE
+Afghanistan,2013,0.476,AFG
+Albania,2013,0.761,ALB
+Algeria,2013,0.741,DZA
+Andorra,2013,0.85,AND
+Angola,2013,0.527,AGO
+Antigua and Barbuda,2013,0.782,ATG
+Argentina,2013,0.825,ARG
+Armenia,2013,0.739,ARM
+Australia,2013,0.936,AUS
+Austria,2013,0.892,AUT
+Azerbaijan,2013,0.752,AZE
+Bahamas,2013,0.789,BHS
+Bahrain,2013,0.82,BHR
+Bangladesh,2013,0.57,BGD
+Barbados,2013,0.793,BRB
+Belarus,2013,0.796,BLR
+Belgium,2013,0.89,BEL
+Belize,2013,0.705,BLZ
+Benin,2013,0.475,BEN
+Bhutan,2013,0.596,BTN
+Bolivia (Plurinational State of),2013,0.666,BOL
+Bosnia and Herzegovina,2013,0.742,BIH
+Botswana,2013,0.697,BWA
+Brazil,2013,0.747,BRA
+Brunei Darussalam,2013,0.863,BRN
+Bulgaria,2013,0.787,BGR
+Burkina Faso,2013,0.398,BFA
+Burundi,2013,0.404,BDI
+Cabo Verde,2013,0.643,CPV
+Cambodia,2013,0.553,KHM
+Cameroon,2013,0.507,CMR
+Canada,2013,0.912,CAN
+Central African Republic,2013,0.345,CAF
+Chad,2013,0.39,TCD
+Chile,2013,0.841,CHL
+China,2013,0.723,CHN
+Colombia,2013,0.72,COL
+Comoros,2013,0.497,COM
+Congo,2013,0.581,COG
+Congo (Democratic Republic of the),2013,0.419,COD
+Costa Rica,2013,0.768,CRI
+Croatia,2013,0.82,HRV
+Cuba,2013,0.772,CUB
+Cyprus,2013,0.85,CYP
+Czech Republic,2013,0.871,CZE
+Cü¾†˜¼te d'Ivoire,2013,0.459,CIV
+Denmark,2013,0.926,DNK
+Djibouti,2013,0.467,DJI
+Dominica,2013,0.724,DMA
+Dominican Republic,2013,0.712,DOM
+Ecuador,2013,0.737,ECU
+Egypt,2013,0.686,EGY
+El Salvador,2013,0.676,SLV
+Equatorial Guinea,2013,0.582,GNQ
+Eritrea,2013,0.416,ERI
+Estonia,2013,0.86,EST
+Ethiopia,2013,0.435,ETH
+Fiji,2013,0.727,FJI
+Finland,2013,0.89,FIN
+France,2013,0.89,FRA
+Gabon,2013,0.687,GAB
+Gambia,2013,0.449,GMB
+Georgia,2013,0.759,GEO
+Germany,2013,0.92,DEU
+Ghana,2013,0.576,GHA
+Greece,2013,0.862,GRC
+Grenada,2013,0.749,GRD
+Guatemala,2013,0.614,GTM
+Guinea,2013,0.412,GIN
+Guinea-Bissau,2013,0.419,GNB
+Guyana,2013,0.636,GUY
+Haiti,2013,0.487,HTI
+Honduras,2013,0.618,HND
+"Hong Kong, China (SAR)",2013,0.913,HKG
+Hungary,2013,0.834,HUN
+Iceland,2013,0.915,ISL
+India,2013,0.607,IND
+Indonesia,2013,0.682,IDN
+Iran (Islamic Republic of),2013,0.77,IRN
+Iraq,2013,0.658,IRQ
+Ireland,2013,0.91,IRL
+Israel,2013,0.895,ISR
+Italy,2013,0.877,ITA
+Jamaica,2013,0.727,JAM
+Japan,2013,0.899,JPN
+Jordan,2013,0.737,JOR
+Kazakhstan,2013,0.789,KAZ
+Kenya,2013,0.546,KEN
+Kiribati,2013,0.597,KIR
+Korea (Republic of),2013,0.896,KOR
+Kuwait,2013,0.787,KWT
+Kyrgyzstan,2013,0.656,KGZ
+Lao People's Democratic Republic,2013,0.573,LAO
+Latvia,2013,0.822,LVA
+Lebanon,2013,0.763,LBN
+Lesotho,2013,0.491,LSO
+Liberia,2013,0.426,LBR
+Libya,2013,0.73,LBY
+Liechtenstein,2013,0.912,LIE
+Lithuania,2013,0.841,LTU
+Luxembourg,2013,0.892,LUX
+Madagascar,2013,0.509,MDG
+Malawi,2013,0.466,MWI
+Malaysia,2013,0.783,MYS
+Maldives,2013,0.693,MDV
+Mali,2013,0.43,MLI
+Malta,2013,0.847,MLT
+Mauritania,2013,0.509,MRT
+Mauritius,2013,0.769,MUS
+Mexico,2013,0.754,MEX
+Micronesia (Federated States of),2013,0.639,FSM
+Moldova (Republic of),2013,0.696,MDA
+Mongolia,2013,0.729,MNG
+Montenegro,2013,0.803,MNE
+Morocco,2013,0.64,MAR
+Mozambique,2013,0.409,MOZ
+Myanmar,2013,0.547,MMR
+Namibia,2013,0.632,NAM
+Nepal,2013,0.551,NPL
+Netherlands,2013,0.923,NLD
+New Zealand,2013,0.91,NZL
+Nicaragua,2013,0.636,NIC
+Niger,2013,0.345,NER
+Nigeria,2013,0.521,NGA
+Norway,2013,0.945,NOR
+Oman,2013,0.796,OMN
+Pakistan,2013,0.542,PAK
+Palau,2013,0.782,PLW
+"Palestine, State of",2013,0.678,
+Panama,2013,0.78,PAN
+Papua New Guinea,2013,0.511,PNG
+Paraguay,2013,0.688,PRY
+Peru,2013,0.735,PER
+Philippines,2013,0.676,PHL
+Poland,2013,0.85,POL
+Portugal,2013,0.837,PRT
+Qatar,2013,0.854,QAT
+Romania,2013,0.797,ROU
+Russian Federation,2013,0.803,RUS
+Rwanda,2013,0.488,RWA
+Saint Kitts and Nevis,2013,0.756,KNA
+Saint Lucia,2013,0.723,LCA
+Saint Vincent and the Grenadines,2013,0.72,VCT
+Samoa,2013,0.701,WSM
+Sao Tome and Principe,2013,0.562,STP
+Saudi Arabia,2013,0.841,SAU
+Senegal,2013,0.483,SEN
+Serbia,2013,0.771,SRB
+Seychelles,2013,0.766,SYC
+Sierra Leone,2013,0.426,SLE
+Singapore,2013,0.922,SGP
+Slovakia,2013,0.841,SVK
+Slovenia,2013,0.888,SVN
+Solomon Islands,2013,0.512,SLB
+South Africa,2013,0.66,ZAF
+South Sudan,2013,0.421,SSD
+Spain,2013,0.877,ESP
+Sri Lanka,2013,0.76,LKA
+Sudan,2013,0.485,SDN
+Suriname,2013,0.722,SUR
+Swaziland,2013,0.541,
+Sweden,2013,0.906,SWE
+Switzerland,2013,0.936,CHE
+Syrian Arab Republic,2013,0.575,SYR
+Tajikistan,2013,0.622,TJK
+Tanzania (United Republic of),2013,0.512,TZA
+Thailand,2013,0.737,THA
+The former Yugoslav Republic of Macedonia,2013,0.743,MKD
+Timor-Leste,2013,0.612,TLS
+Togo,2013,0.475,TGO
+Tonga,2013,0.716,TON
+Trinidad and Tobago,2013,0.778,TTO
+Tunisia,2013,0.722,TUN
+Turkey,2013,0.759,
+Turkmenistan,2013,0.683,TKM
+Uganda,2013,0.483,UGA
+Ukraine,2013,0.746,UKR
+United Arab Emirates,2013,0.832,ARE
+United Kingdom,2013,0.904,GBR
+United States,2013,0.916,USA
+Uruguay,2013,0.791,URY
+Uzbekistan,2013,0.69,UZB
+Vanuatu,2013,0.596,VUT
+Venezuela (Bolivarian Republic of),2013,0.771,VEN
+Viet Nam,2013,0.675,VNM
+Yemen,2013,0.5,YEM
+Zambia,2013,0.57,ZMB
+Zimbabwe,2013,0.498,ZWE
+Afghanistan,2014,0.479,AFG
+Albania,2014,0.762,ALB
+Algeria,2014,0.743,DZA
+Andorra,2014,0.857,AND
+Angola,2014,0.531,AGO
+Antigua and Barbuda,2014,0.784,ATG
+Argentina,2014,0.826,ARG
+Armenia,2014,0.741,ARM
+Australia,2014,0.937,AUS
+Austria,2014,0.892,AUT
+Azerbaijan,2014,0.758,AZE
+Bahamas,2014,0.79,BHS
+Bahrain,2014,0.823,BHR
+Bangladesh,2014,0.575,BGD
+Barbados,2014,0.794,BRB
+Belarus,2014,0.798,BLR
+Belgium,2014,0.895,BEL
+Belize,2014,0.706,BLZ
+Benin,2014,0.481,BEN
+Bhutan,2014,0.604,BTN
+Bolivia (Plurinational State of),2014,0.671,BOL
+Bosnia and Herzegovina,2014,0.747,BIH
+Botswana,2014,0.698,BWA
+Brazil,2014,0.754,BRA
+Brunei Darussalam,2014,0.864,BRN
+Bulgaria,2014,0.792,BGR
+Burkina Faso,2014,0.399,BFA
+Burundi,2014,0.406,BDI
+Cabo Verde,2014,0.646,CPV
+Cambodia,2014,0.558,KHM
+Cameroon,2014,0.514,CMR
+Canada,2014,0.919,CAN
+Central African Republic,2014,0.347,CAF
+Chad,2014,0.394,TCD
+Chile,2014,0.845,CHL
+China,2014,0.734,CHN
+Colombia,2014,0.724,COL
+Comoros,2014,0.498,COM
+Congo,2014,0.59,COG
+Congo (Democratic Republic of the),2014,0.425,COD
+Costa Rica,2014,0.775,CRI
+Croatia,2014,0.823,HRV
+Cuba,2014,0.773,CUB
+Cyprus,2014,0.854,CYP
+Czech Republic,2014,0.875,CZE
+Cü¾†˜¼te d'Ivoire,2014,0.466,CIV
+Denmark,2014,0.923,DNK
+Djibouti,2014,0.47,DJI
+Dominica,2014,0.724,DMA
+Dominican Republic,2014,0.718,DOM
+Ecuador,2014,0.739,ECU
+Egypt,2014,0.688,EGY
+El Salvador,2014,0.678,SLV
+Equatorial Guinea,2014,0.582,GNQ
+Eritrea,2014,0.418,ERI
+Estonia,2014,0.863,EST
+Ethiopia,2014,0.441,ETH
+Fiji,2014,0.734,FJI
+Finland,2014,0.893,FIN
+France,2014,0.894,FRA
+Gabon,2014,0.694,GAB
+Gambia,2014,0.45,GMB
+Georgia,2014,0.768,GEO
+Germany,2014,0.924,DEU
+Ghana,2014,0.575,GHA
+Greece,2014,0.865,GRC
+Grenada,2014,0.751,GRD
+Guatemala,2014,0.637,GTM
+Guinea,2014,0.414,GIN
+Guinea-Bissau,2014,0.421,GNB
+Guyana,2014,0.638,GUY
+Haiti,2014,0.49,HTI
+Honduras,2014,0.623,HND
+"Hong Kong, China (SAR)",2014,0.916,HKG
+Hungary,2014,0.834,HUN
+Iceland,2014,0.919,ISL
+India,2014,0.615,IND
+Indonesia,2014,0.686,IDN
+Iran (Islamic Republic of),2014,0.774,IRN
+Iraq,2014,0.649,IRQ
+Ireland,2014,0.92,IRL
+Israel,2014,0.898,ISR
+Italy,2014,0.881,ITA
+Jamaica,2014,0.729,JAM
+Japan,2014,0.902,JPN
+Jordan,2014,0.741,JOR
+Kazakhstan,2014,0.793,KAZ
+Kenya,2014,0.55,KEN
+Kiribati,2014,0.586,KIR
+Korea (Republic of),2014,0.899,KOR
+Kuwait,2014,0.799,KWT
+Kyrgyzstan,2014,0.662,KGZ
+Lao People's Democratic Republic,2014,0.582,LAO
+Latvia,2014,0.828,LVA
+Lebanon,2014,0.763,LBN
+Lesotho,2014,0.495,LSO
+Liberia,2014,0.427,LBR
+Libya,2014,0.719,LBY
+Liechtenstein,2014,0.911,LIE
+Lithuania,2014,0.846,LTU
+Luxembourg,2014,0.896,LUX
+Madagascar,2014,0.511,MDG
+Malawi,2014,0.473,MWI
+Malaysia,2014,0.787,MYS
+Maldives,2014,0.701,MDV
+Mali,2014,0.438,MLI
+Malta,2014,0.853,MLT
+Mauritania,2014,0.513,MRT
+Mauritius,2014,0.779,MUS
+Mexico,2014,0.758,MEX
+Micronesia (Federated States of),2014,0.637,FSM
+Moldova (Republic of),2014,0.701,MDA
+Mongolia,2014,0.733,MNG
+Montenegro,2014,0.804,MNE
+Morocco,2014,0.645,MAR
+Mozambique,2014,0.414,MOZ
+Myanmar,2014,0.552,MMR
+Namibia,2014,0.637,NAM
+Nepal,2014,0.555,NPL
+Netherlands,2014,0.923,NLD
+New Zealand,2014,0.913,NZL
+Nicaragua,2014,0.642,NIC
+Niger,2014,0.351,NER
+Nigeria,2014,0.525,NGA
+Norway,2014,0.948,NOR
+Oman,2014,0.795,OMN
+Pakistan,2014,0.548,PAK
+Palau,2014,0.783,PLW
+"Palestine, State of",2014,0.678,
+Panama,2014,0.785,PAN
+Papua New Guinea,2014,0.515,PNG
+Paraguay,2014,0.692,PRY
+Peru,2014,0.737,PER
+Philippines,2014,0.679,PHL
+Poland,2014,0.852,POL
+Portugal,2014,0.841,PRT
+Qatar,2014,0.855,QAT
+Romania,2014,0.798,ROU
+Russian Federation,2014,0.805,RUS
+Rwanda,2014,0.493,RWA
+Saint Kitts and Nevis,2014,0.762,KNA
+Saint Lucia,2014,0.735,LCA
+Saint Vincent and the Grenadines,2014,0.72,VCT
+Samoa,2014,0.702,WSM
+Sao Tome and Principe,2014,0.565,STP
+Saudi Arabia,2014,0.845,SAU
+Senegal,2014,0.491,SEN
+Serbia,2014,0.775,SRB
+Seychelles,2014,0.781,SYC
+Sierra Leone,2014,0.431,SLE
+Singapore,2014,0.924,SGP
+Slovakia,2014,0.842,SVK
+Slovenia,2014,0.888,SVN
+Solomon Islands,2014,0.514,SLB
+South Africa,2014,0.665,ZAF
+South Sudan,2014,0.421,SSD
+Spain,2014,0.882,ESP
+Sri Lanka,2014,0.764,LKA
+Sudan,2014,0.488,SDN
+Suriname,2014,0.723,SUR
+Swaziland,2014,0.541,
+Sweden,2014,0.909,SWE
+Switzerland,2014,0.938,CHE
+Syrian Arab Republic,2014,0.553,SYR
+Tajikistan,2014,0.625,TJK
+Tanzania (United Republic of),2014,0.519,TZA
+Thailand,2014,0.738,THA
+The former Yugoslav Republic of Macedonia,2014,0.746,MKD
+Timor-Leste,2014,0.603,TLS
+Togo,2014,0.484,TGO
+Tonga,2014,0.718,TON
+Trinidad and Tobago,2014,0.779,TTO
+Tunisia,2014,0.723,TUN
+Turkey,2014,0.764,
+Turkmenistan,2014,0.688,TKM
+Uganda,2014,0.488,UGA
+Ukraine,2014,0.748,UKR
+United Arab Emirates,2014,0.836,ARE
+United Kingdom,2014,0.908,GBR
+United States,2014,0.918,USA
+Uruguay,2014,0.794,URY
+Uzbekistan,2014,0.697,UZB
+Vanuatu,2014,0.598,VUT
+Venezuela (Bolivarian Republic of),2014,0.769,VEN
+Viet Nam,2014,0.678,VNM
+Yemen,2014,0.499,YEM
+Zambia,2014,0.576,ZMB
+Zimbabwe,2014,0.507,ZWE
+Afghanistan,2015,0.479,AFG
+Albania,2015,0.764,ALB
+Algeria,2015,0.745,DZA
+Andorra,2015,0.858,AND
+Angola,2015,0.533,AGO
+Antigua and Barbuda,2015,0.786,ATG
+Argentina,2015,0.827,ARG
+Armenia,2015,0.743,ARM
+Australia,2015,0.939,AUS
+Austria,2015,0.893,AUT
+Azerbaijan,2015,0.759,AZE
+Bahamas,2015,0.792,BHS
+Bahrain,2015,0.824,BHR
+Bangladesh,2015,0.579,BGD
+Barbados,2015,0.795,BRB
+Belarus,2015,0.796,BLR
+Belgium,2015,0.896,BEL
+Belize,2015,0.706,BLZ
+Benin,2015,0.485,BEN
+Bhutan,2015,0.607,BTN
+Bolivia (Plurinational State of),2015,0.674,BOL
+Bosnia and Herzegovina,2015,0.75,BIH
+Botswana,2015,0.698,BWA
+Brazil,2015,0.754,BRA
+Brunei Darussalam,2015,0.865,BRN
+Bulgaria,2015,0.794,BGR
+Burkina Faso,2015,0.402,BFA
+Burundi,2015,0.404,BDI
+Cabo Verde,2015,0.648,CPV
+Cambodia,2015,0.563,KHM
+Cameroon,2015,0.518,CMR
+Canada,2015,0.92,CAN
+Central African Republic,2015,0.352,CAF
+Chad,2015,0.396,TCD
+Chile,2015,0.847,CHL
+China,2015,0.738,CHN
+Colombia,2015,0.727,COL
+Comoros,2015,0.498,COM
+Congo,2015,0.592,COG
+Congo (Democratic Republic of the),2015,0.435,COD
+Costa Rica,2015,0.776,CRI
+Croatia,2015,0.827,HRV
+Cuba,2015,0.775,CUB
+Cyprus,2015,0.856,CYP
+Czech Republic,2015,0.878,CZE
+Cü¾†˜¼te d'Ivoire,2015,0.474,CIV
+Denmark,2015,0.925,DNK
+Djibouti,2015,0.473,DJI
+Dominica,2015,0.726,DMA
+Dominican Republic,2015,0.722,DOM
+Ecuador,2015,0.739,ECU
+Egypt,2015,0.691,EGY
+El Salvador,2015,0.68,SLV
+Equatorial Guinea,2015,0.592,GNQ
+Eritrea,2015,0.42,ERI
+Estonia,2015,0.865,EST
+Ethiopia,2015,0.448,ETH
+Fiji,2015,0.736,FJI
+Finland,2015,0.895,FIN
+France,2015,0.897,FRA
+Gabon,2015,0.697,GAB
+Gambia,2015,0.452,GMB
+Georgia,2015,0.769,GEO
+Germany,2015,0.926,DEU
+Ghana,2015,0.579,GHA
+Greece,2015,0.866,GRC
+Grenada,2015,0.754,GRD
+Guatemala,2015,0.64,GTM
+Guinea,2015,0.414,GIN
+Guinea-Bissau,2015,0.424,GNB
+Guyana,2015,0.638,GUY
+Haiti,2015,0.493,HTI
+Honduras,2015,0.625,HND
+"Hong Kong, China (SAR)",2015,0.917,HKG
+Hungary,2015,0.836,HUN
+Iceland,2015,0.921,ISL
+India,2015,0.624,IND
+Indonesia,2015,0.689,IDN
+Iran (Islamic Republic of),2015,0.774,IRN
+Iraq,2015,0.649,IRQ
+Ireland,2015,0.923,IRL
+Israel,2015,0.899,ISR
+Italy,2015,0.887,ITA
+Jamaica,2015,0.73,JAM
+Japan,2015,0.903,JPN
+Jordan,2015,0.742,JOR
+Kazakhstan,2015,0.794,KAZ
+Kenya,2015,0.555,KEN
+Kiribati,2015,0.588,KIR
+Korea (Republic of),2015,0.901,KOR
+Kuwait,2015,0.8,KWT
+Kyrgyzstan,2015,0.664,KGZ
+Lao People's Democratic Republic,2015,0.586,LAO
+Latvia,2015,0.83,LVA
+Lebanon,2015,0.763,LBN
+Lesotho,2015,0.497,LSO
+Liberia,2015,0.427,LBR
+Libya,2015,0.716,LBY
+Liechtenstein,2015,0.912,LIE
+Lithuania,2015,0.848,LTU
+Luxembourg,2015,0.898,LUX
+Madagascar,2015,0.512,MDG
+Malawi,2015,0.476,MWI
+Malaysia,2015,0.789,MYS
+Maldives,2015,0.701,MDV
+Mali,2015,0.442,MLI
+Malta,2015,0.856,MLT
+Mauritania,2015,0.513,MRT
+Mauritius,2015,0.781,MUS
+Mexico,2015,0.762,MEX
+Micronesia (Federated States of),2015,0.638,FSM
+Moldova (Republic of),2015,0.699,MDA
+Mongolia,2015,0.735,MNG
+Montenegro,2015,0.807,MNE
+Morocco,2015,0.647,MAR
+Mozambique,2015,0.418,MOZ
+Myanmar,2015,0.556,MMR
+Namibia,2015,0.64,NAM
+Nepal,2015,0.558,NPL
+Netherlands,2015,0.924,NLD
+New Zealand,2015,0.915,NZL
+Nicaragua,2015,0.645,NIC
+Niger,2015,0.353,NER
+Nigeria,2015,0.527,NGA
+Norway,2015,0.949,NOR
+Oman,2015,0.796,OMN
+Pakistan,2015,0.55,PAK
+Palau,2015,0.788,PLW
+"Palestine, State of",2015,0.684,
+Panama,2015,0.788,PAN
+Papua New Guinea,2015,0.516,PNG
+Paraguay,2015,0.693,PRY
+Peru,2015,0.74,PER
+Philippines,2015,0.682,PHL
+Poland,2015,0.855,POL
+Portugal,2015,0.843,PRT
+Qatar,2015,0.856,QAT
+Romania,2015,0.802,ROU
+Russian Federation,2015,0.804,RUS
+Rwanda,2015,0.498,RWA
+Saint Kitts and Nevis,2015,0.765,KNA
+Saint Lucia,2015,0.735,LCA
+Saint Vincent and the Grenadines,2015,0.722,VCT
+Samoa,2015,0.704,WSM
+Sao Tome and Principe,2015,0.574,STP
+Saudi Arabia,2015,0.847,SAU
+Senegal,2015,0.494,SEN
+Serbia,2015,0.776,SRB
+Seychelles,2015,0.782,SYC
+Sierra Leone,2015,0.42,SLE
+Singapore,2015,0.925,SGP
+Slovakia,2015,0.845,SVK
+Slovenia,2015,0.89,SVN
+Solomon Islands,2015,0.515,SLB
+South Africa,2015,0.666,ZAF
+South Sudan,2015,0.418,SSD
+Spain,2015,0.884,ESP
+Sri Lanka,2015,0.766,LKA
+Sudan,2015,0.49,SDN
+Suriname,2015,0.725,SUR
+Swaziland,2015,0.541,
+Sweden,2015,0.913,SWE
+Switzerland,2015,0.939,CHE
+Syrian Arab Republic,2015,0.536,SYR
+Tajikistan,2015,0.627,TJK
+Tanzania (United Republic of),2015,0.531,TZA
+Thailand,2015,0.74,THA
+The former Yugoslav Republic of Macedonia,2015,0.748,MKD
+Timor-Leste,2015,0.606,TLS
+Togo,2015,0.487,TGO
+Tonga,2015,0.721,TON
+Trinidad and Tobago,2015,0.78,TTO
+Tunisia,2015,0.725,TUN
+Turkey,2015,0.767,
+Turkmenistan,2015,0.692,TKM
+Uganda,2015,0.493,UGA
+Ukraine,2015,0.743,UKR
+United Arab Emirates,2015,0.84,ARE
+United Kingdom,2015,0.91,GBR
+United States,2015,0.92,USA
+Uruguay,2015,0.795,URY
+Uzbekistan,2015,0.701,UZB
+Vanuatu,2015,0.597,VUT
+Venezuela (Bolivarian Republic of),2015,0.767,VEN
+Viet Nam,2015,0.683,VNM
+Yemen,2015,0.482,YEM
+Zambia,2015,0.579,ZMB
+Zimbabwe,2015,0.516,ZWE
