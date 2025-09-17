@@ -1,85 +1,104 @@
 ---
-title: "01_DimensionReduction"
+title: "Risk and Resilience: Socioeconomic Dimensions of Pandemic Health Outcomes"
+subtitle: "01 – Dimension Reduction"
 author: "Kolja Nenoff"
 date: "2023-11-03"
 output: html_document
 ---
 
-The script is based on the code of Kreamer et al 2018.
-The world bank indicators are collected on the 03.11.2023 from https://datacatalog.worldbank.org/dataset/world-development-indicators
+This analysis builds on the code of **Kraemer et al. (2018)**.  
+World Bank indicators were collected on **03.11.2023** from the [World Bank Data Catalog](https://datacatalog.worldbank.org/dataset/world-development-indicators).
 
+---
 
-#Load
+# Setup  
 
+We begin by loading libraries, setting default plotting themes, defining computational resources, and preparing file paths.
+
+---
+
+## Load Required Libraries
 ```{r}
-# rm(list = ls())
-#Libraries
-
-libraries <- c("magrittr", "tidyverse", "data.table", "parallel", 
-               "dimRed", "devtools", "igraph", "energy", "ggrepel",
-               "ggalt", "ggraph", "trend", "RANN",
-               "RJSONIO", "RSpectra", "ggokabeito")
+#rm(list = ls())
+# List of required libraries
+libraries <- c(
+  "magrittr", "tidyverse", "data.table", "parallel",
+  "dimRed", "devtools", "igraph", "energy",
+  "ggrepel", "ggalt", "ggraph", "trend", 
+  "RANN", "RJSONIO", "RSpectra", "ggokabeito"
+)
+# Install missing libraries and load them
 for (lib in libraries) {
   if (!require(lib, character.only = TRUE)) {
     install.packages(lib)
     library(lib, character.only = TRUE)
   }
 }
+```
 
+## Color and font themes
+
+```{r}
+# Configure default color palettes and theme
 options(
-  # set default colors in ggplot2 to colorblind-friendly
-  # Okabe-Ito and Viridis palettes
-  ggplot2.discrete.colour = ggokabeito::palette_okabe_ito(),
-  ggplot2.discrete.fill = ggokabeito::palette_okabe_ito(),
+  ggplot2.discrete.colour   = ggokabeito::palette_okabe_ito(),
+  ggplot2.discrete.fill     = ggokabeito::palette_okabe_ito(),
   ggplot2.continuous.colour = "viridis",
-  ggplot2.continuous.fill = "viridis",
-  # set theme font and size
-  book.base_family = "sans",
-  book.base_size = 14
+  ggplot2.continuous.fill   = "viridis",
+  book.base_family          = "sans",
+  book.base_size            = 14
 )
-# set default theme
+
 theme_set(
   theme_minimal(
-    base_size = getOption("book.base_size"),
+    base_size   = getOption("book.base_size"),
     base_family = getOption("book.base_family")
-  ) %+replace%
-    theme(
-      panel.grid.minor = element_blank(),
-      legend.position = "bottom"
-    )
+  ) %+replace% theme(
+    panel.grid.minor = element_blank(),
+    legend.position  = "bottom"
+  )
 )
-#Cluster 
+```
+## Cluster recources
+```{r}
+# Setup for parallel processing (local with 50 threads)
 CLUSTER <- rep("localhost", 50)
 Sys.setenv(OPENBLAS_NUM_THREADS = 50)
-#Dir path
-DATA_DIR <- "../data/01_data"
+```
+
+## Define Directory Paths
+```{r}
+# Project directories
+DATA_DIR   <- "../data/01_data"
 FIGURE_DIR <- "../figures/01_figures"
-LIB_DIR<-"../libraries"
+LIB_DIR    <- "../libraries"
 
-WDI_DIR <- paste0("../data/231103_WDI")
+# World Bank Indicators
+WDI_DIR           <- "../data/231103_WDI"
+wdi_series_path   <- file.path(WDI_DIR, "WDISeries.csv")
+wdi_data_path     <- file.path(WDI_DIR, "WDIData.csv")
+wdi_country_path  <- file.path(WDI_DIR, "WDICountry.csv")
+wdi_income_path   <- file.path(WDI_DIR, "CLASS.xlsx")  # World Bank classification (2023-11-03)
 
+# Human Development Index
+HDI_data_path     <- file.path(DATA_DIR, "01_hdi_data.csv")
 
-#WDI
-wdi_series_path <- file.path(WDI_DIR, "WDISeries.csv")
-wdi_data_path<-file.path(WDI_DIR, "WDIData.csv")
-wdi_country_path<-file.path(WDI_DIR, "WDICountry.csv")
-wdi_income_path<-file.path(WDI_DIR, "CLASS.xlsx") # Available on the Worldbank website. Clssification 20231103
-# HDI 
-HDI_data_path<-file.path(DATA_DIR,"/","01_hdi_data.csv")
+# WHO Excess Mortality Data
+EXMORT_DIR        <- "../data/230225_WHO_Excess_Mort/2022-03-25_covid-19_gem"
+exmort_path       <- file.path(EXMORT_DIR, "WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx")
 
-# Exmort
-EXMORT_DIR <- "../data/230225_WHO_Excess_Mort/2022-03-25_covid-19_gem"
-exmort_path <- file.path(EXMORT_DIR, "WHO_COVID_Excess_Deaths_EstimatesByCountry.xlsx")
+# Custom scripts
+relative_indicators_path   <- file.path(DATA_DIR, "01_relative_indicators_2023_06.R")
+RELATIVE_INDICATORS_FILE_NAME <- "01_relative_indicators_2023_06.R"
+toolbox_path               <- file.path(LIB_DIR, "00_toolbox.R")
+wdi_dimred_path            <- file.path(LIB_DIR, "01_lib_WDI_dimred.R")  # Modified version of Kraemer et al. (2018)
+```
 
-#Costumized functions
-relative_indicators_path<-file.path(DATA_DIR,"01_relative_indicators_2023_06.R")
-DATA_DIR <- "../data/01_data"
-RELATIVE_INDICATORS_FILE_NAME<-"01_relative_indicators_2023_06.R"
+## Load Custom Functions and recources
+```{r}
+# Source custom helper functions and scripts
 source(relative_indicators_path)
-toolbox_path <- file.path(LIB_DIR, "00_toolbox.R") # Source helper functions
-wdi_dimred_path <- file.path(LIB_DIR, "01_lib_WDI_dimred.R") # Kraemeretal2018 modified
 source(toolbox_path)
-source(relative_indicators_path)
 source(wdi_dimred_path)
 
 ```
