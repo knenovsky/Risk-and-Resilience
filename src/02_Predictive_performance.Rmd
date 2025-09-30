@@ -605,10 +605,10 @@ prow <- plot_grid(
 )
 
 plot_performance<-plot_grid(prow, legend,ncol = 1, rel_heights = c(1, .1))
-plot_performance
+
 
 #ggsave(plot_performance,file = "../figures/02_figures/02_performanceplots.png",device = "png",width = 9,height = 5)
-R2_decision
+
 
 ```
 ```{r}
