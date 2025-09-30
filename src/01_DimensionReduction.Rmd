@@ -74,7 +74,7 @@ INPUT_DIR <- "../data/input_data"
 FIGURE_DIR <- "../figures/01_figures"
 LIB_DIR    <- "../libraries"
 WDI_DIR   <- "../data/231103_WDI" # 
-EXMORT_DIR    <- "../data/230225_WHO_Excess_Mort/2022-03-25_covid-19_gem"
+EXMORT_DIR    <- "../data/230225_WHO_Excess_Mort/2022-03-25_covid-19_gem" # Data available in the appendix of https://www.nature.com/articles/s41586-022-05522-2
 
 ```
 
@@ -157,7 +157,8 @@ INDICATOR_CODES     <- get_indicator_codes(wdi_series)
 
 ##  1.1. Filter countries
 
-Include only countries with available Excess Mort
+Include only countries with available Excess Mortality
+
 ```{r}
 ExcessMortbyCountry<-read_excel(exmort_path,sheet = 2)
 COUNTRY_CODES<-ExcessMortbyCountry$iso3 %>%  unique
@@ -415,8 +416,6 @@ qual_iso <- try( quality_iso(Matrix_new, dta_iso$dim_red, dmax = 35) )
 ```
 
 
-
-####Das geht wir können 
 
 
 # 8  create finaldata
